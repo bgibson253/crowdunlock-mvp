@@ -15,6 +15,44 @@ type SectionRow = {
   replies_count: number;
 };
 
+function SectionRowCard({
+  id,
+  name,
+  description,
+  threads_count,
+  replies_count,
+}: SectionRow) {
+  return (
+    <Card className="rounded-2xl">
+      <CardContent className="py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <Link
+              href={`/forum/s/${encodeURIComponent(id)}`}
+              className="font-semibold tracking-tight hover:underline"
+            >
+              {name}
+            </Link>
+            {description && (
+              <div className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                {description}
+              </div>
+            )}
+          </div>
+
+          <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="rounded-md border px-2 py-1">{threads_count} threads</div>
+            <div className="rounded-md border px-2 py-1">{replies_count} replies</div>
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/forum/new?section=${encodeURIComponent(id)}`}>Post</Link>
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default async function ForumIndexPage() {
   const supabase = await supabaseServer();
 
@@ -74,15 +112,20 @@ export default async function ForumIndexPage() {
     replies_count: repliesPerSection.get(s.id) ?? 0,
   }));
 
-  const visibleIds = [
-    "general",
-    "request_story",
-    "request_data",
-    "request_video",
-    "listed_stories",
-    "listed_data",
-    "listed_videos",
-  ];
+  const byId = new Map(sectionsWithCounts.map((s) => [s.id, s] as const));
+
+  const general = byId.get("general");
+  const requested = [
+    byId.get("request_story"),
+    byId.get("request_data"),
+    byId.get("request_video"),
+  ].filter(Boolean) as SectionRow[];
+
+  const listed = [
+    byId.get("listed_stories"),
+    byId.get("listed_data"),
+    byId.get("listed_videos"),
+  ].filter(Boolean) as SectionRow[];
 
   return (
     <div className="relative isolate">
@@ -100,44 +143,37 @@ export default async function ForumIndexPage() {
           </Button>
         </div>
 
-        <div className="mt-6 space-y-3">
-          {sectionsWithCounts
-            .filter((s) => visibleIds.includes(s.id))
-            .map((s) => (
-              <Card key={s.id} className="rounded-2xl">
-                <CardContent className="py-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <Link
-                        href={`/forum/s/${encodeURIComponent(s.id)}`}
-                        className="font-semibold tracking-tight hover:underline"
-                      >
-                        {s.name}
-                      </Link>
-                      {s.description && (
-                        <div className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                          {s.description}
-                        </div>
-                      )}
-                    </div>
+        <div className="mt-8 space-y-8">
+          {general && (
+            <section className="space-y-3">
+              <div className="text-sm font-semibold text-muted-foreground">
+                General Discussion
+              </div>
+              <SectionRowCard {...general} />
+            </section>
+          )}
 
-                    <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="rounded-full bg-muted px-2 py-1">
-                        {s.threads_count} threads
-                      </div>
-                      <div className="rounded-full bg-muted px-2 py-1">
-                        {s.replies_count} replies
-                      </div>
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={`/forum/new?section=${encodeURIComponent(s.id)}`}>
-                          Post
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <section className="space-y-3">
+            <div className="text-sm font-semibold text-muted-foreground">
+              Requested Items
+            </div>
+            <div className="space-y-3">
+              {requested.map((s) => (
+                <SectionRowCard key={s.id} {...s} />
+              ))}
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="text-sm font-semibold text-muted-foreground">
+              Listed Items
+            </div>
+            <div className="space-y-3">
+              {listed.map((s) => (
+                <SectionRowCard key={s.id} {...s} />
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     </div>
