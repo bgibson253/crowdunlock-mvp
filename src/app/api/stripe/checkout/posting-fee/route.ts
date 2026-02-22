@@ -27,6 +27,12 @@ export async function POST(req: Request) {
     .filter(Boolean);
 
   const stripe = stripeServer();
+  if (!stripe) {
+    return NextResponse.json(
+      { error: "Stripe is not configured yet. Set STRIPE_SECRET_KEY." },
+      { status: 501 },
+    );
+  }
 
   // Store draft payload in Stripe metadata (kept small).
   const session = await stripe.checkout.sessions.create({
