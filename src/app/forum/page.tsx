@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThreadListItem } from "@/components/forum/thread-list-item";
+import { ForumEmptyState } from "@/components/forum/empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -61,13 +62,7 @@ export default async function ForumIndexPage() {
             />
           ))}
 
-          {(threads?.length ?? 0) === 0 && (
-            <Card className="rounded-2xl">
-              <CardContent className="py-10 text-sm text-muted-foreground">
-                No threads yet.
-              </CardContent>
-            </Card>
-          )}
+          {(threads?.length ?? 0) === 0 && <ForumEmptyState />}
         </div>
       </div>
     </div>
