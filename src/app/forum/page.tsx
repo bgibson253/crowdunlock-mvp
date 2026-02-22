@@ -40,9 +40,9 @@ function SectionRowCard({
             )}
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-            <div className="rounded-md border px-2 py-1">{threads_count} threads</div>
-            <div className="rounded-md border px-2 py-1">{replies_count} replies</div>
+          <div className="hidden sm:grid grid-cols-[80px_80px_auto] items-center gap-3 text-xs text-muted-foreground">
+            <div className="w-24 text-right tabular-nums">{threads_count}</div>
+            <div className="w-24 text-right tabular-nums">{replies_count}</div>
             <Button asChild size="sm" variant="outline">
               <Link href={`/forum/new?section=${encodeURIComponent(id)}`}>Post</Link>
             </Button>
