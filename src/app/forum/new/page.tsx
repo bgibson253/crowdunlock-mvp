@@ -14,9 +14,17 @@ export default async function ForumNewThreadPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-2xl font-semibold mb-4">New thread</h1>
-      <NewThreadForm />
+    <div className="relative isolate">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight">New thread</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Keep it specific. One request per thread.
+          </p>
+        </div>
+        <NewThreadForm />
+      </div>
     </div>
   );
 }

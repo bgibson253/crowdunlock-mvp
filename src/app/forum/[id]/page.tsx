@@ -35,7 +35,9 @@ export default async function ForumThreadPage({
   const { data: authData } = await supabase.auth.getUser();
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 space-y-4">
+    <div className="relative isolate">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="mx-auto max-w-3xl px-4 py-10 space-y-4">
       <Card>
         <CardHeader>
           <CardTitle>{thread.title}</CardTitle>
@@ -69,7 +71,7 @@ export default async function ForumThreadPage({
       {authData.user ? (
         <ReplyForm threadId={id} />
       ) : (
-        <Card>
+        <Card className="rounded-2xl">
           <CardContent className="py-6 text-sm">
             <a className="underline" href="/auth">
               Sign in
@@ -78,6 +80,7 @@ export default async function ForumThreadPage({
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
