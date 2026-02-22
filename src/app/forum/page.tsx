@@ -24,7 +24,7 @@ function SectionRowLine({
 }: SectionRow) {
   return (
     <div className="">
-      <div className="py-4">
+      <div className="py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <Link
@@ -34,7 +34,7 @@ function SectionRowLine({
               {name}
             </Link>
             {description && (
-              <div className="mt-1 text-sm text-muted-foreground line-clamp-2">
+              <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
                 {description}
               </div>
             )}
@@ -63,9 +63,9 @@ export default async function ForumIndexPage() {
 
   if (sectionsErr) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mx-auto max-w-6xl px-4 py-8">
         <Card>
-          <CardContent className="py-6 text-sm text-muted-foreground">
+          <CardContent className="py-6 text-xs text-muted-foreground">
             Could not load sections: {sectionsErr.message}
           </CardContent>
         </Card>
@@ -130,11 +130,11 @@ export default async function ForumIndexPage() {
   return (
     <div className="relative isolate">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
-      <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Forum</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h1 className="text-xl font-semibold tracking-tight">Forum</h1>
+            <p className="mt-1 text-xs text-muted-foreground">
               Public can read. Sign in to start threads and reply.
             </p>
           </div>
@@ -143,10 +143,10 @@ export default async function ForumIndexPage() {
           </Button>
         </div>
 
-        <div className="mt-8 space-y-10">
+        <div className="mt-6 space-y-6">
           {general && (
             <section className="space-y-3">
-              <div className="text-sm font-semibold text-muted-foreground">
+              <div className="text-xs font-semibold text-muted-foreground">
                 General Discussion
               </div>
               <div className="">
@@ -156,7 +156,7 @@ export default async function ForumIndexPage() {
           )}
 
           <section className="space-y-3">
-            <div className="text-sm font-semibold text-muted-foreground">
+            <div className="text-xs font-semibold text-muted-foreground">
               Requested Items
             </div>
             <div className="">
@@ -167,7 +167,7 @@ export default async function ForumIndexPage() {
           </section>
 
           <section className="space-y-3">
-            <div className="text-sm font-semibold text-muted-foreground">
+            <div className="text-xs font-semibold text-muted-foreground">
               Listed Items
             </div>
             <div className="">
