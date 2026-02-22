@@ -28,14 +28,30 @@ function HamburgerButton() {
   );
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function SheetNavLinks({ user }: { user: any }) {
   return (
-    <Link
-      href={href}
-      className="text-sm text-muted-foreground hover:text-foreground"
-    >
-      {children}
-    </Link>
+    <div className="mt-6 space-y-2">
+      <Link href="/" className="block px-3 py-2 text-sm hover:underline">
+        Home
+      </Link>
+      <Link href="/forum" className="block px-3 py-2 text-sm hover:underline">
+        Forum
+      </Link>
+      <Link href="/browse" className="block px-3 py-2 text-sm hover:underline">
+        Browse
+      </Link>
+      <Link href="/upload" className="block px-3 py-2 text-sm hover:underline">
+        Upload
+      </Link>
+      {user && (
+        <Link
+          href="/dashboard"
+          className="block px-3 py-2 text-sm hover:underline"
+        >
+          Dashboard
+        </Link>
+      )}
+    </div>
   );
 }
 
@@ -51,14 +67,7 @@ export async function Nav() {
         <div className="flex items-center gap-3">
           <Sheet>
             <SheetTrigger asChild>
-              <span className="hidden md:inline-flex">
-                <HamburgerButton />
-              </span>
-            </SheetTrigger>
-            <SheetTrigger asChild>
-              <span className="inline-flex md:hidden">
-                <HamburgerButton />
-              </span>
+              <HamburgerButton />
             </SheetTrigger>
             <SheetContent side="left" className="w-80">
               <SheetHeader>
@@ -69,40 +78,7 @@ export async function Nav() {
                 </SheetTitle>
               </SheetHeader>
 
-              <div className="mt-6 space-y-2">
-                <Link
-                  href="/"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/forum"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Forum
-                </Link>
-                <Link
-                  href="/browse"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Browse
-                </Link>
-                <Link
-                  href="/upload"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Upload
-                </Link>
-                {user && (
-                  <Link
-                    href="/dashboard"
-                    className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                  >
-                    Dashboard
-                  </Link>
-                )}
-              </div>
+              <SheetNavLinks user={user} />
 
               <div className="mt-6 border-t pt-4">
                 {user ? (
@@ -125,90 +101,19 @@ export async function Nav() {
           </Link>
         </div>
 
-        <nav className="hidden items-center gap-4 md:flex">
-          <NavLink href="/browse">Browse</NavLink>
-          <NavLink href="/forum">Forum</NavLink>
-          <NavLink href="/upload">Upload</NavLink>
+        {/* keep right side minimal when hamburger is primary */}
+        <div className="flex items-center gap-2">
           {user ? (
-            <>
-              <NavLink href="/dashboard">Dashboard</NavLink>
-              <form action="/auth/signout" method="post">
-                <Button variant="outline" size="sm" type="submit">
-                  Sign out
-                </Button>
-              </form>
-            </>
+            <form action="/auth/signout" method="post" className="hidden sm:block">
+              <Button variant="outline" size="sm" type="submit">
+                Sign out
+              </Button>
+            </form>
           ) : (
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="hidden sm:inline-flex">
               <Link href="/auth">Sign in</Link>
             </Button>
           )}
-        </nav>
-
-        <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <HamburgerButton />
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80">
-              <SheetHeader>
-                <SheetTitle>
-                  <Link href="/" className="hover:underline">
-                    CrowdUnlock
-                  </Link>
-                </SheetTitle>
-              </SheetHeader>
-
-              <div className="mt-6 space-y-2">
-                <Link
-                  href="/"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/forum"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Forum
-                </Link>
-                <Link
-                  href="/browse"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Browse
-                </Link>
-                <Link
-                  href="/upload"
-                  className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                >
-                  Upload
-                </Link>
-                {user && (
-                  <Link
-                    href="/dashboard"
-                    className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-                  >
-                    Dashboard
-                  </Link>
-                )}
-              </div>
-
-              <div className="mt-6 border-t pt-4">
-                {user ? (
-                  <form action="/auth/signout" method="post">
-                    <Button variant="outline" type="submit" className="w-full">
-                      Sign out
-                    </Button>
-                  </form>
-                ) : (
-                  <Button asChild className="w-full">
-                    <Link href="/auth">Sign in</Link>
-                  </Button>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
     </header>
