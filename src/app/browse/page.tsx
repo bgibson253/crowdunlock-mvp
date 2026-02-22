@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { BrowseEmptyState } from "@/components/uploads/browse-empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -39,50 +40,71 @@ export default async function BrowsePage() {
   const uploads = (data ?? []) as UploadPublic[];
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Browse</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Teasers only. Unlocks go public when funded.</p>
+    <main className="relative isolate">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Browse</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Teasers only. Unlocks go public when funded.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/upload">Upload</Link>
+          </Button>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/upload">Upload</Link>
-        </Button>
-      </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {uploads.map((u) => {
-          const goal = u.funding_goal ?? 500;
-          const current = u.current_funded ?? 0;
-          const pct = Math.min(100, Math.round((current / goal) * 100));
+        <div className="mt-8">
+          {uploads.length === 0 ? (
+            <BrowseEmptyState />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {uploads.map((u) => {
+                const goal = u.funding_goal ?? 500;
+                const current = u.current_funded ?? 0;
+                const pct = Math.min(100, Math.round((current / goal) * 100));
 
-          return (
-            <Card key={u.id} className="overflow-hidden">
-              <CardHeader>
-                <CardTitle className="line-clamp-2 text-base">{u.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="line-clamp-4 text-sm text-muted-foreground">
-                  {u.ai_teaser ?? "(Teaser pending)"}
-                </p>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>
-                      ${current} / ${goal}
-                    </span>
-                    <span>{pct}%</span>
-                  </div>
-                  <Progress value={pct} />
-                </div>
-                <div className="flex gap-2">
-                  <Button asChild className="w-full" disabled={u.status !== "funding"}>
-                    <Link href={`/uploads/${u.id}`}>View</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                return (
+                  <Card
+                    key={u.id}
+                    className="overflow-hidden transition hover:border-indigo-200 hover:bg-indigo-50/20"
+                  >
+                    <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400" />
+                    <CardHeader>
+                      <CardTitle className="line-clamp-2 text-base">
+                        {u.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="line-clamp-4 text-sm text-muted-foreground">
+                        {u.ai_teaser ?? "(Teaser pending)"}
+                      </p>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>
+                            ${current} / ${goal}
+                          </span>
+                          <span>{pct}%</span>
+                        </div>
+                        <Progress value={pct} />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          asChild
+                          className="w-full"
+                          disabled={u.status !== "funding"}
+                        >
+                          <Link href={`/uploads/${u.id}`}>View</Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
