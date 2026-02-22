@@ -7,17 +7,32 @@ function ExampleCard({
   title,
   teaser,
   pct,
+  trending,
 }: {
   title: string;
   teaser: string;
   pct: number;
+  trending?: boolean;
 }) {
   return (
     <Card className="overflow-hidden border-indigo-100/80">
       <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400" />
       <CardContent className="space-y-3 py-5">
-        <div className="text-sm font-semibold tracking-tight line-clamp-2">
-          {title}
+        <div className="flex items-start justify-between gap-3">
+          <div className="text-sm font-semibold tracking-tight line-clamp-2">
+            {title}
+          </div>
+          <div className="flex items-center gap-2">
+            {trending && (
+              <div className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                <span aria-hidden>🔥</span>
+                Trending
+              </div>
+            )}
+            <div className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
+              Example
+            </div>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground line-clamp-4">{teaser}</p>
         <div className="space-y-1">
@@ -63,11 +78,13 @@ export function BrowseEmptyState() {
             title="Bodycam breakdown: what the official report left out (video)"
             teaser="Independent journalist analysis with timestamped clips, primary sources, and what changed between early statements and final findings."
             pct={61}
+            trending
           />
           <ExampleCard
             title="On-the-ground interview: tenant organizing under pressure (video)"
             teaser="Short doc-style piece: interviews, context, and a clean narrative. Includes b-roll and raw transcripts as receipts."
             pct={42}
+            trending
           />
           <ExampleCard
             title="FOIA template pack + real requests that worked (story)"
