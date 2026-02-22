@@ -5,13 +5,19 @@ import { NewThreadForm } from "@/components/forum/new-thread-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function ForumNewThreadPage() {
+export default async function ForumNewThreadPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ section?: string }>;
+}) {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
 
   if (!data.user) {
     redirect("/auth");
   }
+
+  const { section } = await searchParams;
 
   return (
     <div className="relative isolate">
@@ -23,7 +29,7 @@ export default async function ForumNewThreadPage() {
             Keep it specific. One request per thread.
           </p>
         </div>
-        <NewThreadForm />
+        <NewThreadForm defaultSectionId={section ?? null} />
       </div>
     </div>
   );
