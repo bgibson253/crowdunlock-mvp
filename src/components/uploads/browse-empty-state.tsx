@@ -60,19 +60,34 @@ export function BrowseEmptyState() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ExampleCard
-            title="How to run paid ads profitably (with real dashboards)"
-            teaser="A step-by-step playbook: setup, creative testing, landing page iterations, and how to know when to scale."
-            pct={34}
+            title="Bodycam breakdown: what the official report left out (video)"
+            teaser="Independent journalist analysis with timestamped clips, primary sources, and what changed between early statements and final findings."
+            pct={61}
           />
           <ExampleCard
-            title="Dataset: 10k SaaS landing pages + metadata"
-            teaser="Curated collection with conversion hints, pricing models, and positioning angles. Useful for copy + competitive research."
-            pct={72}
+            title="On-the-ground interview: tenant organizing under pressure (video)"
+            teaser="Short doc-style piece: interviews, context, and a clean narrative. Includes b-roll and raw transcripts as receipts."
+            pct={42}
           />
           <ExampleCard
-            title="Template: Creator revenue tracker (Notion + Sheets)"
-            teaser="Track unlock goals, contributions, payouts, and which content ideas are trending."
-            pct={18}
+            title="FOIA template pack + real requests that worked (story)"
+            teaser="Copy/paste templates + commentary, plus examples of wording that got faster responses."
+            pct={23}
+          />
+          <ExampleCard
+            title="Investigation: a local contract that quietly doubled in cost (story)"
+            teaser="A tight explainer with sourced screenshots, timeline, and the easiest ways to verify each claim."
+            pct={78}
+          />
+          <ExampleCard
+            title="Behind the scenes: how I secured sources safely (story)"
+            teaser="Practical opsec for journalists: comms hygiene, redaction workflow, and mistakes to avoid."
+            pct={36}
+          />
+          <ExampleCard
+            title="Data drop: campaign contributions + network map (dataset)"
+            teaser="CSV + a simple graph view showing who’s connected to whom. Includes methodology and limitations."
+            pct={15}
           />
         </div>
       </CardContent>
