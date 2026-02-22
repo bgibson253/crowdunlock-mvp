@@ -23,7 +23,7 @@ function SectionRowLine({
   replies_count,
 }: SectionRow) {
   return (
-    <div className="border-b last:border-b-0">
+    <div className="">
       <div className="py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
@@ -149,7 +149,7 @@ export default async function ForumIndexPage() {
               <div className="text-sm font-semibold text-muted-foreground">
                 General Discussion
               </div>
-              <div className="rounded-2xl border bg-background">
+              <div className="">
                 <SectionRowLine {...general} />
               </div>
             </section>
@@ -159,7 +159,7 @@ export default async function ForumIndexPage() {
             <div className="text-sm font-semibold text-muted-foreground">
               Requested Items
             </div>
-            <div className="rounded-2xl border bg-background">
+            <div className="">
               {requested.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
               ))}
@@ -170,7 +170,7 @@ export default async function ForumIndexPage() {
             <div className="text-sm font-semibold text-muted-foreground">
               Listed Items
             </div>
-            <div className="rounded-2xl border bg-background">
+            <div className="">
               {listed.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
               ))}
