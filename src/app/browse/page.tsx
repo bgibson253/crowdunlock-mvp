@@ -76,7 +76,7 @@ export default async function BrowsePage() {
                 </div>
                 <div className="flex gap-2">
                   <Button asChild className="w-full" disabled={u.status !== "funding"}>
-                    <Link href={`/contribute/${u.id}`}>Contribute</Link>
+                    <Link href={`/uploads/${u.id}`}>View</Link>
                   </Button>
                 </div>
               </CardContent>
