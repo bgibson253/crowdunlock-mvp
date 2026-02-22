@@ -19,6 +19,9 @@ export async function Nav() {
           <Link href="/browse" className="text-sm text-muted-foreground hover:text-foreground">
             Browse
           </Link>
+          <Link href="/forum" className="text-sm text-muted-foreground hover:text-foreground">
+            Forum
+          </Link>
           <Link href="/upload" className="text-sm text-muted-foreground hover:text-foreground">
             Upload
           </Link>
