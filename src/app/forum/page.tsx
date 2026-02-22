@@ -15,7 +15,7 @@ type SectionRow = {
   replies_count: number;
 };
 
-function SectionRowCard({
+function SectionRowLine({
   id,
   name,
   description,
@@ -23,8 +23,8 @@ function SectionRowCard({
   replies_count,
 }: SectionRow) {
   return (
-    <Card className="rounded-2xl">
-      <CardContent className="py-4">
+    <div className="border-b last:border-b-0">
+      <div className="py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <Link
@@ -40,16 +40,16 @@ function SectionRowCard({
             )}
           </div>
 
-          <div className="hidden sm:grid grid-cols-[80px_80px_auto] items-center gap-3 text-xs text-muted-foreground">
-            <div className="w-24 text-right tabular-nums">{threads_count} threads</div>
-            <div className="w-24 text-right tabular-nums">{replies_count} replies</div>
+          <div className="hidden sm:grid grid-cols-[110px_110px_auto] items-center gap-3 text-xs text-muted-foreground">
+            <div className="text-right tabular-nums">{threads_count} threads</div>
+            <div className="text-right tabular-nums">{replies_count} replies</div>
             <Button asChild size="sm" variant="outline">
               <Link href={`/forum/new?section=${encodeURIComponent(id)}`}>Post</Link>
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -143,13 +143,15 @@ export default async function ForumIndexPage() {
           </Button>
         </div>
 
-        <div className="mt-8 space-y-8">
+        <div className="mt-8 space-y-10">
           {general && (
             <section className="space-y-3">
               <div className="text-sm font-semibold text-muted-foreground">
                 General Discussion
               </div>
-              <SectionRowCard {...general} />
+              <div className="rounded-2xl border bg-background">
+                <SectionRowLine {...general} />
+              </div>
             </section>
           )}
 
@@ -157,9 +159,9 @@ export default async function ForumIndexPage() {
             <div className="text-sm font-semibold text-muted-foreground">
               Requested Items
             </div>
-            <div className="space-y-3">
+            <div className="rounded-2xl border bg-background">
               {requested.map((s) => (
-                <SectionRowCard key={s.id} {...s} />
+                <SectionRowLine key={s.id} {...s} />
               ))}
             </div>
           </section>
@@ -168,9 +170,9 @@ export default async function ForumIndexPage() {
             <div className="text-sm font-semibold text-muted-foreground">
               Listed Items
             </div>
-            <div className="space-y-3">
+            <div className="rounded-2xl border bg-background">
               {listed.map((s) => (
-                <SectionRowCard key={s.id} {...s} />
+                <SectionRowLine key={s.id} {...s} />
               ))}
             </div>
           </section>
