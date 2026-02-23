@@ -6,6 +6,12 @@ import { requireTestMode } from "@/lib/test-mode";
 
 export const runtime = "nodejs";
 
+function listedSectionId(contentType: string) {
+  if (contentType === "video") return "listed_videos";
+  if (contentType === "data") return "listed_data";
+  return "listed_stories";
+}
+
 export async function POST(req: Request) {
   const gate = requireTestMode();
   if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: 404 });
@@ -29,10 +35,18 @@ export async function POST(req: Request) {
   const title = String(form.get("title") ?? "");
   const why = String(form.get("why_it_matters") ?? "");
   const tagsRaw = String(form.get("tags") ?? "");
+  const unlockGoalRaw = String(form.get("unlock_goal") ?? "500");
+  const contentType = String(form.get("content_type") ?? "story");
   const file = form.get("file");
+
+  const unlockGoal = Number.parseInt(unlockGoalRaw, 10);
 
   if (!title || !why || why.length < 100) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
+
+  if (!Number.isFinite(unlockGoal) || unlockGoal < 10) {
+    return NextResponse.json({ error: "Invalid unlock goal" }, { status: 400 });
   }
 
   if (!(file instanceof File)) {
@@ -45,7 +59,6 @@ export async function POST(req: Request) {
     .filter(Boolean);
 
   // Use a NULL uploader_id in test mode so we do not violate the auth.users foreign key.
-  // (Uploader ownership is enforced in production mode only.)
   const uploaderId: string | null = null;
 
   const ext = file.name.split(".").pop() || "bin";
@@ -63,7 +76,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: uploadErr.message }, { status: 400 });
   }
 
-  const { data: row, error: insErr } = await supabase
+  const { data: uploadRow, error: insErr } = await supabase
     .from("uploads")
     .insert({
       title,
@@ -75,7 +88,7 @@ export async function POST(req: Request) {
       quality_score: null,
       status: "funding",
       current_funded: 0,
-      funding_goal: 500,
+      funding_goal: unlockGoal,
       posting_fee_payment_intent_id: null,
     })
     .select("id")
@@ -85,5 +98,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: insErr.message }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, uploadId: row.id });
+  // Auto-create forum thread in the appropriate listed_* section.
+  // We create it as the uploader if present; otherwise as a "system" author.
+  // In TEST_MODE, uploader_id is null, so author_id must be null-safe (schema may require auth FK).
+  // If thread creation fails, don't block upload.
+  const sectionId = listedSectionId(contentType);
+  const threadTitle = `[LISTING] ${title}`;
+  const threadBody = `${why}\n\n---\n\nAuto-generated thread for this listing.\n\nView listing: ${envC.NEXT_PUBLIC_APP_URL}/uploads/${uploadRow.id}`;
+
+  const { error: threadErr } = await supabase.from("forum_threads").insert({
+    // Attempt to post as the same uploader (null in our test path). Will fail if author_id is NOT NULL.
+    author_id: uploaderId,
+    title: threadTitle,
+    body: threadBody,
+    section_id: sectionId,
+    upload_id: uploadRow.id,
+  } as any);
+
+  if (threadErr) {
+    // eslint-disable-next-line no-console
+    console.error("forum thread create failed", threadErr.message);
+  }
+
+  return NextResponse.json({ ok: true, uploadId: uploadRow.id });
 }

@@ -16,11 +16,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
   why_it_matters: z.string().min(100, "Minimum 100 characters"),
   tags: z.string().optional(),
+  unlock_goal: z
+    .number()
+    .int()
+    .min(10, "Minimum $10")
+    .max(100000, "Max $100,000"),
+  content_type: z.enum(["story", "video", "data"], {
+    message: "Pick a type",
+  }),
   file: z
     .custom<File>((v) => v instanceof File, "File is required")
     .refine((f) => f.size <= 100 * 1024 * 1024, "Max 100MB"),
@@ -33,7 +48,13 @@ export function UploadDraftForm() {
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { title: "", why_it_matters: "", tags: "" },
+    defaultValues: {
+      title: "",
+      why_it_matters: "",
+      tags: "",
+      unlock_goal: 500,
+      content_type: "story",
+    },
   });
 
   async function onSubmit(values: Values) {
@@ -43,6 +64,8 @@ export function UploadDraftForm() {
     body.set("title", values.title);
     body.set("why_it_matters", values.why_it_matters);
     body.set("tags", values.tags ?? "");
+    body.set("unlock_goal", String(values.unlock_goal));
+    body.set("content_type", values.content_type);
     body.set("file", values.file);
 
     const res = await fetch("/api/test/create-upload", {
@@ -56,7 +79,8 @@ export function UploadDraftForm() {
       return;
     }
 
-    window.location.assign(`/browse`);
+    const data = (await res.json()) as { ok: boolean; uploadId: string };
+    window.location.assign(`/uploads/${data.uploadId}`);
   }
 
   return (
@@ -82,6 +106,43 @@ export function UploadDraftForm() {
                 <FormLabel>Title</FormLabel>
                 <FormControl>
                   <Input placeholder="A leaked memo, a deck, an analysis…" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="content_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="story">Story</SelectItem>
+                    <SelectItem value="video">Video</SelectItem>
+                    <SelectItem value="data">Data</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="unlock_goal"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unlock goal ($)</FormLabel>
+                <FormControl>
+                  <Input type="number" inputMode="numeric" min={10} step={10} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -142,11 +203,7 @@ export function UploadDraftForm() {
             )}
           />
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-          >
+          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
             Upload (free, test mode)
           </Button>
         </form>
