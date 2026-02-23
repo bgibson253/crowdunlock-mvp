@@ -187,7 +187,7 @@ export default async function ForumIndexPage() {
             <div>
               <details open>
                 <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-slate-700 to-slate-600 px-3 py-2 text-[12px] font-semibold text-white">
-                  General Discussion
+                  <span className="inline-flex items-center gap-2"><span className="text-white/90">▾</span>General Discussion</span>
                 </summary>
                 <div className="mt-1">
                   <SectionRowLine {...general} />
@@ -198,7 +198,7 @@ export default async function ForumIndexPage() {
 
           <details open className="group">
             <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-2 text-[12px] font-semibold text-white">
-              Requested Items
+              <span className="inline-flex items-center gap-2"><span className="text-white/90">▾</span>Requested Items</span>
             </summary>
             <div className="mt-1 space-y-1">
               {requested.map((s) => (
@@ -209,7 +209,7 @@ export default async function ForumIndexPage() {
 
           <details open className="group">
             <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2 text-[12px] font-semibold text-white">
-              Listed Items
+              <span className="inline-flex items-center gap-2"><span className="text-white/90">▾</span>Listed Items</span>
             </summary>
             <div className="mt-1 space-y-1">
               {listed.map((s) => (
