@@ -109,13 +109,11 @@ export default async function ForumIndexPage() {
 
   const { data: threadsMini } = await supabase
     .from("forum_threads")
-    .select("id,section_id")
-    .limit(5000);
+    .select("id,section_id");
 
   const { data: repliesMini } = await supabase
     .from("forum_replies")
-    .select("thread_id")
-    .limit(20000);
+    .select("thread_id");
 
   const threadIdToSection = new Map<string, string>();
   for (const t of (threadsMini ?? []) as any[]) {
