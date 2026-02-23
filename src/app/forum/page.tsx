@@ -39,57 +39,45 @@ function SectionRowLine({
           )}
         </div>
 
-        <div className="hidden sm:grid grid-cols-[100px_100px_auto] items-center gap-2 text-[11px] text-muted-foreground">
-          <div className="text-right tabular-nums">{threads_count} threads</div>
+        <div className="grid grid-cols-[120px_120px] items-center gap-2 text-[11px] text-muted-foreground">
+          <div className="text-right tabular-nums">{threads_count} posts</div>
           <div className="text-right tabular-nums">{replies_count} replies</div>
-          <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[11px]">
-            <Link href={`/forum/new?section=${encodeURIComponent(id)}`}>Post</Link>
-          </Button>
         </div>
       </div>
     </div>
   );
 }
 
-function GroupHeader({
+function CollapsibleHeader({
   title,
-  tone,
-  targetId,
+  variant,
 }: {
   title: string;
-  tone: "slate" | "emerald" | "indigo";
-  targetId: string;
+  variant: "slate" | "indigo" | "emerald";
 }) {
-  const toneCls =
-    tone === "emerald"
+  const cls =
+    variant === "emerald"
       ? "from-emerald-600 to-emerald-500"
-      : tone === "indigo"
+      : variant === "indigo"
         ? "from-indigo-600 to-indigo-500"
         : "from-slate-700 to-slate-600";
 
   return (
-    <details open className="group">
-      <summary
-        className={
-          "cursor-pointer select-none list-none rounded-md bg-gradient-to-r " +
-          toneCls +
-          " px-3 py-2 text-[12px] font-semibold text-white"
-        }
-      >
-        <span className="inline-flex items-center gap-2">
-          <span className="opacity-90 group-open:opacity-100">▾</span>
-          <span className="group-[:not([open])]:hidden"> </span>
-          {title}
-          <span className="ml-2 text-white/80 text-[11px] font-normal group-open:hidden">
-            (collapsed)
-          </span>
-        </span>
-      </summary>
-
-      <div id={targetId} className="mt-2 space-y-1">
-        {/* children rendered by caller */}
+    <summary
+      className={
+        "cursor-pointer select-none list-none rounded-md bg-gradient-to-r " +
+        cls +
+        " px-3 py-2"
+      }
+    >
+      <div className="flex items-center justify-between">
+        <div className="text-[12px] font-semibold text-white">{title}</div>
+        <div className="text-white/90 text-[12px] font-semibold">
+          <span className="group-open:hidden">^</span>
+          <span className="hidden group-open:inline">v</span>
+        </div>
       </div>
-    </details>
+    </summary>
   );
 }
 
@@ -184,22 +172,16 @@ export default async function ForumIndexPage() {
 
         <div className="mt-4 space-y-4">
           {general && (
-            <div>
-              <details open>
-                <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-slate-700 to-slate-600 px-3 py-2 text-[12px] font-semibold text-white">
-                  <span className="inline-flex items-center gap-2"><span className="text-white/90">▾</span>General Discussion</span>
-                </summary>
-                <div className="mt-1">
-                  <SectionRowLine {...general} />
-                </div>
-              </details>
-            </div>
+            <details open className="group">
+              <CollapsibleHeader title="General Discussion" variant="slate" />
+              <div className="mt-1">
+                <SectionRowLine {...general} />
+              </div>
+            </details>
           )}
 
           <details open className="group">
-            <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-2 text-[12px] font-semibold text-white">
-              <span className="inline-flex items-center gap-2"><span className="text-white/90">▾</span>Requested Items</span>
-            </summary>
+            <CollapsibleHeader title="Requested Items" variant="indigo" />
             <div className="mt-1 space-y-1">
               {requested.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
@@ -208,9 +190,7 @@ export default async function ForumIndexPage() {
           </details>
 
           <details open className="group">
-            <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2 text-[12px] font-semibold text-white">
-              <span className="inline-flex items-center gap-2"><span className="text-white/90">▾</span>Listed Items</span>
-            </summary>
+            <CollapsibleHeader title="Listed Items" variant="emerald" />
             <div className="mt-1 space-y-1">
               {listed.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
