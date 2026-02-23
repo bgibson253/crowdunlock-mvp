@@ -1,6 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { envClient, isTestMode } from "@/lib/env";
 import { notFound } from "next/navigation";
+
+import { supabaseServer } from "@/lib/supabase/server";
+import { isTestMode } from "@/lib/env";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,11 +21,14 @@ type UploadRow = {
   created_at: string;
 };
 
-export default async function UploadDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function UploadDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
 
-  const env = envClient();
-  const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const supabase = await supabaseServer();
 
   const { data: upload, error } = await supabase
     .from("uploads")
@@ -38,8 +42,6 @@ export default async function UploadDetailPage({ params }: { params: Promise<{ i
   const u = upload as UploadRow;
   const testMode = isTestMode();
 
-  // Production behavior: only show unlocked pages.
-  // Test mode: allow viewing funding pages (with unlock button).
   if (!testMode && u.status !== "unlocked") return notFound();
   if (testMode && !(u.status === "funding" || u.status === "unlocked")) return notFound();
 
@@ -49,9 +51,7 @@ export default async function UploadDetailPage({ params }: { params: Promise<{ i
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{u.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {u.status === "unlocked"
-              ? "Unlocked community document"
-              : "Funding page (test mode)"}
+            {u.status === "unlocked" ? "Unlocked community document" : "Funding page (test mode)"}
           </p>
         </div>
         <Badge variant="secondary">{u.status}</Badge>
