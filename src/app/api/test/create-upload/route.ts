@@ -13,13 +13,17 @@ export async function POST(req: Request) {
   const envC = envClient();
   const envS = envServer();
 
-  // Use service-role for TEST_MODE realism: still uses the same Storage bucket + DB + RLS policies,
-  // but bypasses auth requirements so QA can proceed even if auth/email is flaky.
-  const supabase = createClient(
-    envC.NEXT_PUBLIC_SUPABASE_URL,
-    envS.SUPABASE_SERVICE_ROLE_KEY ?? envC.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    { auth: { persistSession: false } },
-  );
+  if (!envS.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: "Server misconfigured: SUPABASE_SERVICE_ROLE_KEY is missing" },
+      { status: 500 },
+    );
+  }
+
+  // TEST_MODE QA endpoint uses service role to avoid auth/RLS friction.
+  const supabase = createClient(envC.NEXT_PUBLIC_SUPABASE_URL, envS.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
 
   const form = await req.formData();
   const title = String(form.get("title") ?? "");
@@ -40,11 +44,12 @@ export async function POST(req: Request) {
     .map((t) => t.trim())
     .filter(Boolean);
 
-  const uploaderId = crypto.randomUUID();
+  // Use a NULL uploader_id in test mode so we do not violate the auth.users foreign key.
+  // (Uploader ownership is enforced in production mode only.)
+  const uploaderId: string | null = null;
 
-  // Save file to Supabase Storage (private bucket; public read only when unlocked via RLS policy)
   const ext = file.name.split(".").pop() || "bin";
-  const objectName = `${uploaderId}/${crypto.randomUUID()}.${ext}`;
+  const objectName = `${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`;
   const filePath = `uploads/${objectName}`;
 
   const { error: uploadErr } = await supabase.storage
