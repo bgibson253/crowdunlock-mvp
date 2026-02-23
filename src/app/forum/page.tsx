@@ -122,7 +122,8 @@ export default async function ForumIndexPage() {
 
   const threadsPerSection = new Map<string, number>();
   for (const t of (threadsMini ?? []) as any[]) {
-    const sid = t.section_id ?? "general";
+    const sid = t.section_id;
+    if (!sid) continue;
     threadsPerSection.set(sid, (threadsPerSection.get(sid) ?? 0) + 1);
   }
 
