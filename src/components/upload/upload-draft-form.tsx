@@ -5,12 +5,17 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { envClient } from "@/lib/env";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -40,14 +45,7 @@ export function UploadDraftForm() {
     body.set("tags", values.tags ?? "");
     body.set("file", values.file);
 
-    const env = envClient();
-    const testMode = env.NEXT_PUBLIC_TEST_MODE === "true";
-
-    const endpoint = testMode
-      ? "/api/test/create-upload"
-      : "/api/stripe/checkout/posting-fee";
-
-    const res = await fetch(endpoint, {
+    const res = await fetch("/api/test/create-upload", {
       method: "POST",
       body,
     });
@@ -58,18 +56,8 @@ export function UploadDraftForm() {
       return;
     }
 
-    if (testMode) {
-      const data = (await res.json()) as { ok: boolean; uploadId: string };
-      window.location.assign(`/browse`);
-      return;
-    }
-
-    const data = (await res.json()) as { url: string };
-    window.location.assign(data.url);
+    window.location.assign(`/browse`);
   }
-
-  const env = envClient();
-  const testMode = env.NEXT_PUBLIC_TEST_MODE === "true";
 
   return (
     <div className="space-y-4">
@@ -79,12 +67,10 @@ export function UploadDraftForm() {
         </div>
       ) : null}
 
-      {testMode ? (
-        <div className="rounded-md border border-red-600/40 bg-red-600/5 p-3 text-sm text-red-700">
-          <div className="font-semibold">TEST MODE</div>
-          <div>Uploads are free + instant. Payments are disabled.</div>
-        </div>
-      ) : null}
+      <div className="rounded-md border border-red-600/40 bg-red-600/5 p-3 text-sm text-red-700">
+        <div className="font-semibold">TEST MODE</div>
+        <div>Uploads are free + instant. Payments are disabled.</div>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -109,7 +95,11 @@ export function UploadDraftForm() {
               <FormItem>
                 <FormLabel>Why it matters</FormLabel>
                 <FormControl>
-                  <Textarea rows={6} placeholder="Tell people why the world should see this…" {...field} />
+                  <Textarea
+                    rows={6}
+                    placeholder="Tell people why the world should see this…"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -152,8 +142,12 @@ export function UploadDraftForm() {
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            {testMode ? "Upload (free, test mode)" : "Pay $2 & continue"}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={form.formState.isSubmitting}
+          >
+            Upload (free, test mode)
           </Button>
         </form>
       </Form>

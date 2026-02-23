@@ -5,7 +5,6 @@ const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_APP_URL: z.string().url(),
-  NEXT_PUBLIC_TEST_MODE: z.enum(["true", "false"]).optional(),
 });
 
 const serverSchema = z.object({
@@ -18,12 +17,8 @@ const serverSchema = z.object({
 });
 
 export function isTestMode() {
-  return (
-    process.env.TEST_MODE === "true" ||
-    process.env.NEXT_PUBLIC_TEST_MODE === "true"
-  );
+  return process.env.TEST_MODE === "true";
 }
-
 
 export function envClient() {
   return clientSchema.parse({
@@ -33,7 +28,6 @@ export function envClient() {
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_APP_URL:
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-    NEXT_PUBLIC_TEST_MODE: process.env.NEXT_PUBLIC_TEST_MODE,
   });
 }
 
