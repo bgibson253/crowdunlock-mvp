@@ -23,33 +23,73 @@ function SectionRowLine({
   replies_count,
 }: SectionRow) {
   return (
-    <div className="">
-      <div className="py-3">
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <Link
-              href={`/forum/s/${encodeURIComponent(id)}`}
-              className="font-semibold tracking-tight hover:underline"
-            >
-              {name}
-            </Link>
-            {description && (
-              <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                {description}
-              </div>
-            )}
-          </div>
+    <div className="py-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <Link
+            href={`/forum/s/${encodeURIComponent(id)}`}
+            className="text-[13px] font-semibold leading-tight hover:underline"
+          >
+            {name}
+          </Link>
+          {description && (
+            <div className="mt-0.5 text-[11px] leading-snug text-muted-foreground line-clamp-2">
+              {description}
+            </div>
+          )}
+        </div>
 
-          <div className="hidden sm:grid grid-cols-[110px_110px_auto] items-center gap-3 text-xs text-muted-foreground">
-            <div className="text-right tabular-nums">{threads_count} threads</div>
-            <div className="text-right tabular-nums">{replies_count} replies</div>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/forum/new?section=${encodeURIComponent(id)}`}>Post</Link>
-            </Button>
-          </div>
+        <div className="hidden sm:grid grid-cols-[100px_100px_auto] items-center gap-2 text-[11px] text-muted-foreground">
+          <div className="text-right tabular-nums">{threads_count} threads</div>
+          <div className="text-right tabular-nums">{replies_count} replies</div>
+          <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[11px]">
+            <Link href={`/forum/new?section=${encodeURIComponent(id)}`}>Post</Link>
+          </Button>
         </div>
       </div>
     </div>
+  );
+}
+
+function GroupHeader({
+  title,
+  tone,
+  targetId,
+}: {
+  title: string;
+  tone: "slate" | "emerald" | "indigo";
+  targetId: string;
+}) {
+  const toneCls =
+    tone === "emerald"
+      ? "from-emerald-600 to-emerald-500"
+      : tone === "indigo"
+        ? "from-indigo-600 to-indigo-500"
+        : "from-slate-700 to-slate-600";
+
+  return (
+    <details open className="group">
+      <summary
+        className={
+          "cursor-pointer select-none list-none rounded-md bg-gradient-to-r " +
+          toneCls +
+          " px-3 py-2 text-[12px] font-semibold text-white"
+        }
+      >
+        <span className="inline-flex items-center gap-2">
+          <span className="opacity-90 group-open:opacity-100">▾</span>
+          <span className="group-[:not([open])]:hidden"> </span>
+          {title}
+          <span className="ml-2 text-white/80 text-[11px] font-normal group-open:hidden">
+            (collapsed)
+          </span>
+        </span>
+      </summary>
+
+      <div id={targetId} className="mt-2 space-y-1">
+        {/* children rendered by caller */}
+      </div>
+    </details>
   );
 }
 
@@ -65,7 +105,7 @@ export default async function ForumIndexPage() {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
         <Card>
-          <CardContent className="py-6 text-xs text-muted-foreground">
+          <CardContent className="py-6 text-sm text-muted-foreground">
             Could not load sections: {sectionsErr.message}
           </CardContent>
         </Card>
@@ -77,7 +117,6 @@ export default async function ForumIndexPage() {
     Omit<SectionRow, "threads_count" | "replies_count">
   >;
 
-  // MVP counts: fetch small projections and count in memory.
   const { data: threadsMini } = await supabase
     .from("forum_threads")
     .select("id,section_id")
@@ -138,44 +177,46 @@ export default async function ForumIndexPage() {
               Public can read. Sign in to start threads and reply.
             </p>
           </div>
-          <Button asChild>
+          <Button asChild className="h-8 px-3 text-xs">
             <Link href="/forum/new">New thread</Link>
           </Button>
         </div>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-4 space-y-4">
           {general && (
-            <section className="space-y-3">
-              <div className="text-xs font-semibold text-muted-foreground">
-                General Discussion
-              </div>
-              <div className="">
-                <SectionRowLine {...general} />
-              </div>
-            </section>
+            <div>
+              <details open>
+                <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-slate-700 to-slate-600 px-3 py-2 text-[12px] font-semibold text-white">
+                  General Discussion
+                </summary>
+                <div className="mt-1">
+                  <SectionRowLine {...general} />
+                </div>
+              </details>
+            </div>
           )}
 
-          <section className="space-y-3">
-            <div className="text-xs font-semibold text-muted-foreground">
+          <details open className="group">
+            <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-2 text-[12px] font-semibold text-white">
               Requested Items
-            </div>
-            <div className="">
+            </summary>
+            <div className="mt-1 space-y-1">
               {requested.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
               ))}
             </div>
-          </section>
+          </details>
 
-          <section className="space-y-3">
-            <div className="text-xs font-semibold text-muted-foreground">
+          <details open className="group">
+            <summary className="cursor-pointer select-none list-none rounded-md bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2 text-[12px] font-semibold text-white">
               Listed Items
-            </div>
-            <div className="">
+            </summary>
+            <div className="mt-1 space-y-1">
               {listed.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
               ))}
             </div>
-          </section>
+          </details>
         </div>
       </div>
     </div>
