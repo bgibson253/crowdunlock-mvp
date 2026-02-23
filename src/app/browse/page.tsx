@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { envClient } from "@/lib/env";
+import { envClient, isTestMode } from "@/lib/env";
 import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ type UploadPublic = {
 export default async function BrowsePage() {
   const env = envClient();
   const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const testMode = isTestMode();
 
   const { data, error } = await supabase
     .from("uploads_public")
@@ -48,11 +49,19 @@ export default async function BrowsePage() {
             <h1 className="text-3xl font-semibold tracking-tight">Browse</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Teasers only. Unlocks go public when funded.
+              {testMode ? " (Test mode: use Test Unlock buttons.)" : ""}
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/upload">Upload</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {testMode ? (
+              <Button asChild variant="destructive">
+                <Link href="/test-admin">Test Admin</Link>
+              </Button>
+            ) : null}
+            <Button asChild variant="outline">
+              <Link href="/upload">Upload</Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mt-8">
@@ -72,9 +81,7 @@ export default async function BrowsePage() {
                   >
                     <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400" />
                     <CardHeader>
-                      <CardTitle className="line-clamp-2 text-base">
-                        {u.title}
-                      </CardTitle>
+                      <CardTitle className="line-clamp-2 text-base">{u.title}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <p className="line-clamp-4 text-sm text-muted-foreground">
@@ -90,14 +97,15 @@ export default async function BrowsePage() {
                         <Progress value={pct} />
                       </div>
                       <div className="flex gap-2">
-                        <Button
-                          asChild
-                          className="w-full"
-                          disabled={u.status !== "funding"}
-                        >
-                          <Link href={`/uploads/${u.id}`}>View</Link>
+                        <Button asChild className="w-full" disabled={false}>
+                          <Link href={`/uploads/${u.id}`}>{testMode ? "View / Test" : "View"}</Link>
                         </Button>
                       </div>
+                      {!testMode && u.status !== "funding" ? (
+                        <div className="text-xs text-muted-foreground">
+                          Locked (unlocked listings will appear and open automatically)
+                        </div>
+                      ) : null}
                     </CardContent>
                   </Card>
                 );

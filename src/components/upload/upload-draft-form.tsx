@@ -5,6 +5,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { envClient } from "@/lib/env";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,14 +40,27 @@ export function UploadDraftForm() {
     body.set("tags", values.tags ?? "");
     body.set("file", values.file);
 
-    const res = await fetch("/api/stripe/checkout/posting-fee", {
+    const env = envClient();
+    const testMode = env.NEXT_PUBLIC_TEST_MODE === "true";
+
+    const endpoint = testMode
+      ? "/api/test/create-upload"
+      : "/api/stripe/checkout/posting-fee";
+
+    const res = await fetch(endpoint, {
       method: "POST",
       body,
     });
 
     if (!res.ok) {
       const txt = await res.text();
-      setError(txt || "Failed to start checkout");
+      setError(txt || "Request failed");
+      return;
+    }
+
+    if (testMode) {
+      const data = (await res.json()) as { ok: boolean; uploadId: string };
+      window.location.assign(`/browse`);
       return;
     }
 
@@ -53,11 +68,21 @@ export function UploadDraftForm() {
     window.location.assign(data.url);
   }
 
+  const env = envClient();
+  const testMode = env.NEXT_PUBLIC_TEST_MODE === "true";
+
   return (
     <div className="space-y-4">
       {error ? (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
+        </div>
+      ) : null}
+
+      {testMode ? (
+        <div className="rounded-md border border-red-600/40 bg-red-600/5 p-3 text-sm text-red-700">
+          <div className="font-semibold">TEST MODE</div>
+          <div>Uploads are free + instant. Payments are disabled.</div>
         </div>
       ) : null}
 
@@ -128,7 +153,7 @@ export function UploadDraftForm() {
           />
 
           <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            Pay $2 & continue
+            {testMode ? "Upload (free, test mode)" : "Pay $2 & continue"}
           </Button>
         </form>
       </Form>
