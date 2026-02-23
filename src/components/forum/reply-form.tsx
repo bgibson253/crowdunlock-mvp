@@ -30,7 +30,7 @@ export function ReplyForm({ threadId }: { threadId: string }) {
 
       const { error: insertErr } = await supabase
         .from("forum_replies")
-        .insert({ thread_id: threadId, body, author_id: auth.user.id });
+        .insert({ thread_id: threadId, body });
 
       if (insertErr) throw insertErr;
 

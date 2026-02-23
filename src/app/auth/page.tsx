@@ -1,15 +1,17 @@
 import { AuthForm } from "@/components/auth/auth-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AuthPage() {
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-md flex-col justify-center p-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Email + password (classic) or continue with Google, Apple, or Facebook.
-      </p>
-      <div className="mt-6">
-        <AuthForm />
-      </div>
+    <main className="mx-auto max-w-md px-4 py-10">
+      <Card>
+        <CardHeader>
+          <CardTitle>Sign in</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AuthForm requireUsername />
+        </CardContent>
+      </Card>
     </main>
   );
 }

@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UsernameField } from "@/components/auth/username-field";
 
 const signInSchema = z.object({
   email: z.string().email(),
@@ -32,6 +33,7 @@ const signUpSchema = z
     email: z.string().email(),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirm: z.string().min(6),
+    username: z.string().min(2, "Username required").max(24, "Max 24 chars").optional(),
   })
   .refine((v) => v.password === v.confirm, {
     path: ["confirm"],
@@ -40,7 +42,7 @@ const signUpSchema = z
 
 type SignUpValues = z.infer<typeof signUpSchema>;
 
-export function AuthForm() {
+export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}) {
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
 
@@ -51,7 +53,7 @@ export function AuthForm() {
 
   const signUp = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { email: "", password: "", confirm: "" },
+    defaultValues: { email: "", password: "", confirm: "", username: "" },
   });
 
   async function onPasswordSignIn(values: SignInValues) {
@@ -79,10 +81,13 @@ export function AuthForm() {
     const supabase = supabaseBrowser();
     const env = envClient();
 
-    const { error } = await supabase.auth.signUp({
+    const { error, data } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options: {
+        data: {
+          name: values.username?.trim() || undefined,
+        },
         emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback`,
       },
     });
@@ -218,6 +223,21 @@ export function AuthForm() {
         <TabsContent value="signup" className="mt-4">
           <Form {...signUp}>
             <form onSubmit={signUp.handleSubmit(onPasswordSignUp)} className="space-y-4">
+              {requireUsername ? (
+                <FormField
+                  control={signUp.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Username" autoComplete="nickname" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : null}
               <FormField
                 control={signUp.control}
                 name="email"
