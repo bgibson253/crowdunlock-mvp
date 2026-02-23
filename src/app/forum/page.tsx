@@ -51,11 +51,9 @@ function SectionRowLine({
 function CollapsibleHeader({
   title,
   variant,
-  controls,
 }: {
   title: string;
   variant: "slate" | "indigo" | "emerald";
-  controls: string;
 }) {
   const cls =
     variant === "emerald"
@@ -64,37 +62,22 @@ function CollapsibleHeader({
         ? "from-indigo-600 to-indigo-500"
         : "from-slate-700 to-slate-600";
 
-  // We hide the native marker and make the whole summary non-toggleable.
-  // Only the explicit button toggles via a tiny inline script.
+  // Note: true "only minimize when clicking the symbol" requires a Client Component.
+  // This version uses native <details>/<summary> (click anywhere on the header toggles).
   return (
     <summary
       className={
-        "select-none list-none rounded-md bg-gradient-to-r " +
+        "cursor-pointer select-none list-none rounded-md bg-gradient-to-r " +
         cls +
         " px-3 py-2"
       }
     >
       <div className="flex items-center justify-between">
         <div className="text-[12px] font-semibold text-white">{title}</div>
-
-        <button
-          type="button"
-          aria-label={`Toggle ${title}`}
-          aria-controls={controls}
-          className="inline-flex h-6 w-6 items-center justify-center rounded text-white/90 hover:bg-white/10"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const details = (e.currentTarget as HTMLButtonElement).closest(
-              "details"
-            ) as HTMLDetailsElement | null;
-            if (!details) return;
-            details.open = !details.open;
-          }}
-        >
+        <div className="text-white/90 text-[12px] font-semibold">
           <span className="group-open:hidden">^</span>
           <span className="hidden group-open:inline">v</span>
-        </button>
+        </div>
       </div>
     </summary>
   );
@@ -192,24 +175,16 @@ export default async function ForumIndexPage() {
         <div className="mt-4 space-y-4">
           {general && (
             <details open className="group">
-              <CollapsibleHeader
-                title="General Discussion"
-                variant="slate"
-                controls="general"
-              />
-              <div id="general" className="mt-1">
+              <CollapsibleHeader title="General Discussion" variant="slate" />
+              <div className="mt-1">
                 <SectionRowLine {...general} />
               </div>
             </details>
           )}
 
           <details open className="group">
-            <CollapsibleHeader
-              title="Requested Items"
-              variant="indigo"
-              controls="requested"
-            />
-            <div id="requested" className="mt-1 space-y-1">
+            <CollapsibleHeader title="Requested Items" variant="indigo" />
+            <div className="mt-1 space-y-1">
               {requested.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
               ))}
@@ -217,12 +192,8 @@ export default async function ForumIndexPage() {
           </details>
 
           <details open className="group">
-            <CollapsibleHeader
-              title="Listed Items"
-              variant="emerald"
-              controls="listed"
-            />
-            <div id="listed" className="mt-1 space-y-1">
+            <CollapsibleHeader title="Listed Items" variant="emerald" />
+            <div className="mt-1 space-y-1">
               {listed.map((s) => (
                 <SectionRowLine key={s.id} {...s} />
               ))}
