@@ -1,14 +1,15 @@
--- In TEST MODE we need browse/detail to work for funding status.
--- The app reads from uploads_public view; extend it to include funding entries.
+-- Keep uploads_public columns stable; just ensure funding + unlocked are included.
 
 create or replace view public.uploads_public as
 select
   id,
   title,
+  tags,
   ai_teaser,
+  quality_score,
   status,
-  created_at,
+  funding_goal,
   current_funded,
-  funding_goal
+  created_at
 from public.uploads
-where status in ('unlocked', 'funding');
+where status in ('funding','unlocked');
