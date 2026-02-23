@@ -7,6 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
+async function getAuthorProfile(supabase: any, authorId: string | null) {
+  if (!authorId) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("id,username,avatar_url,post_count")
+    .eq("id", authorId)
+    .maybeSingle();
+  return data ?? null;
+}
+
 export default async function ForumThreadPage({
   params,
 }: {
@@ -18,9 +28,7 @@ export default async function ForumThreadPage({
 
   const { data: thread, error: threadErr } = await supabase
     .from("forum_threads")
-    .select(
-      "id,title,body,created_at,author_id,profiles:author_id(id,username,avatar_url,post_count)",
-    )
+    .select("id,title,body,created_at,author_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -29,11 +37,28 @@ export default async function ForumThreadPage({
 
   const { data: replies, error: repliesErr } = await supabase
     .from("forum_replies")
-    .select("id,body,created_at,author_id,profiles:author_id(id,username,avatar_url,post_count)")
+    .select("id,body,created_at,author_id")
     .eq("thread_id", id)
     .order("created_at", { ascending: true });
 
   if (repliesErr) throw new Error(repliesErr.message);
+
+  const threadAuthor = await getAuthorProfile(supabase, thread.author_id);
+
+  // Build profile map for replies (avoid schema-cache relationship issues)
+  const replyAuthorIds = Array.from(
+    new Set((replies ?? []).map((r: any) => r.author_id).filter(Boolean)),
+  ) as string[];
+
+  const { data: replyProfiles } = replyAuthorIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id,username,avatar_url,post_count")
+        .in("id", replyAuthorIds)
+    : { data: [] as any[] };
+
+  const replyProfileById = new Map<string, any>();
+  (replyProfiles ?? []).forEach((p: any) => replyProfileById.set(p.id, p));
 
   const { data: authData } = await supabase.auth.getUser();
 
@@ -47,7 +72,7 @@ export default async function ForumThreadPage({
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-[220px_1fr]">
             <div className="md:border-r md:pr-4">
-              <AuthorCard author={(thread as any).profiles ?? null} />
+              <AuthorCard author={threadAuthor} />
               <div className="mt-3 text-xs text-muted-foreground">
                 {new Date(thread.created_at).toLocaleString()}
               </div>
@@ -59,11 +84,11 @@ export default async function ForumThreadPage({
         </Card>
 
         <div className="space-y-3">
-          {(replies ?? []).map((r) => (
+          {(replies ?? []).map((r: any) => (
             <Card key={r.id}>
               <CardContent className="py-4 grid gap-4 md:grid-cols-[220px_1fr]">
                 <div className="md:border-r md:pr-4">
-                  <AuthorCard author={(r as any).profiles ?? null} />
+                  <AuthorCard author={replyProfileById.get(r.author_id) ?? null} />
                   <div className="mt-3 text-xs text-muted-foreground">
                     {new Date(r.created_at).toLocaleString()}
                   </div>

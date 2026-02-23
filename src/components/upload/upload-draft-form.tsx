@@ -142,7 +142,18 @@ export function UploadDraftForm() {
               <FormItem>
                 <FormLabel>Unlock goal ($)</FormLabel>
                 <FormControl>
-                  <Input type="number" inputMode="numeric" min={10} step={10} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} />
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={String(field.value ?? "")}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, "");
+                      const normalized = raw.replace(/^0+(?=\d)/, "");
+                      field.onChange(normalized === "" ? 0 : Number(normalized));
+                    }
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
