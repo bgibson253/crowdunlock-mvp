@@ -71,7 +71,15 @@ export default async function UploadDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Teaser</CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-base">Teaser</CardTitle>
+              <a
+                className="text-sm underline"
+                href={"/api/uploads/" + u.id + "/download"}
+              >
+                Download
+              </a>
+            </div>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             {u.ai_teaser ?? "(No teaser)"}
