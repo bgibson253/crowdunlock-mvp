@@ -7,7 +7,7 @@ export type UnlockTier = {
 // Visible ladder (marketing) — what users can unlock.
 export const UNLOCK_TIERS: UnlockTier[] = [
   { dollars: 20, label: "First Bill", icon: "🧾" },
-  { dollars: 50, label: "Half Stack", icon: "🟩" },
+  { dollars: 50, label: "Half Stack", icon: "🧱½" },
   { dollars: 100, label: "It's all about the Benjamin", icon: "💵" },
   { dollars: 200, label: "It's all about the Benjamins", icon: "💵💵" },
   { dollars: 300, label: "Three-Plate Stack", icon: "🧱" },
