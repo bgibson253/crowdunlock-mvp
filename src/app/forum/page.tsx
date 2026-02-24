@@ -143,6 +143,7 @@ export default async function ForumIndexPage() {
   const byId = new Map(sectionsWithCounts.map((s) => [s.id, s] as const));
 
   const general = byId.get("general");
+  const introduce = byId.get("introduce_yourself");
   const requested = [
     byId.get("request_story"),
     byId.get("request_data"),
@@ -177,6 +178,15 @@ export default async function ForumIndexPage() {
               <CollapsibleHeader title="General Discussion" variant="slate" />
               <div className="mt-1">
                 <SectionRowLine {...general} />
+              </div>
+            </details>
+          )}
+
+          {introduce && (
+            <details open className="group">
+              <CollapsibleHeader title="Uploader Credibility" variant="slate" />
+              <div className="mt-1">
+                <SectionRowLine {...introduce} />
               </div>
             </details>
           )}
