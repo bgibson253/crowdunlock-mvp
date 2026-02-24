@@ -1,25 +1,7 @@
 import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const TIERS = [
-  { dollars: 50, icon: "🟩", label: "Half Stack" },
-  { dollars: 100, icon: "💵", label: "It's all about the Benjamin" },
-  { dollars: 200, icon: "💵💵", label: "It's all about the Benjamins" },
-  { dollars: 300, icon: "🧱", label: "Three-Plate Stack" },
-  { dollars: 500, icon: "📣💰", label: "Money Talks" },
-  { dollars: 750, icon: "🧾🕵️", label: "Paper Trail" },
-  { dollars: 1000, icon: "🏦", label: "Four-Figure Financier" },
-  { dollars: 2000, icon: "💎", label: "Double-K Patron" },
-  { dollars: 5000, icon: "🕶️", label: "Quiet Backer" },
-  { dollars: 10000, icon: "👑", label: "Kingmaker" },
-  { dollars: 25000, icon: "🌑", label: "Shadow Sponsor" },
-  { dollars: 50000, icon: "🤝💼", label: "Dealmaker" },
-  { dollars: 100000, icon: "🗝️", label: "The Vault Opens" },
-  { dollars: 250000, icon: "🎭⚡", label: "The Mask Breaker" },
-  { dollars: 500000, icon: "🜁", label: "The Unmasker" },
-  { dollars: 1000000, icon: "👁️", label: "The Final Reveal" },
-];
+import { UNLOCK_TIERS as TIERS } from "@/lib/unlock-tiers";
 
 export const dynamic = "force-dynamic";
 
