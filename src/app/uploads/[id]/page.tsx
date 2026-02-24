@@ -5,7 +5,6 @@ import { isTestMode } from "@/lib/env";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CommentsSection } from "@/components/uploads/comments-section";
 import { RatingSection } from "@/components/uploads/rating-section";
 import { TestUnlockButton } from "@/components/uploads/test-unlock-button";
 
@@ -34,6 +33,14 @@ export default async function UploadDetailPage({
     .from("uploads")
     .select("id,title,status,ai_teaser,current_funded,funding_goal,created_at")
     .eq("id", id)
+    .maybeSingle();
+
+  const { data: thread } = await supabase
+    .from("forum_threads")
+    .select("id")
+    .eq("upload_id", id)
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
@@ -89,7 +96,19 @@ export default async function UploadDetailPage({
         {u.status === "unlocked" ? (
           <>
             <RatingSection uploadId={u.id} />
-            <CommentsSection uploadId={u.id} />
+
+            {thread?.id ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Discussion</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm">
+                  <a className="underline" href={"/forum/" + thread.id}>
+                    View / join the forum discussion
+                  </a>
+                </CardContent>
+              </Card>
+            ) : null}
           </>
         ) : (
           <Card>
