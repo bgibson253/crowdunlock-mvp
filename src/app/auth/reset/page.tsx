@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { envClient } from "@/lib/env";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,25 +16,33 @@ export default function AuthResetPage() {
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
-    // Supabase will append tokens in the URL hash for reset links.
-    // Calling exchangeCodeForSession() is harmless if none.
+    // Reset links can arrive in a few formats depending on Supabase settings:
+    // - hash tokens (#access_token=...)
+    // - PKCE code (?code=...)
+    // We just try to exchange any code for a session, then rely on the session for updateUser(password).
     const supabase = supabaseBrowser();
-    const env = envClient();
 
     (async () => {
       try {
+        // For PKCE links
         await supabase.auth.exchangeCodeForSession(window.location.href);
       } catch {
         // ignore
       }
-      setReady(true);
 
-      // If already signed in, allow password update anyway (Supabase requires a session).
+      // For hash-token links, Supabase client should pick up the session automatically.
+      // Wait one tick to ensure it's processed.
+      await new Promise((r) => setTimeout(r, 0));
+
+      const { data } = await supabase.auth.getSession();
+      setReady(Boolean(data.session));
+
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange(() => {
-        // no-op, just keep session updated
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setReady(Boolean(session));
       });
+
       return () => subscription.unsubscribe();
     })();
   }, []);
@@ -55,6 +62,15 @@ export default function AuthResetPage() {
     }
 
     const supabase = supabaseBrowser();
+
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
+      setError(
+        "Auth session missing. This reset link may have been opened in a different browser/device, expired, or the redirect URL is misconfigured. Please request a new reset email and open it on this device.",
+      );
+      return;
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
       setError(error.message);
@@ -107,6 +123,12 @@ export default function AuthResetPage() {
             <Button type="submit" className="w-full" disabled={!ready}>
               Set password
             </Button>
+
+            {!ready ? (
+              <p className="text-xs text-muted-foreground">
+                Waiting for reset session… If this stays disabled, request a new reset email and open the link in this same browser.
+              </p>
+            ) : null}
 
             <p className="text-xs text-muted-foreground">
               If this page was opened from a reset email, it will activate your reset session automatically.
