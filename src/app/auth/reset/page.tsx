@@ -14,6 +14,7 @@ export default function AuthResetPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
+  const [checking, setChecking] = React.useState(true);
 
   React.useEffect(() => {
     // Reset links can arrive in a few formats depending on Supabase settings:
@@ -24,23 +25,34 @@ export default function AuthResetPage() {
 
     (async () => {
       try {
-        // For PKCE links
+        // For PKCE links (query param `code`)
         await supabase.auth.exchangeCodeForSession(window.location.href);
       } catch {
         // ignore
       }
 
-      // For hash-token links, Supabase client should pick up the session automatically.
-      // Wait one tick to ensure it's processed.
-      await new Promise((r) => setTimeout(r, 0));
+      const ensureSession = async () => {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) return true;
 
-      const { data } = await supabase.auth.getSession();
-      setReady(Boolean(data.session));
+        // Some recovery links land with hash tokens; give the client a moment to initialize.
+        await new Promise((r) => setTimeout(r, 250));
+        const { data: data2 } = await supabase.auth.getSession();
+        return Boolean(data2.session);
+      };
+
+      let ok = await ensureSession();
+      if (!ok) ok = await ensureSession();
+      if (!ok) ok = await ensureSession();
+
+      setReady(ok);
+      setChecking(false);
 
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
         setReady(Boolean(session));
+        setChecking(false);
       });
 
       return () => subscription.unsubscribe();
@@ -105,7 +117,7 @@ export default function AuthResetPage() {
                 value={password}
                 autoComplete="new-password"
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={!ready}
+                disabled={checking}
               />
             </div>
 
@@ -116,7 +128,7 @@ export default function AuthResetPage() {
                 value={confirm}
                 autoComplete="new-password"
                 onChange={(e) => setConfirm(e.target.value)}
-                disabled={!ready}
+                disabled={checking}
               />
             </div>
 
@@ -124,9 +136,11 @@ export default function AuthResetPage() {
               Set password
             </Button>
 
-            {!ready ? (
+            {checking ? (
+              <p className="text-xs text-muted-foreground">Loading reset session…</p>
+            ) : !ready ? (
               <p className="text-xs text-muted-foreground">
-                Waiting for reset session… If this stays disabled, request a new reset email and open the link in this same browser.
+                This reset link didn’t create a session. Request a new reset email and open the link in this same browser.
               </p>
             ) : null}
 
