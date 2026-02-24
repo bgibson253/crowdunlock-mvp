@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { BrowseEmptyState } from "@/components/uploads/browse-empty-state";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,9 @@ type UploadPublic = {
   funding_goal: number | null;
   current_funded: number | null;
   created_at: string;
+  uploader_id: string | null;
+  uploader_username: string | null;
+  uploader_avatar_url: string | null;
 };
 
 export default async function BrowsePage() {
@@ -26,7 +30,9 @@ export default async function BrowsePage() {
 
   const { data, error } = await supabase
     .from("uploads_public")
-    .select("id,title,ai_teaser,status,funding_goal,current_funded,created_at")
+    .select(
+      "id,title,ai_teaser,status,funding_goal,current_funded,created_at,uploader_id,uploader_username,uploader_avatar_url",
+    )
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -96,8 +102,19 @@ export default async function BrowsePage() {
                         </div>
                         <Progress value={pct} />
                       </div>
-                      <div className="flex gap-2">
-                        <Button asChild className="w-full" disabled={false}>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Avatar className="h-6 w-6">
+                            {u.uploader_avatar_url ? (
+                              <AvatarImage src={u.uploader_avatar_url} alt={u.uploader_username ?? "User"} />
+                            ) : null}
+                            <AvatarFallback>
+                              {(u.uploader_username ?? "U").slice(0, 1).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="line-clamp-1">{u.uploader_username ?? "Anonymous"}</span>
+                        </div>
+                        <Button asChild size="sm" className="shrink-0" disabled={false}>
                           <Link href={`/uploads/${u.id}`}>{testMode ? "View / Test" : "View"}</Link>
                         </Button>
                       </div>
