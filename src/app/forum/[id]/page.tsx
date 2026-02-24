@@ -11,7 +11,7 @@ async function getAuthorProfile(supabase: any, authorId: string | null) {
   if (!authorId) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id,username,avatar_url,post_count")
+    .select("id,username,display_name,avatar_url,post_count")
     .eq("id", authorId)
     .maybeSingle();
   return data ?? null;
@@ -53,7 +53,7 @@ export default async function ForumThreadPage({
   const { data: replyProfiles } = replyAuthorIds.length
     ? await supabase
         .from("profiles")
-        .select("id,username,avatar_url,post_count")
+        .select("id,username,display_name,avatar_url,post_count")
         .in("id", replyAuthorIds)
     : { data: [] as any[] };
 

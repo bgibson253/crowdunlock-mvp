@@ -15,7 +15,7 @@ export default async function ProfileSettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id,username,avatar_url")
+    .select("id,username,display_name,bio,website,location,twitter,github,linkedin,avatar_url,banner_url")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -33,8 +33,15 @@ export default async function ProfileSettingsPage() {
         <ProfileSettingsForm
           initial={{
             id: data.user.id,
-            username: profile?.username ?? "",
-            avatar_url: profile?.avatar_url ?? null,
+            display_name: (profile as any)?.display_name ?? (profile as any)?.username ?? "",
+            bio: (profile as any)?.bio ?? "",
+            website: (profile as any)?.website ?? "",
+            location: (profile as any)?.location ?? "",
+            twitter: (profile as any)?.twitter ?? "",
+            github: (profile as any)?.github ?? "",
+            linkedin: (profile as any)?.linkedin ?? "",
+            avatar_url: (profile as any)?.avatar_url ?? null,
+            banner_url: (profile as any)?.banner_url ?? null,
           }}
         />
       </div>

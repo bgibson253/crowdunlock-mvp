@@ -8,6 +8,7 @@ export function AuthorCard({
   author: null | {
     id: string;
     username: string | null;
+    display_name?: string | null;
     avatar_url: string | null;
     post_count: number | null;
   };
@@ -19,14 +20,14 @@ export function AuthorCard({
           <AvatarFallback>?</AvatarFallback>
         </Avatar>
         <div className="text-sm">
-          <div className="font-medium">Administrator</div>
+          <div className="font-medium">Unknown</div>
           <div className="text-xs text-muted-foreground">—</div>
         </div>
       </div>
     );
   }
 
-  const name = author.username ?? "User";
+  const name = author.display_name ?? author.username ?? "User";
   const posts = author.post_count ?? 0;
 
   return (
