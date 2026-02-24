@@ -11,10 +11,18 @@ async function getAuthorProfile(supabase: any, authorId: string | null) {
   if (!authorId) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id,username,display_name,avatar_url,post_count")
+    .select(
+      "id,username,display_name,avatar_url,post_count,profile_badges(unlock_tier_label,unlock_tier_icon)",
+    )
     .eq("id", authorId)
     .maybeSingle();
-  return data ?? null;
+  if (!data) return null;
+  const badge = (data as any).profile_badges?.[0] ?? null;
+  return {
+    ...data,
+    unlock_tier_label: badge?.unlock_tier_label ?? null,
+    unlock_tier_icon: badge?.unlock_tier_icon ?? null,
+  };
 }
 
 export default async function ForumThreadPage({
@@ -50,12 +58,23 @@ export default async function ForumThreadPage({
     new Set((replies ?? []).map((r: any) => r.author_id).filter(Boolean)),
   ) as string[];
 
-  const { data: replyProfiles } = replyAuthorIds.length
+  const { data: replyProfilesRaw } = replyAuthorIds.length
     ? await supabase
         .from("profiles")
-        .select("id,username,display_name,avatar_url,post_count")
+        .select(
+          "id,username,display_name,avatar_url,post_count,profile_badges(unlock_tier_label,unlock_tier_icon)",
+        )
         .in("id", replyAuthorIds)
     : { data: [] as any[] };
+
+  const replyProfiles = (replyProfilesRaw ?? []).map((p: any) => {
+    const badge = p.profile_badges?.[0] ?? null;
+    return {
+      ...p,
+      unlock_tier_label: badge?.unlock_tier_label ?? null,
+      unlock_tier_icon: badge?.unlock_tier_icon ?? null,
+    };
+  });
 
   const replyProfileById = new Map<string, any>();
   (replyProfiles ?? []).forEach((p: any) => replyProfileById.set(p.id, p));

@@ -38,6 +38,9 @@ function SheetNavLinks({ user }: { user: any }) {
       <Link href="/forum" className="block px-3 py-2 text-sm hover:underline">
         Forum
       </Link>
+      <Link href="/forum/perks" className="block px-3 py-2 text-sm hover:underline">
+        Unlock perks
+      </Link>
       <Link href="/browse" className="block px-3 py-2 text-sm hover:underline">
         Browse
       </Link>
