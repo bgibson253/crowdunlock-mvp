@@ -131,7 +131,7 @@ export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}
     const env = envClient();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/reset`,
     });
 
     if (error) {
