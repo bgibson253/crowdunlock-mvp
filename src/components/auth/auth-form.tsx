@@ -213,7 +213,17 @@ export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}
                 Sign in
               </Button>
 
-              <Button type="button" variant="link" className="w-full" onClick={onResetPassword}>
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => {
+                  const ok = window.confirm(
+                    "Send a password reset email to this address? (Check that you entered the right email first.)",
+                  );
+                  if (ok) void onResetPassword();
+                }}
+              >
                 Forgot password?
               </Button>
             </form>
