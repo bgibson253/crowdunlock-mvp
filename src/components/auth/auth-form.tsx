@@ -287,10 +287,6 @@ export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}
           </Form>
         </TabsContent>
       </Tabs>
-
-      <p className="text-xs text-muted-foreground">
-        Note: OAuth buttons will start working once their credentials + redirect URLs are configured in Supabase.
-      </p>
     </div>
   );
 }
