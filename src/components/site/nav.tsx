@@ -82,7 +82,7 @@ export async function Nav() {
               <SheetHeader>
                 <SheetTitle>
                   <Link href="/" className="hover:underline">
-                    CrowdUnlock
+                    Unmaskr
                   </Link>
                 </SheetTitle>
               </SheetHeader>
@@ -127,7 +127,7 @@ export async function Nav() {
           </Sheet>
 
           <Link href="/" className="font-semibold tracking-tight">
-            CrowdUnlock
+            Unmaskr
           </Link>
         </div>
 

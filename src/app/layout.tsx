@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CrowdUnlock",
+  title: "Unmaskr",
   description: "Crowdfunded, unlockable journalism and data.",
 };
 

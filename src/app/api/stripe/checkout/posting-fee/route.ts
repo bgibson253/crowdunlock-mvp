@@ -45,7 +45,7 @@ export async function POST(req: Request) {
           currency: "usd",
           unit_amount: 200,
           product_data: {
-            name: "CrowdUnlock posting fee - refundable",
+            name: "Unmaskr posting fee - refundable",
           },
         },
       },

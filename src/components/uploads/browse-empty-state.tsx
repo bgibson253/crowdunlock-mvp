@@ -61,7 +61,7 @@ export function BrowseEmptyState() {
       <CardContent className="py-10">
         <div className="text-sm font-medium">No uploads yet</div>
         <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-          CrowdUnlock is a marketplace for funding gated content. Upload something,
+          Unmaskr is a marketplace for funding gated content. Upload something,
           set a goal, and once it’s funded, it unlocks publicly.
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
