@@ -1,0 +1,43 @@
+import { redirect } from "next/navigation";
+
+import { supabaseServer } from "@/lib/supabase/server";
+import { ProfileSettingsForm } from "@/components/profile/profile-settings-form";
+
+export const dynamic = "force-dynamic";
+
+export default async function ProfileSettingsPage() {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.auth.getUser();
+
+  if (!data.user) {
+    redirect("/auth");
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id,username,avatar_url")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  return (
+    <div className="relative isolate">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight">Profile settings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Set your public username and avatar.
+          </p>
+        </div>
+
+        <ProfileSettingsForm
+          initial={{
+            id: data.user.id,
+            username: profile?.username ?? "",
+            avatar_url: profile?.avatar_url ?? null,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
