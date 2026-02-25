@@ -42,17 +42,15 @@ export function AuthorCard({
         <AvatarFallback>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="text-sm min-w-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="font-medium leading-4 truncate">{name}</div>
+        <div className="font-medium leading-4 truncate">{name}</div>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {handle ? <span>{handle}</span> : null}
           {badgeText ? (
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-200">
               <span aria-hidden>{badgeIcon ?? "💸"}</span>
               <span className="truncate">{badgeText}</span>
             </span>
           ) : null}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {handle ? <span className="mr-2">{handle}</span> : null}
           <span>{posts} posts</span>
         </div>
       </div>
