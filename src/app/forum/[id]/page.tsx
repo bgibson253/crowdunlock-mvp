@@ -11,13 +11,14 @@ async function getAuthorProfile(supabase: any, authorId: string | null) {
   if (!authorId) return null;
   const { data } = await supabase
     .from("profiles")
-    .select(
-      "id,username,display_name,avatar_url,post_count,profile_badges(unlock_tier_label,unlock_tier_icon)",
-    )
+    .select("id,username,display_name,avatar_url,post_count")
     .eq("id", authorId)
     .maybeSingle();
   if (!data) return null;
-  const badge = (data as any).profile_badges?.[0] ?? null;
+
+  const { fetchProfileBadge } = await import("@/lib/profile-badges");
+  const badge = await fetchProfileBadge(supabase, authorId);
+
   return {
     ...data,
     unlock_tier_label: badge?.unlock_tier_label ?? null,
@@ -61,18 +62,25 @@ export default async function ForumThreadPage({
   const { data: replyProfilesRaw } = replyAuthorIds.length
     ? await supabase
         .from("profiles")
-        .select(
-          "id,username,display_name,avatar_url,post_count,profile_badges(unlock_tier_label,unlock_tier_icon)",
-        )
+        .select("id,username,display_name,avatar_url,post_count")
         .in("id", replyAuthorIds)
     : { data: [] as any[] };
 
+  const { fetchProfileBadge } = await import("@/lib/profile-badges");
+  const badgeById = new Map<string, any>();
+  await Promise.all(
+    replyAuthorIds.map(async (uid) => {
+      const b = await fetchProfileBadge(supabase, uid);
+      badgeById.set(uid, b);
+    }),
+  );
+
   const replyProfiles = (replyProfilesRaw ?? []).map((p: any) => {
-    const badge = p.profile_badges?.[0] ?? null;
+    const b = badgeById.get(p.id) ?? null;
     return {
       ...p,
-      unlock_tier_label: badge?.unlock_tier_label ?? null,
-      unlock_tier_icon: badge?.unlock_tier_icon ?? null,
+      unlock_tier_label: b?.unlock_tier_label ?? null,
+      unlock_tier_icon: b?.unlock_tier_icon ?? null,
     };
   });
 
