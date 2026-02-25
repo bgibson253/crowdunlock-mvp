@@ -30,6 +30,7 @@ export function AuthorCard({
   }
 
   const name = author.display_name ?? author.username ?? "User";
+  const handle = author.username ? `@${author.username}` : null;
   const posts = author.post_count ?? 0;
   const badgeText = author.unlock_tier_label ?? null;
   const badgeIcon = author.unlock_tier_icon ?? null;
@@ -50,7 +51,10 @@ export function AuthorCard({
             </span>
           ) : null}
         </div>
-        <div className="text-xs text-muted-foreground">{posts} posts</div>
+        <div className="text-xs text-muted-foreground">
+          {handle ? <span className="mr-2">{handle}</span> : null}
+          <span>{posts} posts</span>
+        </div>
       </div>
     </Link>
   );
