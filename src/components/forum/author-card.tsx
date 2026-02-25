@@ -30,7 +30,6 @@ export function AuthorCard({
   }
 
   const name = author.display_name ?? author.username ?? "User";
-  const handle = author.username ? `@${author.username}` : null;
   const posts = author.post_count ?? 0;
   const badgeText = author.unlock_tier_label ?? null;
   const badgeIcon = author.unlock_tier_icon ?? null;
@@ -44,7 +43,6 @@ export function AuthorCard({
       <div className="text-sm min-w-0">
         <div className="font-medium leading-4 truncate">{name}</div>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          {handle ? <span>{handle}</span> : null}
           {badgeText ? (
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-200">
               <span aria-hidden>{badgeIcon ?? "💸"}</span>
