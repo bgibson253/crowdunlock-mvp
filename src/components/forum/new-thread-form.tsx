@@ -50,11 +50,10 @@ export function NewThreadForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const LISTED_IDS = ["listed_stories", "listed_data", "listed_videos"];
+
   const requestSections = useMemo(
-    () =>
-      sections.filter((s) =>
-        ["general", "request_story", "request_data", "request_video"].includes(s.id)
-      ),
+    () => sections.filter((s) => !LISTED_IDS.includes(s.id)),
     [sections]
   );
 

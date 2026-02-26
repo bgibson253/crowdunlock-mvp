@@ -35,6 +35,9 @@ export default async function ForumSectionPage({
 
   if (threadsErr) throw new Error(threadsErr.message);
 
+  const LISTED_IDS = ["listed_stories", "listed_data", "listed_videos"];
+  const isListed = LISTED_IDS.includes(sectionId);
+
   return (
     <div className="relative isolate">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
@@ -54,11 +57,13 @@ export default async function ForumSectionPage({
               <p className="mt-1 text-sm text-muted-foreground">{section.description}</p>
             )}
           </div>
-          <Button asChild>
-            <Link href={`/forum/new?section=${encodeURIComponent(sectionId)}`}>
-              New thread
-            </Link>
-          </Button>
+          {!isListed && (
+            <Button asChild>
+              <Link href={`/forum/new?section=${encodeURIComponent(sectionId)}`}>
+                New thread
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="mt-6 space-y-3">
@@ -76,15 +81,19 @@ export default async function ForumSectionPage({
               <CardContent className="py-10">
                 <div className="text-sm font-medium">No threads yet</div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Be the first to post in {section.name}.
+                  {isListed
+                    ? `Threads here are auto-created from listings.`
+                    : `Be the first to post in ${section.name}.`}
                 </p>
-                <div className="mt-4">
-                  <Button asChild>
-                    <Link href={`/forum/new?section=${encodeURIComponent(sectionId)}`}>
-                      Create a thread
-                    </Link>
-                  </Button>
-                </div>
+                {!isListed && (
+                  <div className="mt-4">
+                    <Button asChild>
+                      <Link href={`/forum/new?section=${encodeURIComponent(sectionId)}`}>
+                        Create a thread
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
