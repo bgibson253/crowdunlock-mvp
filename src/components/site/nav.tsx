@@ -47,9 +47,7 @@ function SheetNavLinks({ user }: { user: any }) {
       <Link href="/upload" className="block px-3 py-2 text-sm hover:underline">
         Upload
       </Link>
-      <Link href="/agent" className="block px-3 py-2 text-sm hover:underline">
-        Agent Dashboard
-      </Link>
+
       {user && (
         <Link
           href="/dashboard"
