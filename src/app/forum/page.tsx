@@ -173,20 +173,12 @@ export default async function ForumIndexPage() {
         </div>
 
         <div className="mt-4 space-y-4">
-          {general && (
+          {(general || introduce) && (
             <details open className="group">
               <CollapsibleHeader title="General Discussion" variant="slate" />
-              <div className="mt-1">
-                <SectionRowLine {...general} />
-              </div>
-            </details>
-          )}
-
-          {introduce && (
-            <details open className="group">
-              <CollapsibleHeader title="Uploader Credibility" variant="slate" />
-              <div className="mt-1">
-                <SectionRowLine {...introduce} />
+              <div className="mt-1 space-y-1">
+                {general && <SectionRowLine {...general} />}
+                {introduce && <SectionRowLine {...introduce} />}
               </div>
             </details>
           )}
