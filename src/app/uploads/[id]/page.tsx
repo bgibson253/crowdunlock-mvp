@@ -98,13 +98,12 @@ export default async function UploadDetailPage({
           </CardContent>
         </Card>
 
-        {u.status === "funding" && (
-          <ContributeCard
-            uploadId={u.id}
-            currentFunded={u.current_funded ?? 0}
-            fundingGoal={u.funding_goal ?? 500}
-          />
-        )}
+        <ContributeCard
+          uploadId={u.id}
+          currentFunded={u.current_funded ?? 0}
+          fundingGoal={u.funding_goal ?? 500}
+          unlocked={u.status === "unlocked"}
+        />
 
         {u.status === "unlocked" ? (
           <>

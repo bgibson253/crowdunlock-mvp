@@ -14,10 +14,12 @@ export function ContributeCard({
   uploadId,
   currentFunded,
   fundingGoal,
+  unlocked = false,
 }: {
   uploadId: string;
   currentFunded: number;
   fundingGoal: number;
+  unlocked?: boolean;
 }) {
   const router = useRouter();
   const [amount, setAmount] = useState<number | "">(10);
@@ -76,9 +78,16 @@ export function ContributeCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Fund this upload</CardTitle>
+        <CardTitle className="text-base">
+          {unlocked ? "Tip the community" : "Fund this upload"}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {unlocked && (
+          <p className="text-sm text-muted-foreground">
+            This upload is already unlocked! Contributions still count toward your backer tier.
+          </p>
+        )}
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
             <span className="font-medium">${currentDollars} raised</span>
