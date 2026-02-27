@@ -58,8 +58,18 @@ export async function POST(req: Request) {
     .map((t) => t.trim())
     .filter(Boolean);
 
-  // Use a NULL uploader_id in test mode so we do not violate the auth.users foreign key.
-  const uploaderId: string | null = null;
+  // Try to get the actual signed-in user so uploads are owned by them
+  // Fall back to null if no session (pure service-role test)
+  const { cookies } = await import("next/headers");
+  const { createServerClient } = await import("@supabase/ssr");
+  const cookieStore = await cookies();
+  const supabaseAuth = createServerClient(
+    envC.NEXT_PUBLIC_SUPABASE_URL,
+    envC.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { cookies: { getAll: () => cookieStore.getAll() } },
+  );
+  const { data: { user: authUser } } = await supabaseAuth.auth.getUser();
+  const uploaderId: string | null = authUser?.id ?? null;
 
   const ext = file.name.split(".").pop() || "bin";
   const objectName = `${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`;

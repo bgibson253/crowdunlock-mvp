@@ -44,18 +44,6 @@ function SheetNavLinks({ user }: { user: any }) {
       <Link href="/browse" className="block px-3 py-2 text-sm hover:underline">
         Browse
       </Link>
-      <Link href="/upload" className="block px-3 py-2 text-sm hover:underline">
-        Upload
-      </Link>
-
-      {user && (
-        <Link
-          href="/dashboard"
-          className="block px-3 py-2 text-sm hover:underline"
-        >
-          Dashboard
-        </Link>
-      )}
     </div>
   );
 }
@@ -94,7 +82,7 @@ export async function Nav() {
               <SheetNavLinks user={user} />
 
               {user ? (
-                <div className="mt-6 border-t pt-4">
+                <div className="mt-6 border-t pt-4 space-y-1">
                   <Link href="/profile/settings" className="flex items-center gap-3 px-3 py-2 hover:bg-muted rounded-md">
                     <Avatar className="h-7 w-7">
                       {profile?.avatar_url ? (
@@ -110,6 +98,12 @@ export async function Nav() {
                       </div>
                       <div className="text-xs text-muted-foreground">Profile & settings</div>
                     </div>
+                  </Link>
+                  <Link href="/dashboard" className="block px-3 py-2 text-sm hover:underline">
+                    My uploads
+                  </Link>
+                  <Link href="/upload" className="block px-3 py-2 text-sm hover:underline">
+                    New upload
                   </Link>
                 </div>
               ) : null}
