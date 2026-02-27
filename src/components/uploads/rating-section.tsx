@@ -6,22 +6,38 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-function Star({ filled }: { filled: boolean }) {
+function Star({ filled, size = "sm" }: { filled: boolean; size?: "sm" | "lg" }) {
   return (
-    <span className={filled ? "text-yellow-500" : "text-muted-foreground"} aria-hidden>
+    <span
+      className={
+        (filled ? "text-yellow-500" : "text-muted-foreground/40") +
+        (size === "lg" ? " text-xl" : "")
+      }
+      aria-hidden
+    >
       ★
     </span>
   );
 }
 
-type RatingRow = {
-  stars: number;
-};
+function StarRow({ stars, max = 5, size = "sm" }: { stars: number; max?: number; size?: "sm" | "lg" }) {
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {Array.from({ length: max }).map((_, i) => (
+        <Star key={i} filled={i < stars} size={size} />
+      ))}
+    </span>
+  );
+}
+
+type RatingRow = { stars: number };
 
 export function RatingSection({ uploadId }: { uploadId: string }) {
   const [myStars, setMyStars] = React.useState<number | null>(null);
   const [avg, setAvg] = React.useState<number | null>(null);
   const [count, setCount] = React.useState<number>(0);
+  const [hoverStar, setHoverStar] = React.useState<number | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   async function load() {
@@ -66,8 +82,9 @@ export function RatingSection({ uploadId }: { uploadId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadId]);
 
-  async function setStars(stars: number) {
+  async function submitRating(stars: number) {
     setError(null);
+    setSubmitting(true);
     const supabase = supabaseBrowser();
     const {
       data: { user },
@@ -75,6 +92,7 @@ export function RatingSection({ uploadId }: { uploadId: string }) {
 
     if (!user) {
       setError("Please sign in to rate.");
+      setSubmitting(false);
       return;
     }
 
@@ -84,16 +102,20 @@ export function RatingSection({ uploadId }: { uploadId: string }) {
         user_id: user.id,
         stars,
       },
-      { onConflict: "upload_id,user_id" }
+      { onConflict: "upload_id,user_id" },
     );
 
     if (error) {
       setError(error.message);
+      setSubmitting(false);
       return;
     }
 
     await load();
+    setSubmitting(false);
   }
+
+  const hasRated = myStars !== null;
 
   return (
     <Card>
@@ -107,31 +129,58 @@ export function RatingSection({ uploadId }: { uploadId: string }) {
           </div>
         ) : null}
 
-        <div className="text-sm text-muted-foreground">
-          {avg === null ? "No ratings yet." : `Average ${avg.toFixed(1)} (${count})`}
+        {/* Aggregate rating display */}
+        <div className="flex items-center gap-3">
+          {avg !== null ? (
+            <>
+              <span className="text-3xl font-semibold tabular-nums">{avg.toFixed(1)}</span>
+              <div>
+                <StarRow stars={Math.round(avg)} size="lg" />
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {count} {count === 1 ? "rating" : "ratings"}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground">No ratings yet. Be the first!</div>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="text-sm">Your rating:</div>
-          <div className="flex items-center gap-1">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const s = i + 1;
-              const filled = (myStars ?? 0) >= s;
-              return (
-                <Button
-                  key={s}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => setStars(s)}
-                >
-                  <Star filled={filled} />
-                </Button>
-              );
-            })}
+        {/* User's own rating — picker or locked result */}
+        {hasRated ? (
+          <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
+            <span className="text-sm text-muted-foreground">Your rating:</span>
+            <StarRow stars={myStars} />
+            <span className="text-xs text-muted-foreground ml-1">({myStars}/5)</span>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-1">
+            <div className="text-sm font-medium">Rate this upload</div>
+            <div
+              className="flex items-center gap-1"
+              onMouseLeave={() => setHoverStar(null)}
+            >
+              {Array.from({ length: 5 }).map((_, i) => {
+                const s = i + 1;
+                const filled = s <= (hoverStar ?? 0);
+                return (
+                  <Button
+                    key={s}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                    disabled={submitting}
+                    onMouseEnter={() => setHoverStar(s)}
+                    onClick={() => submitRating(s)}
+                  >
+                    <Star filled={filled} size="lg" />
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
