@@ -88,7 +88,7 @@ export async function POST(req: Request) {
       quality_score: null,
       status: "funding",
       current_funded: 0,
-      funding_goal: unlockGoal,
+      funding_goal: unlockGoal * 100,
       posting_fee_payment_intent_id: null,
     })
     .select("id")

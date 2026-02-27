@@ -69,7 +69,9 @@ export function ContributeCard({
   }
 
   const pct = Math.min(100, Math.round((currentFunded / fundingGoal) * 100));
-  const remaining = Math.max(0, fundingGoal - currentFunded);
+  const remainingDollars = Math.max(0, Math.floor((fundingGoal - currentFunded) / 100));
+  const currentDollars = Math.floor(currentFunded / 100);
+  const goalDollars = Math.floor(fundingGoal / 100);
 
   return (
     <Card>
@@ -79,8 +81,8 @@ export function ContributeCard({
       <CardContent className="space-y-4">
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
-            <span className="font-medium">${currentFunded} raised</span>
-            <span className="text-muted-foreground">${fundingGoal} goal</span>
+            <span className="font-medium">${currentDollars} raised</span>
+            <span className="text-muted-foreground">${goalDollars} goal</span>
           </div>
           <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
             <div
@@ -88,7 +90,7 @@ export function ContributeCard({
               style={{ width: `${pct}%` }}
             />
           </div>
-          <p className="text-xs text-muted-foreground">${remaining} to go • {pct}% funded</p>
+          <p className="text-xs text-muted-foreground">${remainingDollars} to go • {pct}% funded</p>
         </div>
 
         <div className="flex flex-wrap gap-2">

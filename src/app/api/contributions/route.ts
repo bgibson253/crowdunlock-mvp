@@ -65,22 +65,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Upload not found" }, { status: 404 });
     }
 
-    // Insert contribution
+    // Insert contribution (amount stored in cents; DB trigger adds to unlock_gross_cents)
+    const amountCents = Math.round(amount * 100);
     const { error: insertErr } = await supabase.from("contributions").insert({
       upload_id,
       user_id: user.id,
-      amount,
+      amount: amountCents,
     });
 
     if (insertErr) {
       return NextResponse.json({ error: insertErr.message }, { status: 500 });
     }
 
-    // Update current_funded on the upload
-    const newFunded = (upload.current_funded ?? 0) + amount;
+    // Update current_funded on the upload (in cents)
+    const newFunded = (upload.current_funded ?? 0) + amountCents;
     const updates: Record<string, any> = { current_funded: newFunded };
 
-    // Check if funding goal is met
+    // Check if funding goal is met (funding_goal is also in cents)
     const { data: fullUpload } = await supabase
       .from("uploads")
       .select("funding_goal")

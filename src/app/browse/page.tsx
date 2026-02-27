@@ -96,7 +96,7 @@ export default async function BrowsePage() {
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>
-                            ${current} / ${goal}
+                            ${Math.floor(current / 100)} / ${Math.floor(goal / 100)}
                           </span>
                           <span>{pct}%</span>
                         </div>
