@@ -1,0 +1,132 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { supabaseBrowser } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const PRESETS = [5, 10, 25, 50, 100];
+
+export function ContributeCard({
+  uploadId,
+  currentFunded,
+  fundingGoal,
+}: {
+  uploadId: string;
+  currentFunded: number;
+  fundingGoal: number;
+}) {
+  const router = useRouter();
+  const [amount, setAmount] = useState<number | "">(10);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function onContribute() {
+    if (!amount || amount <= 0) return;
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      const supabase = supabaseBrowser();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setError("You must be signed in to contribute.");
+        return;
+      }
+
+      const res = await fetch("/api/contributions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ upload_id: uploadId, amount }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error ?? "Failed to contribute");
+        return;
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        router.refresh();
+        setSuccess(false);
+      }, 1500);
+    } catch (err: any) {
+      setError(err?.message ?? "Network error");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const pct = Math.min(100, Math.round((currentFunded / fundingGoal) * 100));
+  const remaining = Math.max(0, fundingGoal - currentFunded);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Fund this upload</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-1">
+          <div className="flex justify-between text-sm">
+            <span className="font-medium">${currentFunded} raised</span>
+            <span className="text-muted-foreground">${fundingGoal} goal</span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-all"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">${remaining} to go • {pct}% funded</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {PRESETS.map((p) => (
+            <Button
+              key={p}
+              size="sm"
+              variant={amount === p ? "default" : "outline"}
+              onClick={() => setAmount(p)}
+            >
+              ${p}
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">$</span>
+          <Input
+            type="number"
+            min={1}
+            step={1}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : "")}
+            className="w-28"
+            placeholder="Custom"
+          />
+          <Button onClick={onContribute} disabled={submitting || !amount || amount <= 0}>
+            {submitting ? "Processing…" : success ? "✓ Done!" : "Contribute"}
+          </Button>
+        </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {success && (
+          <p className="text-sm text-green-600 font-medium">
+            Contribution recorded! Thank you.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

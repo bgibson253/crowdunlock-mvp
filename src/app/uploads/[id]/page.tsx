@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RatingSection } from "@/components/uploads/rating-section";
 import { TestUnlockButton } from "@/components/uploads/test-unlock-button";
+import { ContributeCard } from "@/components/uploads/contribute-card";
 
 export const dynamic = "force-dynamic";
 
@@ -49,8 +50,8 @@ export default async function UploadDetailPage({
   const u = upload as UploadRow;
   const testMode = isTestMode();
 
-  if (!testMode && u.status !== "unlocked") return notFound();
-  if (testMode && !(u.status === "funding" || u.status === "unlocked")) return notFound();
+  // Allow anyone to see funding uploads (not just test mode)
+  if (u.status !== "unlocked" && u.status !== "funding") return notFound();
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -58,7 +59,9 @@ export default async function UploadDetailPage({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{u.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {u.status === "unlocked" ? "Unlocked community document" : "Funding page (test mode)"}
+            {u.status === "unlocked"
+              ? "Unlocked community document"
+              : "Help fund this upload to unlock it for everyone"}
           </p>
         </div>
         <Badge variant="secondary">{u.status}</Badge>
@@ -80,18 +83,28 @@ export default async function UploadDetailPage({
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="text-base">Teaser</CardTitle>
-              <a
-                className="text-sm underline"
-                href={"/api/uploads/" + u.id + "/download"}
-              >
-                Download
-              </a>
+              {u.status === "unlocked" && (
+                <a
+                  className="text-sm underline"
+                  href={"/api/uploads/" + u.id + "/download"}
+                >
+                  Download
+                </a>
+              )}
             </div>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             {u.ai_teaser ?? "(No teaser)"}
           </CardContent>
         </Card>
+
+        {u.status === "funding" && (
+          <ContributeCard
+            uploadId={u.id}
+            currentFunded={u.current_funded ?? 0}
+            fundingGoal={u.funding_goal ?? 500}
+          />
+        )}
 
         {u.status === "unlocked" ? (
           <>
@@ -110,16 +123,7 @@ export default async function UploadDetailPage({
               </Card>
             ) : null}
           </>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Locked</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              This upload is not unlocked yet.
-            </CardContent>
-          </Card>
-        )}
+        ) : null}
       </div>
     </main>
   );
