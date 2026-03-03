@@ -30,7 +30,7 @@ function HamburgerButton() {
   );
 }
 
-function SheetNavLinks({ user }: { user: any }) {
+function SheetNavLinks({ user, unreadDmCount }: { user: any; unreadDmCount: number }) {
   return (
     <div className="mt-6 space-y-2">
       <Link href="/" className="block px-3 py-2 text-sm hover:underline">
@@ -53,6 +53,14 @@ function SheetNavLinks({ user }: { user: any }) {
           Notifications
         </Link>
       )}
+      {user && (
+        <Link
+          href="/messages"
+          className="block px-3 py-2 text-sm hover:underline"
+        >
+          Messages{unreadDmCount > 0 ? ` (${unreadDmCount})` : ""}
+        </Link>
+      )}
     </div>
   );
 }
@@ -71,6 +79,17 @@ export async function Nav() {
         .maybeSingle()
     : { data: null };
 
+  // Count unread DMs for the logged-in user
+  let unreadDmCount = 0;
+  if (user) {
+    const { count } = await supabase
+      .from("forum_dms")
+      .select("id", { count: "exact", head: true })
+      .eq("recipient_id", user.id)
+      .eq("read", false);
+    unreadDmCount = count ?? 0;
+  }
+
   return (
     <header className="border-b">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
@@ -88,7 +107,7 @@ export async function Nav() {
                 </SheetTitle>
               </SheetHeader>
 
-              <SheetNavLinks user={user} />
+              <SheetNavLinks user={user} unreadDmCount={unreadDmCount} />
 
               {user ? (
                 <div className="mt-6 border-t pt-4 space-y-1">
@@ -116,9 +135,6 @@ export async function Nav() {
                   </Link>
                   <Link href="/forum/favorites" className="block px-3 py-2 text-sm hover:underline">
                     Favorites
-                  </Link>
-                  <Link href="/messages" className="block px-3 py-2 text-sm hover:underline">
-                    Messages
                   </Link>
                 </div>
               ) : null}
