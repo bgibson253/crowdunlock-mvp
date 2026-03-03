@@ -14,7 +14,7 @@ type ReactionCount = {
 export function Reactions({
   targetType,
   targetId,
-  userId,
+  userId: serverUserId,
 }: {
   targetType: "thread" | "reply";
   targetId: string;
@@ -23,13 +23,27 @@ export function Reactions({
   const [reactions, setReactions] = useState<ReactionCount[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(false);
-  // Track which emoji the current user has reacted with (null = none)
   const [myEmoji, setMyEmoji] = useState<string | null>(null);
+  // Resolve userId client-side so it works even when SSR passes null
+  const [userId, setUserId] = useState<string | null>(serverUserId);
+
+  useEffect(() => {
+    async function resolveUser() {
+      if (serverUserId) {
+        setUserId(serverUserId);
+        return;
+      }
+      const supabase = supabaseBrowser();
+      const { data } = await supabase.auth.getUser();
+      setUserId(data.user?.id ?? null);
+    }
+    resolveUser();
+  }, [serverUserId]);
 
   useEffect(() => {
     fetchReactions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetId]);
+  }, [targetId, userId]);
 
   async function fetchReactions() {
     const supabase = supabaseBrowser();
