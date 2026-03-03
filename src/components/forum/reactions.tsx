@@ -23,6 +23,8 @@ export function Reactions({
   const [reactions, setReactions] = useState<ReactionCount[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Track which emoji the current user has reacted with (null = none)
+  const [myEmoji, setMyEmoji] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReactions();
@@ -38,12 +40,17 @@ export function Reactions({
       .eq("target_id", targetId);
 
     const counts: Record<string, { count: number; reacted: boolean }> = {};
+    let userEmoji: string | null = null;
     for (const r of (data ?? []) as any[]) {
       if (!counts[r.emoji]) counts[r.emoji] = { count: 0, reacted: false };
       counts[r.emoji].count++;
-      if (userId && r.user_id === userId) counts[r.emoji].reacted = true;
+      if (userId && r.user_id === userId) {
+        counts[r.emoji].reacted = true;
+        userEmoji = r.emoji;
+      }
     }
 
+    setMyEmoji(userEmoji);
     setReactions(
       Object.entries(counts)
         .map(([emoji, { count, reacted }]) => ({ emoji, count, reacted }))
@@ -56,8 +63,8 @@ export function Reactions({
     setLoading(true);
     const supabase = supabaseBrowser();
 
-    const existing = reactions.find((r) => r.emoji === emoji);
-    if (existing?.reacted) {
+    if (myEmoji === emoji) {
+      // Undo current reaction
       await supabase
         .from("forum_reactions")
         .delete()
@@ -66,6 +73,17 @@ export function Reactions({
         .eq("target_id", targetId)
         .eq("emoji", emoji);
     } else {
+      // Remove any existing reaction first (one reaction per user per target)
+      if (myEmoji) {
+        await supabase
+          .from("forum_reactions")
+          .delete()
+          .eq("user_id", userId)
+          .eq("target_type", targetType)
+          .eq("target_id", targetId)
+          .eq("emoji", myEmoji);
+      }
+      // Insert new reaction
       await supabase.from("forum_reactions").insert({
         user_id: userId,
         target_type: targetType,
@@ -111,7 +129,9 @@ export function Reactions({
                 <button
                   key={emoji}
                   onClick={() => toggleReaction(emoji)}
-                  className="hover:bg-muted rounded p-1 text-base transition"
+                  className={`rounded p-1 text-base transition ${
+                    myEmoji === emoji ? "bg-indigo-100 ring-1 ring-indigo-300" : "hover:bg-muted"
+                  }`}
                 >
                   {emoji}
                 </button>
