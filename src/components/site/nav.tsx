@@ -117,6 +117,9 @@ export async function Nav() {
                   <Link href="/forum/favorites" className="block px-3 py-2 text-sm hover:underline">
                     Favorites
                   </Link>
+                  <Link href="/messages" className="block px-3 py-2 text-sm hover:underline">
+                    Messages
+                  </Link>
                 </div>
               ) : null}
 

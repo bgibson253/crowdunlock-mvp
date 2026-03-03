@@ -111,7 +111,13 @@ function ReplyCard({
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-medium">{reply.author_name}</span>
+                {reply.author_id ? (
+                  <a href={`/profile/${reply.author_id}`} className="text-xs font-medium hover:underline">
+                    {reply.author_name}
+                  </a>
+                ) : (
+                  <span className="text-xs font-medium">{reply.author_name}</span>
+                )}
                 <span className="text-[10px] text-muted-foreground">
                   {new Date(reply.created_at).toLocaleString()}
                 </span>
