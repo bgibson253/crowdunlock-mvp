@@ -136,8 +136,11 @@ export function MarkdownEditor({
 
   function handlePaste(e: React.ClipboardEvent) {
     const items = Array.from(e.clipboardData.items);
+    const hasText = items.some((i) => i.type === "text/plain");
     const imgItem = items.find((i) => i.type.startsWith("image/"));
-    if (imgItem) {
+    // Only intercept if clipboard has an image but NO text (e.g. screenshot paste).
+    // If there's text, let the browser handle normal Ctrl+V.
+    if (imgItem && !hasText) {
       e.preventDefault();
       const file = imgItem.getAsFile();
       if (file) handleImageUpload(file);
