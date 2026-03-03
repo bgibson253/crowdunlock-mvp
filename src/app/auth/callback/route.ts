@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
+  const redirectTo = url.searchParams.get("redirect") || "/browse";
 
   const cookieStore = await cookies();
 
@@ -25,5 +26,7 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL("/", request.url));
+  // Redirect back to where the user came from (only allow relative paths for safety)
+  const safeDest = redirectTo.startsWith("/") ? redirectTo : "/browse";
+  return NextResponse.redirect(new URL(safeDest, request.url));
 }

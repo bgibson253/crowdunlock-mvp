@@ -42,7 +42,7 @@ const signUpSchema = z
 
 type SignUpValues = z.infer<typeof signUpSchema>;
 
-export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}) {
+export function AuthForm({ requireUsername, redirectTo }: { requireUsername?: boolean; redirectTo?: string } = {}) {
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
 
@@ -71,7 +71,7 @@ export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}
       return;
     }
 
-    window.location.assign("/browse");
+    window.location.assign(redirectTo || "/browse");
   }
 
   async function onPasswordSignUp(values: SignUpValues) {
@@ -88,7 +88,7 @@ export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}
         data: {
           name: values.username?.trim() || undefined,
         },
-        emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`,
       },
     });
 
@@ -110,7 +110,7 @@ export function AuthForm({ requireUsername }: { requireUsername?: boolean } = {}
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`,
       },
     });
 

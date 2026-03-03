@@ -46,7 +46,7 @@ export default async function BrowsePage() {
                 Sign in to browse uploads, contribute to funding, and access unlocked content.
               </p>
               <Button asChild>
-                <Link href="/auth">Sign in</Link>
+                <Link href="/auth?redirect=%2Fbrowse">Sign in</Link>
               </Button>
             </CardContent>
           </Card>

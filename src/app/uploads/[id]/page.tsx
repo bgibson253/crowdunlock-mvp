@@ -49,7 +49,7 @@ export default async function UploadDetailPage({
                 Sign in to view uploads, contribute to funding, and access unlocked content.
               </p>
               <Button asChild>
-                <Link href="/auth">Sign in</Link>
+                <Link href={`/auth?redirect=${encodeURIComponent(`/uploads/${id}`)}`}>Sign in</Link>
               </Button>
             </CardContent>
           </Card>

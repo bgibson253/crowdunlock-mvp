@@ -157,7 +157,7 @@ export default async function ForumThreadPage({
         ) : (
           <Card className="rounded-2xl">
             <CardContent className="py-6 text-sm">
-              <a className="underline" href="/auth">
+              <a className="underline" href="/auth?redirect=%2Fforum">
                 Sign in
               </a>{" "}
               to reply.

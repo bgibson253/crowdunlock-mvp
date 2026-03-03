@@ -207,7 +207,7 @@ export function ForumSearchPage({ sections, isLoggedIn = true }: { sections: Sec
             <p className="text-xs text-muted-foreground mt-1">
               Search is available to logged-in members.
             </p>
-            <Link href="/auth">
+            <Link href="/auth?redirect=%2Fforum%2Fsearch">
               <Button size="sm" className="mt-4">Sign in</Button>
             </Link>
           </CardContent>
