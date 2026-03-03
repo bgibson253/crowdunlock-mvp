@@ -19,6 +19,12 @@ export async function GET(req: NextRequest) {
 
   const supabase = await supabaseServer();
 
+  // Auth gate: only logged-in users can search
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in to search." }, { status: 401 });
+  }
+
   // Build tsquery - handle special characters
   const tsQuery = query
     .split(/\s+/)

@@ -65,6 +65,12 @@ export function ForumSearchPage({ sections }: { sections: Section[] }) {
         if (sec && sec !== "all") params.set("section", sec);
 
         const res = await fetch(`/api/forum/search?${params}`);
+        if (res.status === 401) {
+          setThreads([]);
+          setReplies([]);
+          setTotal(-1); // signal auth required
+          return;
+        }
         const data = await res.json();
         setThreads(data.threads || []);
         setReplies(data.replies || []);
