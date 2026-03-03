@@ -19,11 +19,11 @@ export function AuthorCard({
     return (
       <div className="flex items-center gap-3">
         <Avatar className="h-10 w-10">
-          <AvatarFallback>?</AvatarFallback>
+          <AvatarFallback>A</AvatarFallback>
         </Avatar>
         <div className="text-sm">
-          <div className="font-medium">Unknown</div>
-          <div className="text-xs text-muted-foreground">—</div>
+          <div className="font-medium">Administrator</div>
+          <div className="text-xs text-muted-foreground">System</div>
         </div>
       </div>
     );

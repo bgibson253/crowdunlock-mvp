@@ -227,7 +227,7 @@ export function ThreadedReplies({
 
   const repliesWithNames = replyData.map((r) => ({
     ...r,
-    author_name: authorNames[r.author_id] || "Anonymous",
+    author_name: authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
   }));
 
   const tree = buildTree(repliesWithNames);
