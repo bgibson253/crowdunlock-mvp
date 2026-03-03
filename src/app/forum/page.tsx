@@ -85,8 +85,6 @@ function CollapsibleHeader({
 export default async function ForumIndexPage() {
   const supabase = await supabaseServer();
 
-  const { data: { user } } = await supabase.auth.getUser();
-
   const { data: sectionsRaw, error: sectionsErr } = await supabase
     .from("forum_sections")
     .select("id,name,description,sort_order")
@@ -169,7 +167,7 @@ export default async function ForumIndexPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {user && <SearchBar />}
+            <SearchBar />
             <Button asChild className="h-8 px-3 text-xs">
               <Link href="/forum/new">New thread</Link>
             </Button>

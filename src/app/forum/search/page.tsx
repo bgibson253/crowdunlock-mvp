@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 
@@ -11,7 +10,6 @@ export default async function SearchPage() {
   const supabase = await supabaseServer();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
 
   const { data: sections } = await supabase
     .from("forum_sections")
@@ -35,7 +33,7 @@ export default async function SearchPage() {
         </h1>
 
         <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
-          <ForumSearchPage sections={(sections ?? []) as any[]} />
+          <ForumSearchPage sections={(sections ?? []) as any[]} isLoggedIn={!!user} />
         </Suspense>
       </div>
     </div>

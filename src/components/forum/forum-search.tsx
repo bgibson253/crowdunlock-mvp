@@ -38,7 +38,7 @@ type SearchReply = {
 
 type Section = { id: string; name: string };
 
-export function ForumSearchPage({ sections }: { sections: Section[] }) {
+export function ForumSearchPage({ sections, isLoggedIn = true }: { sections: Section[]; isLoggedIn?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -49,11 +49,20 @@ export function ForumSearchPage({ sections }: { sections: Section[] }) {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const doSearch = useCallback(
     async (q: string, sec: string) => {
+      setAuthRequired(false);
       if (!q || q.trim().length < 2) {
+        setThreads([]);
+        setReplies([]);
+        setTotal(0);
+        return;
+      }
+      if (!isLoggedIn) {
+        setAuthRequired(true);
         setThreads([]);
         setReplies([]);
         setTotal(0);
@@ -66,9 +75,10 @@ export function ForumSearchPage({ sections }: { sections: Section[] }) {
 
         const res = await fetch(`/api/forum/search?${params}`);
         if (res.status === 401) {
+          setAuthRequired(true);
           setThreads([]);
           setReplies([]);
-          setTotal(-1); // signal auth required
+          setTotal(0);
           return;
         }
         const data = await res.json();
@@ -190,7 +200,21 @@ export function ForumSearchPage({ sections }: { sections: Section[] }) {
         </div>
       )}
 
-      {!loading && query.trim().length >= 2 && (
+      {!loading && authRequired && (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-sm font-medium">Sign in to search the forum</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Search is available to logged-in members.
+            </p>
+            <Link href="/auth">
+              <Button size="sm" className="mt-4">Sign in</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && !authRequired && query.trim().length >= 2 && (
         <>
           <div className="text-xs text-muted-foreground">
             {total} result{total !== 1 ? "s" : ""} for &ldquo;{query.trim()}
@@ -268,7 +292,7 @@ export function ForumSearchPage({ sections }: { sections: Section[] }) {
         </>
       )}
 
-      {!loading && query.trim().length < 2 && (
+      {!loading && !authRequired && query.trim().length < 2 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
             Type at least 2 characters to search.
