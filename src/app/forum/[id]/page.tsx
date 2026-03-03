@@ -4,6 +4,12 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { ReplyForm } from "@/components/forum/reply-form";
 import { AuthorCard } from "@/components/forum/author-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MarkdownBody } from "@/components/forum/markdown-body";
+import { Reactions } from "@/components/forum/reactions";
+import { FavoriteButton } from "@/components/forum/favorite-button";
+import { SubscribeButton } from "@/components/forum/subscribe-button";
+import { ThreadedReplies } from "@/components/forum/threaded-replies";
+import { Separator } from "@/components/ui/separator";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +52,7 @@ export default async function ForumThreadPage({
 
   const { data: replies, error: repliesErr } = await supabase
     .from("forum_replies")
-    .select("id,body,created_at,author_id")
+    .select("id,body,created_at,author_id,parent_reply_id")
     .eq("thread_id", id)
     .order("created_at", { ascending: true });
 
@@ -88,6 +94,23 @@ export default async function ForumThreadPage({
   (replyProfiles ?? []).forEach((p: any) => replyProfileById.set(p.id, p));
 
   const { data: authData } = await supabase.auth.getUser();
+  const userId = authData.user?.id ?? null;
+
+  // Get author names for threaded replies
+  const authorIds = [
+    thread.author_id,
+    ...new Set((replies ?? []).map((r: any) => r.author_id)),
+  ].filter(Boolean);
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, display_name")
+    .in("id", authorIds);
+
+  const authorNames: Record<string, string> = {};
+  for (const p of (profiles ?? []) as any[]) {
+    authorNames[p.id] = p.display_name || "Anonymous";
+  }
 
   return (
     <div className="relative isolate">
@@ -105,36 +128,29 @@ export default async function ForumThreadPage({
               </div>
             </div>
             <div>
-              <p className="whitespace-pre-wrap text-sm leading-6">{thread.body}</p>
+              <MarkdownBody content={thread.body} />
+              <Reactions targetType="thread" targetId={thread.id} userId={userId} />
+              <Separator className="my-3" />
+              <div className="flex items-center gap-2">
+                <FavoriteButton threadId={thread.id} userId={userId} />
+                <SubscribeButton threadId={thread.id} userId={userId} />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
-          {(replies ?? []).map((r: any) => (
-            <Card key={r.id}>
-              <CardContent className="py-4 grid gap-4 md:grid-cols-[220px_1fr]">
-                <div className="md:border-r md:pr-4">
-                  <AuthorCard author={replyProfileById.get(r.author_id) ?? null} />
-                  <div className="mt-3 text-xs text-muted-foreground">
-                    {new Date(r.created_at).toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <p className="whitespace-pre-wrap text-sm leading-6">{r.body}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {(replies?.length ?? 0) === 0 && (
-            <Card>
-              <CardContent className="py-6 text-sm text-muted-foreground">
-                No replies yet.
-              </CardContent>
-            </Card>
-          )}
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold">
+            {(replies?.length ?? 0)} Repl{(replies?.length ?? 0) === 1 ? "y" : "ies"}
+          </h3>
         </div>
+
+        <ThreadedReplies
+          replies={(replies ?? []) as any[]}
+          userId={userId}
+          threadId={id}
+          authorNames={authorNames}
+        />
 
         {authData.user ? (
           <ReplyForm threadId={id} />

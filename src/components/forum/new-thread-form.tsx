@@ -7,7 +7,6 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -15,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MarkdownEditor } from "@/components/forum/markdown-editor";
 
 type Section = { id: string; name: string; sort_order?: number };
 
@@ -122,11 +122,11 @@ export function NewThreadForm({
           </div>
           <div>
             <div className="text-sm font-medium mb-1">Body</div>
-            <Textarea
+            <MarkdownEditor
               value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={8}
+              onChange={setBody}
               placeholder={`Include:\n- What you want\n- Why it matters\n- Links/sources\n- Budget/interest level`}
+              rows={8}
             />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}

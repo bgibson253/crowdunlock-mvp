@@ -11,6 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/forum/notification-bell";
 
 function HamburgerButton() {
   return (
@@ -44,6 +45,22 @@ function SheetNavLinks({ user }: { user: any }) {
       <Link href="/browse" className="block px-3 py-2 text-sm hover:underline">
         Browse
       </Link>
+      {user && (
+        <>
+          <Link
+            href="/forum/notifications"
+            className="block px-3 py-2 text-sm hover:underline"
+          >
+            Notifications
+          </Link>
+          <Link
+            href="/forum/favorites"
+            className="block px-3 py-2 text-sm hover:underline"
+          >
+            Favorites
+          </Link>
+        </>
+      )}
     </div>
   );
 }
@@ -129,8 +146,8 @@ export async function Nav() {
           </Link>
         </div>
 
-        {/* keep right side minimal when hamburger is primary */}
         <div className="flex items-center gap-2">
+          {user && <NotificationBell userId={user.id} />}
           {user ? (
             <form action="/auth/signout" method="post" className="hidden sm:block">
               <Button variant="outline" size="sm" type="submit">

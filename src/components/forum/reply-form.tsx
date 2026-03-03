@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/forum/markdown-editor";
 
 export function ReplyForm({ threadId }: { threadId: string }) {
   const router = useRouter();
@@ -48,9 +48,10 @@ export function ReplyForm({ threadId }: { threadId: string }) {
       <CardContent className="py-6">
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="text-sm font-medium">Reply</div>
-          <Textarea
+          <MarkdownEditor
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={setBody}
+            placeholder="Write your reply… (Markdown supported, drag & drop images)"
             rows={4}
           />
           {error && <div className="text-sm text-red-600">{error}</div>}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SearchBar } from "@/components/forum/search-bar";
 
 export const dynamic = "force-dynamic";
 
@@ -62,8 +63,6 @@ function CollapsibleHeader({
         ? "from-indigo-600 to-indigo-500"
         : "from-slate-700 to-slate-600";
 
-  // Note: true "only minimize when clicking the symbol" requires a Client Component.
-  // This version uses native <details>/<summary> (click anywhere on the header toggles).
   return (
     <summary
       className={
@@ -167,9 +166,12 @@ export default async function ForumIndexPage() {
               Public can read. Sign in to start threads and reply.
             </p>
           </div>
-          <Button asChild className="h-8 px-3 text-xs">
-            <Link href="/forum/new">New thread</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <SearchBar />
+            <Button asChild className="h-8 px-3 text-xs">
+              <Link href="/forum/new">New thread</Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mt-4 space-y-4">
