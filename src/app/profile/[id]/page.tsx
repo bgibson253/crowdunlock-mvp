@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
 import { supabaseServer } from "@/lib/supabase/server";
@@ -19,6 +19,9 @@ export default async function ProfilePage({
   const { id } = await params;
   const supabase = await supabaseServer();
 
+  // Gate behind auth
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect(`/auth?redirect=${encodeURIComponent(`/profile/${id}`)}`);
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("id,username,display_name,bio,website,location,twitter,github,linkedin,banner_url,avatar_url,post_count,created_at")
@@ -69,8 +72,7 @@ export default async function ProfilePage({
     sectionMap[s.id] = s.name;
   }
 
-  // Check if viewer is logged in (for DM button)
-  const { data: { user } } = await supabase.auth.getUser();
+  // DM button / edit profile logic
   const isOwnProfile = user?.id === id;
 
   return (
