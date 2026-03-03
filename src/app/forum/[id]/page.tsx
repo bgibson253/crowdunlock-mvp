@@ -104,12 +104,12 @@ export default async function ForumThreadPage({
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, display_name")
+    .select("id, display_name, username")
     .in("id", authorIds);
 
   const authorNames: Record<string, string> = {};
   for (const p of (profiles ?? []) as any[]) {
-    authorNames[p.id] = p.display_name || "Anonymous";
+    authorNames[p.id] = p.display_name || p.username || "Anonymous";
   }
 
   return (

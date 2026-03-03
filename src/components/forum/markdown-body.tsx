@@ -8,6 +8,7 @@ export function MarkdownBody({ content }: { content: string }) {
     <div className="forum-prose text-sm leading-6">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        children={content}
         components={{
           h1: ({ children, ...props }) => (
             <h1 className="text-lg font-bold mt-4 mb-2" {...props}>{children}</h1>
