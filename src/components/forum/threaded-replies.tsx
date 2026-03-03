@@ -117,13 +117,6 @@ function ReplyCard({
                 </span>
               </div>
 
-              {/* Quote parent if nested */}
-              {reply.parent_reply_id && depth > 0 && (
-                <div className="border-l-2 border-indigo-200 pl-2 mb-2 text-xs text-muted-foreground line-clamp-2 italic">
-                  Replying to a previous comment
-                </div>
-              )}
-
               <MarkdownBody content={reply.body} />
               <Reactions targetType="reply" targetId={reply.id} userId={userId} />
 
