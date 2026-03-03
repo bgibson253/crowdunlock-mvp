@@ -4,11 +4,17 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export function MarkdownBody({ content }: { content: string }) {
+  // Strip auto-generated boilerplate from listing threads
+  const cleaned = content
+    .replace(/\n*---\n*Auto-generated thread for this listing\.\n*/gi, "")
+    .replace(/\n*View listing:\s*https?:\/\/\S+/gi, "")
+    .trim();
+
   return (
     <div className="forum-prose text-sm leading-6">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        children={content}
+        children={cleaned}
         components={{
           h1: ({ children, ...props }) => (
             <h1 className="text-lg font-bold mt-4 mb-2" {...props}>{children}</h1>

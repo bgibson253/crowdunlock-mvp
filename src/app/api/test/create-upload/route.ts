@@ -114,7 +114,7 @@ export async function POST(req: Request) {
   // If thread creation fails, don't block upload.
   const sectionId = listedSectionId(contentType);
   const threadTitle = `[LISTING] ${title}`;
-  const threadBody = `${why}\n\n---\n\nAuto-generated thread for this listing.\n\nView listing: ${envC.NEXT_PUBLIC_APP_URL}/uploads/${uploadRow.id}`;
+  const threadBody = why;
 
   const { error: threadErr } = await supabase.from("forum_threads").insert({
     // Attempt to post as the same uploader (null in our test path). Will fail if author_id is NOT NULL.
