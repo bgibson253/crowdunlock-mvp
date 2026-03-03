@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserFavoriteButton } from "@/components/forum/user-favorite-button";
+import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
 
 export function AuthorCard({
   author,
@@ -35,23 +37,29 @@ export function AuthorCard({
   const badgeIcon = author.unlock_tier_icon ?? null;
 
   return (
-    <Link href={`/profile/${author.id}`} className="flex items-center gap-3">
-      <Avatar className="h-10 w-10">
-        {author.avatar_url ? <AvatarImage src={author.avatar_url} alt={name} /> : null}
-        <AvatarFallback>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
-      </Avatar>
-      <div className="text-sm min-w-0">
-        <div className="font-medium leading-4 truncate">{name}</div>
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          {badgeText ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-200">
-              <span aria-hidden>{badgeIcon ?? "💸"}</span>
-              <span className="truncate">{badgeText}</span>
-            </span>
-          ) : null}
-          <span>{posts} posts</span>
+    <div>
+      <Link href={`/profile/${author.id}`} className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          {author.avatar_url ? <AvatarImage src={author.avatar_url} alt={name} /> : null}
+          <AvatarFallback>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="text-sm min-w-0">
+          <div className="font-medium leading-4 truncate">{name}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {badgeText ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-200">
+                <span aria-hidden>{badgeIcon ?? "💸"}</span>
+                <span className="truncate">{badgeText}</span>
+              </span>
+            ) : null}
+            <span>{posts} posts</span>
+          </div>
         </div>
+      </Link>
+      <div className="mt-2 flex items-center gap-0.5">
+        <UserFavoriteButton targetUserId={author.id} />
+        <UserSubscribeButton targetUserId={author.id} />
       </div>
-    </Link>
+    </div>
   );
 }

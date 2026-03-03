@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SendDmButton } from "@/components/forum/send-dm-button";
+import { UserFavoriteButton } from "@/components/forum/user-favorite-button";
+import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
 
 export const dynamic = "force-dynamic";
 
@@ -106,7 +108,9 @@ export default async function ProfilePage({
                       )}
                     </div>
                     {user && !isOwnProfile && (
-                      <SendDmButton recipientId={id} recipientName={name} />
+                      <div className="flex items-center gap-1">
+                        <SendDmButton recipientId={id} recipientName={name} />
+                      </div>
                     )}
                     {isOwnProfile && (
                       <Button asChild variant="outline" size="sm">
@@ -116,6 +120,13 @@ export default async function ProfilePage({
                   </div>
                 </div>
               </div>
+
+              {!isOwnProfile && (
+                <div className="mt-3 flex items-center gap-1">
+                  <UserFavoriteButton targetUserId={id} />
+                  <UserSubscribeButton targetUserId={id} />
+                </div>
+              )}
 
               <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted-foreground">
                 <span>{profile.post_count ?? 0} posts</span>
