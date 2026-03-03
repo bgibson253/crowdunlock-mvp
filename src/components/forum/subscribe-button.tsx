@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export function SubscribeButton({
   threadId,
-  userId,
+  userId: serverUserId,
 }: {
   threadId: string;
   userId: string | null;
@@ -15,6 +15,17 @@ export function SubscribeButton({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subId, setSubId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(serverUserId);
+
+  useEffect(() => {
+    async function resolve() {
+      if (serverUserId) { setUserId(serverUserId); return; }
+      const supabase = supabaseBrowser();
+      const { data } = await supabase.auth.getUser();
+      setUserId(data.user?.id ?? null);
+    }
+    resolve();
+  }, [serverUserId]);
 
   useEffect(() => {
     if (!userId) return;

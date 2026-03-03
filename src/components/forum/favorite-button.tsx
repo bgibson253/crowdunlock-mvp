@@ -7,13 +7,24 @@ import { Button } from "@/components/ui/button";
 
 export function FavoriteButton({
   threadId,
-  userId,
+  userId: serverUserId,
 }: {
   threadId: string;
   userId: string | null;
 }) {
   const [isFav, setIsFav] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(serverUserId);
+
+  useEffect(() => {
+    async function resolve() {
+      if (serverUserId) { setUserId(serverUserId); return; }
+      const supabase = supabaseBrowser();
+      const { data } = await supabase.auth.getUser();
+      setUserId(data.user?.id ?? null);
+    }
+    resolve();
+  }, [serverUserId]);
 
   useEffect(() => {
     if (!userId) return;

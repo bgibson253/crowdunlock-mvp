@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { ReplyForm } from "@/components/forum/reply-form";
+import { ReplyFormGate } from "@/components/forum/reply-form-gate";
 import { AuthorCard } from "@/components/forum/author-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MarkdownBody } from "@/components/forum/markdown-body";
@@ -155,14 +156,7 @@ export default async function ForumThreadPage({
         {authData.user ? (
           <ReplyForm threadId={id} />
         ) : (
-          <Card className="rounded-2xl">
-            <CardContent className="py-6 text-sm">
-              <a className="underline" href="/auth?redirect=%2Fforum">
-                Sign in
-              </a>{" "}
-              to reply.
-            </CardContent>
-          </Card>
+          <ReplyFormGate threadId={id} />
         )}
       </div>
     </div>

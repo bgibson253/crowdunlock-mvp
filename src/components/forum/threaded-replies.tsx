@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
 
@@ -191,7 +191,7 @@ function ReplyCard({
 
 export function ThreadedReplies({
   replies,
-  userId,
+  userId: serverUserId,
   threadId,
   authorNames,
 }: {
@@ -208,6 +208,21 @@ export function ThreadedReplies({
 }) {
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
+  // Resolve userId client-side (SSR may pass null even when logged in)
+  const [userId, setUserId] = useState<string | null>(serverUserId);
+
+  useEffect(() => {
+    async function resolveUser() {
+      if (serverUserId) {
+        setUserId(serverUserId);
+        return;
+      }
+      const supabase = supabaseBrowser();
+      const { data } = await supabase.auth.getUser();
+      setUserId(data.user?.id ?? null);
+    }
+    resolveUser();
+  }, [serverUserId]);
 
   async function refreshReplies() {
     const supabase = supabaseBrowser();
