@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 
 import { supabaseServer } from "@/lib/supabase/server";
@@ -5,9 +6,11 @@ import { isTestMode } from "@/lib/env";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { RatingSection } from "@/components/uploads/rating-section";
 import { TestUnlockButton } from "@/components/uploads/test-unlock-button";
 import { ContributeCard } from "@/components/uploads/contribute-card";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +32,31 @@ export default async function UploadDetailPage({
   const { id } = await params;
 
   const supabase = await supabaseServer();
+
+  // Auth check
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return (
+      <main className="relative isolate">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+        <div className="mx-auto max-w-lg px-4 py-20">
+          <Card>
+            <CardContent className="py-12 text-center space-y-4">
+              <div className="text-3xl">🔒</div>
+              <h2 className="text-lg font-semibold">Log in to see exclusive content</h2>
+              <p className="text-sm text-muted-foreground">
+                Sign in to view uploads, contribute to funding, and access unlocked content.
+              </p>
+              <Button asChild>
+                <Link href="/auth">Sign in</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
 
   const { data: upload, error } = await supabase
     .from("uploads")

@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { envClient, isTestMode } from "@/lib/env";
 import Link from "next/link";
 
+import { supabaseServer } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,32 @@ export default async function BrowsePage() {
   const env = envClient();
   const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const testMode = isTestMode();
+
+  // Auth check
+  const supabaseAuth = await supabaseServer();
+  const { data: { user } } = await supabaseAuth.auth.getUser();
+
+  if (!user) {
+    return (
+      <main className="relative isolate">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+        <div className="mx-auto max-w-lg px-4 py-20">
+          <Card>
+            <CardContent className="py-12 text-center space-y-4">
+              <div className="text-3xl">🔒</div>
+              <h2 className="text-lg font-semibold">Log in to see exclusive content</h2>
+              <p className="text-sm text-muted-foreground">
+                Sign in to browse uploads, contribute to funding, and access unlocked content.
+              </p>
+              <Button asChild>
+                <Link href="/auth">Sign in</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
 
   const { data, error } = await supabase
     .from("uploads_public")
