@@ -46,20 +46,12 @@ function SheetNavLinks({ user }: { user: any }) {
         Browse
       </Link>
       {user && (
-        <>
-          <Link
-            href="/forum/notifications"
-            className="block px-3 py-2 text-sm hover:underline"
-          >
-            Notifications
-          </Link>
-          <Link
-            href="/forum/favorites"
-            className="block px-3 py-2 text-sm hover:underline"
-          >
-            Favorites
-          </Link>
-        </>
+        <Link
+          href="/forum/notifications"
+          className="block px-3 py-2 text-sm hover:underline"
+        >
+          Notifications
+        </Link>
       )}
     </div>
   );
@@ -121,6 +113,9 @@ export async function Nav() {
                   </Link>
                   <Link href="/upload" className="block px-3 py-2 text-sm hover:underline">
                     New upload
+                  </Link>
+                  <Link href="/forum/favorites" className="block px-3 py-2 text-sm hover:underline">
+                    Favorites
                   </Link>
                 </div>
               ) : null}
