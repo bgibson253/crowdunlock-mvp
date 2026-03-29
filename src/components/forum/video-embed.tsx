@@ -113,7 +113,7 @@ export function VideoEmbed({
   }
 
   return (
-    <div className="my-3 max-w-sm">
+    <div className="my-3 max-w-64">
       <div
         className="relative w-full overflow-hidden rounded-lg bg-black aspect-video"
       >
