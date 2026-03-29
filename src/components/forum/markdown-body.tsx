@@ -17,11 +17,17 @@ export function MarkdownBody({
     .replace(/\n*View listing:\s*https?:\/\/\S+/gi, "")
     .trim();
 
+  // Convert @mentions to links (but not inside existing markdown links or code blocks)
+  const withMentions = cleaned.replace(
+    /(?<![[\w`])@(\w{2,30})(?![]\w])/g,
+    "[**@$1**](/profile?u=$1)"
+  );
+
   return (
     <div className="forum-prose text-sm leading-6">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        children={cleaned}
+        children={withMentions}
         components={{
           h1: ({ children, ...props }) => (
             <h1 className="text-lg font-bold mt-4 mb-2" {...props}>{children}</h1>
@@ -45,7 +51,7 @@ export function MarkdownBody({
             <li className="text-sm" {...props}>{children}</li>
           ),
           blockquote: ({ children, ...props }) => (
-            <blockquote className="border-l-2 border-indigo-300 pl-3 italic text-muted-foreground my-2" {...props}>
+            <blockquote className="border-l-4 border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30 pl-4 py-2 italic text-muted-foreground my-3 rounded-r-md" {...props}>
               {children}
             </blockquote>
           ),
@@ -80,6 +86,18 @@ export function MarkdownBody({
             if (href && isVideoUrl(href)) {
               return (
                 <VideoEmbed href={href} authorTrustLevel={authorTrustLevel} />
+              );
+            }
+            // Style @mention links as pills
+            if (href && href.startsWith("/profile?u=")) {
+              return (
+                <a
+                  href={href}
+                  className="inline-flex items-center rounded-full bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition no-underline"
+                  {...props}
+                >
+                  {children}
+                </a>
               );
             }
             return (

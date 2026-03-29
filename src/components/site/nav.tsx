@@ -30,7 +30,7 @@ function HamburgerButton() {
   );
 }
 
-function SheetNavLinks({ user, unreadDmCount }: { user: any; unreadDmCount: number }) {
+function SheetNavLinks({ user, unreadDmCount, isAdmin }: { user: any; unreadDmCount: number; isAdmin: boolean }) {
   return (
     <div className="mt-6 space-y-2">
       <Link href="/" className="block px-3 py-2 text-sm hover:underline">
@@ -61,6 +61,14 @@ function SheetNavLinks({ user, unreadDmCount }: { user: any; unreadDmCount: numb
           Messages{unreadDmCount > 0 ? ` (${unreadDmCount})` : ""}
         </Link>
       )}
+      {isAdmin && (
+        <Link
+          href="/forum/reports"
+          className="block px-3 py-2 text-sm hover:underline text-amber-600 font-medium"
+        >
+          📋 Reports
+        </Link>
+      )}
     </div>
   );
 }
@@ -74,7 +82,7 @@ export async function Nav() {
   const { data: profile } = user
     ? await supabase
         .from("profiles")
-        .select("id,username,avatar_url")
+        .select("id,username,avatar_url,is_admin")
         .eq("id", user.id)
         .maybeSingle()
     : { data: null };
@@ -107,7 +115,7 @@ export async function Nav() {
                 </SheetTitle>
               </SheetHeader>
 
-              <SheetNavLinks user={user} unreadDmCount={unreadDmCount} />
+              <SheetNavLinks user={user} unreadDmCount={unreadDmCount} isAdmin={profile?.is_admin ?? false} />
 
               {user ? (
                 <div className="mt-6 border-t pt-4 space-y-1">

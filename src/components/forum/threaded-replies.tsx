@@ -33,6 +33,7 @@ export type ReplyNode = {
   author_unlock_tier_label: string | null;
   author_unlock_tier_icon: string | null;
   created_at: string;
+  edited_at: string | null;
   parent_reply_id: string | null;
   deleted_at: string | null;
   children: ReplyNode[];
@@ -128,7 +129,7 @@ function ReplyCard({
       const supabase = supabaseBrowser();
       const { error: updateErr } = await supabase
         .from("forum_replies")
-        .update({ body: editBody.trim() })
+        .update({ body: editBody.trim(), edited_at: new Date().toISOString() })
         .eq("id", reply.id);
       if (updateErr) throw updateErr;
       setEditing(false);
@@ -229,6 +230,9 @@ function ReplyCard({
                     </div>
                   )}
                   <span className="text-[9px] text-muted-foreground">{relativeTime(reply.created_at)}</span>
+                  {reply.edited_at && (
+                    <span className="text-[9px] text-muted-foreground italic">(edited {relativeTime(reply.edited_at)})</span>
+                  )}
                 </div>
 
                 {/* Desktop: vertical sidebar */}
@@ -261,6 +265,11 @@ function ReplyCard({
                   <div className="text-center text-[9px] text-muted-foreground leading-none">
                     {relativeTime(reply.created_at)}
                   </div>
+                  {reply.edited_at && (
+                    <div className="text-center text-[9px] text-muted-foreground leading-none italic">
+                      (edited {relativeTime(reply.edited_at)})
+                    </div>
+                  )}
                 </div>
 
                 {/* Right: content */}
@@ -410,6 +419,7 @@ export function ThreadedReplies({
   isLocked = false,
   isAdmin = false,
   onQuoteToMain,
+  onExternalRefresh,
 }: {
   replies: Array<{
     id: string;
@@ -427,10 +437,13 @@ export function ThreadedReplies({
   isLocked?: boolean;
   isAdmin?: boolean;
   onQuoteToMain?: (text: string) => void;
+  onExternalRefresh?: number;
 }) {
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
   const [userId, setUserId] = useState<string | null>(serverUserId);
+  const REPLIES_PER_PAGE = 15;
+  const [visibleCount, setVisibleCount] = useState(REPLIES_PER_PAGE);
 
   useEffect(() => {
     async function resolveUser() {
@@ -445,16 +458,26 @@ export function ThreadedReplies({
     resolveUser();
   }, [serverUserId]);
 
+  // Refresh replies when external trigger fires
+  useEffect(() => {
+    if (onExternalRefresh && onExternalRefresh > 0) {
+      refreshReplies();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onExternalRefresh]);
+
   async function refreshReplies() {
     const supabase = supabaseBrowser();
     const { data } = await supabase
       .from("forum_replies")
-      .select("id, body, author_id, created_at, parent_reply_id, deleted_at")
+      .select("id, body, author_id, created_at, edited_at, parent_reply_id, deleted_at")
       .eq("thread_id", threadId)
       .order("created_at", { ascending: true });
 
     if (data) {
       setReplyData(data as any[]);
+      // Show all replies after refresh to include new one
+      setVisibleCount(Math.max(visibleCount, (data as any[]).length));
     }
 
     router.refresh();
@@ -463,6 +486,7 @@ export function ThreadedReplies({
   const repliesWithNames = replyData.map((r) => ({
     ...r,
     deleted_at: (r as any).deleted_at ?? null,
+    edited_at: (r as any).edited_at ?? null,
     author_name: authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
     author_trust_level: authorTrustLevels[r.author_id] ?? 0,
     author_avatar_url: authorProfiles[r.author_id]?.avatar_url ?? null,
@@ -483,9 +507,18 @@ export function ThreadedReplies({
     );
   }
 
+  const visibleRoots = tree.slice(0, visibleCount);
+  const totalRoots = tree.length;
+  const hasMore = visibleCount < totalRoots;
+
   return (
     <div className="space-y-0">
-      {tree.map((node) => (
+      {totalRoots > REPLIES_PER_PAGE && (
+        <div className="text-xs text-muted-foreground mb-2">
+          Showing {Math.min(visibleCount, totalRoots)} of {totalRoots} replies
+        </div>
+      )}
+      {visibleRoots.map((node) => (
         <ReplyCard
           key={node.id}
           reply={node}
@@ -498,6 +531,17 @@ export function ThreadedReplies({
           onQuote={(text) => onQuoteToMain?.(text)}
         />
       ))}
+      {hasMore && (
+        <div className="flex justify-center pt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setVisibleCount((c) => c + REPLIES_PER_PAGE)}
+          >
+            Load more replies ({totalRoots - visibleCount} remaining)
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

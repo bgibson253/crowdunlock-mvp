@@ -50,7 +50,7 @@ export default async function ForumThreadPage({
 
   const { data: thread, error: threadErr } = await supabase
     .from("forum_threads")
-    .select("id,title,body,created_at,author_id,section_id,view_count,locked,pinned,deleted_at")
+    .select("id,title,body,created_at,edited_at,author_id,section_id,view_count,locked,pinned,deleted_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -70,7 +70,7 @@ export default async function ForumThreadPage({
 
   const { data: replies, error: repliesErr } = await supabase
     .from("forum_replies")
-    .select("id,body,created_at,author_id,parent_reply_id,deleted_at")
+    .select("id,body,created_at,edited_at,author_id,parent_reply_id,deleted_at")
     .eq("thread_id", id)
     .order("created_at", { ascending: true });
 
@@ -206,6 +206,9 @@ export default async function ForumThreadPage({
               <AuthorCard author={threadAuthor} compact />
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                 <span>{relativeTime(thread.created_at)}</span>
+                {thread.edited_at && (
+                  <span className="italic">(edited {relativeTime(thread.edited_at)})</span>
+                )}
                 <span className="inline-flex items-center gap-0.5">
                   <Eye className="h-3 w-3" />
                   {thread.view_count ?? 0}
@@ -218,6 +221,11 @@ export default async function ForumThreadPage({
               <div className="text-center text-[9px] text-muted-foreground leading-none mt-0.5">
                 {relativeTime(thread.created_at)}
               </div>
+              {thread.edited_at && (
+                <div className="text-center text-[9px] text-muted-foreground leading-none mt-0.5 italic">
+                  (edited {relativeTime(thread.edited_at)})
+                </div>
+              )}
               <div className="text-center text-[9px] text-muted-foreground leading-none mt-0.5 flex items-center justify-center gap-0.5">
                 <Eye className="h-3 w-3" />
                 {thread.view_count ?? 0}

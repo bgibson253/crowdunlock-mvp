@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ThreadedReplies } from "@/components/forum/threaded-replies";
 import { ReplyForm } from "@/components/forum/reply-form";
 import { ReplyFormGate } from "@/components/forum/reply-form-gate";
@@ -27,10 +27,21 @@ export function ThreadContent({
   isAuthenticated: boolean;
 }) {
   const [quoteBody, setQuoteBody] = useState<string | undefined>(undefined);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const repliesEndRef = useRef<HTMLDivElement>(null);
+
+  function handleReplyPosted() {
+    setRefreshKey((k) => k + 1);
+    // Scroll to bottom after a brief delay so the DOM updates
+    setTimeout(() => {
+      repliesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 500);
+  }
 
   return (
     <>
       <ThreadedReplies
+        key={refreshKey}
         replies={replies}
         userId={userId}
         threadId={threadId}
@@ -40,11 +51,14 @@ export function ThreadContent({
         isLocked={isLocked}
         isAdmin={isAdmin}
         onQuoteToMain={(text) => setQuoteBody(text)}
+        onExternalRefresh={refreshKey}
       />
+
+      <div ref={repliesEndRef} />
 
       {!isLocked && (
         isAuthenticated ? (
-          <ReplyForm threadId={threadId} initialBody={quoteBody} />
+          <ReplyForm threadId={threadId} initialBody={quoteBody} onReplyPosted={handleReplyPosted} />
         ) : (
           <ReplyFormGate threadId={threadId} />
         )

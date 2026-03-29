@@ -11,9 +11,11 @@ import { MarkdownEditor } from "@/components/forum/markdown-editor";
 export function ReplyForm({
   threadId,
   initialBody,
+  onReplyPosted,
 }: {
   threadId: string;
   initialBody?: string;
+  onReplyPosted?: () => void;
 }) {
   const router = useRouter();
   const [body, setBody] = useState(initialBody || "");
@@ -66,6 +68,7 @@ export function ReplyForm({
       if (insertErr) throw insertErr;
 
       setBody("");
+      onReplyPosted?.();
       router.refresh();
     } catch (err: any) {
       setError(err?.message ?? "Failed to reply");

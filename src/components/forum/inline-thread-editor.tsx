@@ -32,7 +32,7 @@ export function InlineThreadEditor({
       const supabase = supabaseBrowser();
       const { error: updateErr } = await supabase
         .from("forum_threads")
-        .update({ title: title.trim(), body: body.trim() })
+        .update({ title: title.trim(), body: body.trim(), edited_at: new Date().toISOString() })
         .eq("id", threadId);
       if (updateErr) throw updateErr;
       onDone();

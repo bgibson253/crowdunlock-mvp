@@ -56,7 +56,9 @@ export function ReportModal({
 
       if (error) {
         if (error.code === "23505") {
-          toast.info("You've already reported this.");
+          toast.error("You've already reported this.");
+          setTimeout(() => onClose(), 1500);
+          return;
         } else {
           throw error;
         }
