@@ -143,11 +143,11 @@ export default async function ForumThreadPage({
           <CardHeader>
             <CardTitle>{thread.title}</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-[220px_1fr]">
-            <div className="md:border-r md:pr-4">
-              <AuthorCard author={threadAuthor} />
-              <div className="mt-3 text-xs text-muted-foreground">
-                {new Date(thread.created_at).toLocaleString()}
+          <CardContent className="grid gap-2 md:grid-cols-[90px_1fr]">
+            <div className="md:border-r md:pr-1.5">
+              <AuthorCard author={threadAuthor} compact />
+              <div className="text-center text-[9px] text-muted-foreground leading-none">
+                {new Date(thread.created_at).toLocaleDateString()}
               </div>
             </div>
             <div>

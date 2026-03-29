@@ -6,6 +6,7 @@ import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
 
 export function AuthorCard({
   author,
+  compact = false,
 }: {
   author: null | {
     id: string;
@@ -16,8 +17,19 @@ export function AuthorCard({
     unlock_tier_label?: string | null;
     unlock_tier_icon?: string | null;
   };
+  compact?: boolean;
 }) {
   if (!author) {
+    if (compact) {
+      return (
+        <div className="flex flex-col items-center gap-0.5 text-center">
+          <Avatar className="h-6 w-6">
+            <AvatarFallback className="text-[9px]">A</AvatarFallback>
+          </Avatar>
+          <span className="text-[10px] font-medium">Administrator</span>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center gap-3">
         <Avatar className="h-10 w-10">
@@ -35,6 +47,29 @@ export function AuthorCard({
   const posts = author.post_count ?? 0;
   const badgeText = author.unlock_tier_label ?? null;
   const badgeIcon = author.unlock_tier_icon ?? null;
+
+  if (compact) {
+    return (
+      <div>
+        <Link href={`/profile/${author.id}`} className="flex flex-col items-center gap-0.5 text-center hover:underline">
+          <Avatar className="h-6 w-6">
+            {author.avatar_url ? <AvatarImage src={author.avatar_url} alt={name} /> : null}
+            <AvatarFallback className="text-[9px]">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <span className="text-[10px] font-medium leading-none truncate max-w-[80px]">{name}</span>
+        </Link>
+        <div className="flex flex-col items-center text-[9px] text-muted-foreground leading-tight">
+          {badgeText && (
+            <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/25 bg-amber-500/10 px-1 py-0 font-medium text-amber-200 text-[9px]">
+              <span aria-hidden>{badgeIcon ?? "💸"}</span>
+              <span className="truncate">{badgeText}</span>
+            </span>
+          )}
+          <span>{posts} posts</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
