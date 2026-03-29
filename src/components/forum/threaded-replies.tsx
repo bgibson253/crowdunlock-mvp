@@ -100,8 +100,8 @@ function ReplyCard({
 
   return (
     <div style={{ marginLeft: `${indent * 24}px` }}>
-      <Card className="mt-2">
-        <CardContent className="py-3">
+      <Card className="mt-1.5">
+        <CardContent className="py-2 px-3">
           <div className="flex items-start gap-2">
             {reply.children.length > 0 && (
               <button
@@ -116,36 +116,36 @@ function ReplyCard({
               </button>
             )}
             <div className="flex-1 min-w-0">
-              <div className="grid gap-3 md:grid-cols-[160px_1fr]">
+              <div className="grid gap-2 md:grid-cols-[120px_1fr]">
                 {/* Left: author info */}
-                <div className="md:border-r md:pr-3">
+                <div className="md:border-r md:pr-2">
                   {reply.author_id ? (
-                    <a href={`/profile/${reply.author_id}`} className="flex flex-col items-center gap-1.5 text-center hover:underline">
-                      <Avatar className="h-10 w-10">
+                    <a href={`/profile/${reply.author_id}`} className="flex flex-col items-center gap-1 text-center hover:underline">
+                      <Avatar className="h-8 w-8">
                         {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
-                        <AvatarFallback className="text-xs">{reply.author_name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="text-[10px]">{reply.author_name.slice(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
-                      <span className="text-xs font-medium leading-tight">{reply.author_name}</span>
+                      <span className="text-[11px] font-medium leading-tight">{reply.author_name}</span>
                     </a>
                   ) : (
-                    <div className="flex flex-col items-center gap-1.5 text-center">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="text-xs">A</AvatarFallback>
+                    <div className="flex flex-col items-center gap-1 text-center">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-[10px]">A</AvatarFallback>
                       </Avatar>
-                      <span className="text-xs font-medium">Administrator</span>
+                      <span className="text-[11px] font-medium">Administrator</span>
                     </div>
                   )}
-                  <div className="mt-1 flex flex-col items-center gap-1 text-[10px] text-muted-foreground">
+                  <div className="mt-0.5 flex flex-col items-center gap-0.5 text-[10px] text-muted-foreground">
                     {reply.author_unlock_tier_label && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-1.5 py-0.5 font-medium text-amber-200">
+                      <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/25 bg-amber-500/10 px-1 py-0 font-medium text-amber-200 text-[9px]">
                         <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
                         <span className="truncate">{reply.author_unlock_tier_label}</span>
                       </span>
                     )}
                     <span>{reply.author_post_count} posts</span>
                   </div>
-                  <div className="mt-1 text-center text-[10px] text-muted-foreground">
-                    {new Date(reply.created_at).toLocaleString()}
+                  <div className="mt-0.5 text-center text-[10px] text-muted-foreground">
+                    {new Date(reply.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 {/* Right: content */}
