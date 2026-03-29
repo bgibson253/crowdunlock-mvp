@@ -116,7 +116,7 @@ export function VideoEmbed({
     <div className="my-3">
       <div
         className="relative w-full overflow-hidden rounded-lg bg-black"
-        style={{ aspectRatio: embed.aspectRatio, maxWidth: "640px" }}
+        style={{ aspectRatio: embed.aspectRatio, maxWidth: "480px" }}
       >
         <iframe
           src={embed.src}
