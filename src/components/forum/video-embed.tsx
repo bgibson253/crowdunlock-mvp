@@ -20,14 +20,14 @@ function getEmbedUrl(href: string): { src: string; aspectRatio: string } | null 
       const v = url.searchParams.get("v");
       if (v) {
         return {
-          src: `https://www.youtube-nocookie.com/embed/${v}`,
+          src: `https://www.youtube.com/embed/${v}`,
           aspectRatio: "16/9",
         };
       }
       const shortsMatch = url.pathname.match(/^\/shorts\/([a-zA-Z0-9_-]+)/);
       if (shortsMatch) {
         return {
-          src: `https://www.youtube-nocookie.com/embed/${shortsMatch[1]}`,
+          src: `https://www.youtube.com/embed/${shortsMatch[1]}`,
           aspectRatio: "9/16",
         };
       }
@@ -36,7 +36,7 @@ function getEmbedUrl(href: string): { src: string; aspectRatio: string } | null 
       const id = url.pathname.slice(1);
       if (id) {
         return {
-          src: `https://www.youtube-nocookie.com/embed/${id}`,
+          src: `https://www.youtube.com/embed/${id}`,
           aspectRatio: "16/9",
         };
       }
@@ -125,7 +125,7 @@ export function VideoEmbed({
           allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer"
-          sandbox="allow-scripts allow-same-origin allow-popups"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
           title="Embedded video"
         />
       </div>
