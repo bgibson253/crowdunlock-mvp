@@ -16,6 +16,7 @@ export type ReplyNode = {
   body: string;
   author_id: string;
   author_name: string;
+  author_trust_level: number;
   created_at: string;
   parent_reply_id: string | null;
   children: ReplyNode[];
@@ -123,7 +124,7 @@ function ReplyCard({
                 </span>
               </div>
 
-              <MarkdownBody content={reply.body} />
+              <MarkdownBody content={reply.body} authorTrustLevel={reply.author_trust_level} />
               <Reactions targetType="reply" targetId={reply.id} userId={userId} />
 
               {userId && (
@@ -193,6 +194,7 @@ export function ThreadedReplies({
   userId: serverUserId,
   threadId,
   authorNames,
+  authorTrustLevels = {},
 }: {
   replies: Array<{
     id: string;
@@ -204,6 +206,7 @@ export function ThreadedReplies({
   userId: string | null;
   threadId: string;
   authorNames: Record<string, string>;
+  authorTrustLevels?: Record<string, number>;
 }) {
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
@@ -242,6 +245,7 @@ export function ThreadedReplies({
   const repliesWithNames = replyData.map((r) => ({
     ...r,
     author_name: authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
+    author_trust_level: authorTrustLevels[r.author_id] ?? 0,
   }));
 
   const tree = buildTree(repliesWithNames);

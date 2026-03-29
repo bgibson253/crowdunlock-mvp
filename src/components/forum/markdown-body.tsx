@@ -2,8 +2,15 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { VideoEmbed, isVideoUrl } from "@/components/forum/video-embed";
 
-export function MarkdownBody({ content }: { content: string }) {
+export function MarkdownBody({
+  content,
+  authorTrustLevel = 0,
+}: {
+  content: string;
+  authorTrustLevel?: number;
+}) {
   // Strip auto-generated boilerplate from listing threads
   const cleaned = content
     .replace(/\n*---\n*Auto-generated thread for this listing\.\n*/gi, "")
@@ -68,17 +75,25 @@ export function MarkdownBody({ content }: { content: string }) {
               {...props}
             />
           ),
-          a: ({ href, children, ...props }) => (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-indigo-600 hover:underline"
-              {...props}
-            >
-              {children}
-            </a>
-          ),
+          a: ({ href, children, ...props }) => {
+            // Embed video links for Level 3+ authors
+            if (href && isVideoUrl(href)) {
+              return (
+                <VideoEmbed href={href} authorTrustLevel={authorTrustLevel} />
+              );
+            }
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600 hover:underline"
+                {...props}
+              >
+                {children}
+              </a>
+            );
+          },
           table: ({ children, ...props }) => (
             <div className="overflow-x-auto my-2">
               <table className="min-w-full text-sm border-collapse border" {...props}>{children}</table>

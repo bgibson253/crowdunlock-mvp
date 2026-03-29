@@ -18,7 +18,7 @@ async function getAuthorProfile(supabase: any, authorId: string | null) {
   if (!authorId) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id,username,display_name,avatar_url,post_count")
+    .select("id,username,display_name,avatar_url,post_count,trust_level")
     .eq("id", authorId)
     .maybeSingle();
   if (!data) return null;
@@ -69,7 +69,7 @@ export default async function ForumThreadPage({
   const { data: replyProfilesRaw } = replyAuthorIds.length
     ? await supabase
         .from("profiles")
-        .select("id,username,display_name,avatar_url,post_count")
+        .select("id,username,display_name,avatar_url,post_count,trust_level")
         .in("id", replyAuthorIds)
     : { data: [] as any[] };
 
@@ -105,12 +105,14 @@ export default async function ForumThreadPage({
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, display_name, username")
+    .select("id, display_name, username, trust_level")
     .in("id", authorIds);
 
   const authorNames: Record<string, string> = {};
+  const authorTrustLevels: Record<string, number> = {};
   for (const p of (profiles ?? []) as any[]) {
     authorNames[p.id] = p.display_name || p.username || "Anonymous";
+    authorTrustLevels[p.id] = p.trust_level ?? 0;
   }
 
   return (
@@ -129,7 +131,7 @@ export default async function ForumThreadPage({
               </div>
             </div>
             <div>
-              <MarkdownBody content={thread.body} />
+              <MarkdownBody content={thread.body} authorTrustLevel={threadAuthor?.trust_level ?? 0} />
               <Reactions targetType="thread" targetId={thread.id} userId={userId} />
               <Separator className="my-3" />
               <div className="flex items-center gap-2">
@@ -151,6 +153,7 @@ export default async function ForumThreadPage({
           userId={userId}
           threadId={id}
           authorNames={authorNames}
+          authorTrustLevels={authorTrustLevels}
         />
 
         {authData.user ? (
