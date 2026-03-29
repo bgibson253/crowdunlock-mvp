@@ -31,6 +31,19 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 create unique index if not exists forum_notifications_user_thread_reply_type_idx
   on public.forum_notifications (user_id, thread_id, reply_id, type);
 
+-- Add unique constraint on subscriptions so ON CONFLICT works
+create unique index if not exists forum_subscriptions_user_thread_type_idx
+  on public.forum_subscriptions (user_id, thread_id, type)
+  where thread_id is not null;
+
+-- Re-subscribe all existing thread authors
+insert into public.forum_subscriptions (user_id, thread_id, type)
+select author_id, id, 'thread'
+from public.forum_threads
+where author_id is not null
+on conflict do nothing;
+
+-- Fix notify_on_reply: allow self-mentions (user might want to test / link their own profile)
 create or replace function public.notify_on_reply()
 returns trigger
 language plpgsql security definer
@@ -69,7 +82,7 @@ begin
        or lower(p.display_name) = lower(v_mention)
     limit 1;
 
-    if v_mentioned_user_id is not null and v_mentioned_user_id != v_reply_author then
+    if v_mentioned_user_id is not null then
       insert into public.forum_notifications (user_id, thread_id, reply_id, type)
       values (v_mentioned_user_id, v_thread_id, new.id, 'mention')
       on conflict do nothing;
