@@ -33,7 +33,7 @@ export default async function ConversationPage({
   // Get messages between the two users
   const { data: messages } = await supabase
     .from("forum_dms")
-    .select("id, sender_id, recipient_id, body, read, created_at")
+    .select("id, sender_id, recipient_id, body, encrypted_body, nonce, encrypted, read, created_at")
     .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${user.id})`)
     .order("created_at", { ascending: true });
 
