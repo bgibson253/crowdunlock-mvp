@@ -110,11 +110,29 @@ export default async function ForumThreadPage({
 
   const authorNames: Record<string, string> = {};
   const authorTrustLevels: Record<string, number> = {};
-  const authorProfiles: Record<string, { avatar_url: string | null; post_count: number }> = {};
+  const authorProfiles: Record<string, { avatar_url: string | null; post_count: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }> = {};
+
+  // Build badge map for all authors (thread + replies)
+  const allBadgeMap = new Map<string, any>();
+  // We already have badgeById for reply authors; fetch thread author badge too
+  if (thread.author_id && !badgeById.has(thread.author_id)) {
+    const b = await fetchProfileBadge(supabase, thread.author_id);
+    allBadgeMap.set(thread.author_id, b);
+  }
+  for (const [uid, b] of badgeById) {
+    allBadgeMap.set(uid, b);
+  }
+
   for (const p of (profiles ?? []) as any[]) {
     authorNames[p.id] = p.display_name || p.username || "Anonymous";
     authorTrustLevels[p.id] = p.trust_level ?? 0;
-    authorProfiles[p.id] = { avatar_url: p.avatar_url ?? null, post_count: p.post_count ?? 0 };
+    const badge = allBadgeMap.get(p.id) ?? null;
+    authorProfiles[p.id] = {
+      avatar_url: p.avatar_url ?? null,
+      post_count: p.post_count ?? 0,
+      unlock_tier_label: badge?.unlock_tier_label ?? null,
+      unlock_tier_icon: badge?.unlock_tier_icon ?? null,
+    };
   }
 
   return (

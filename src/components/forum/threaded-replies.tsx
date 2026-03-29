@@ -20,6 +20,8 @@ export type ReplyNode = {
   author_trust_level: number;
   author_avatar_url: string | null;
   author_post_count: number;
+  author_unlock_tier_label: string | null;
+  author_unlock_tier_icon: string | null;
   created_at: string;
   parent_reply_id: string | null;
   children: ReplyNode[];
@@ -129,6 +131,12 @@ function ReplyCard({
                 <span className="text-[10px] text-muted-foreground">
                   {reply.author_post_count} posts
                 </span>
+                {reply.author_unlock_tier_label && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-200">
+                    <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
+                    <span className="truncate">{reply.author_unlock_tier_label}</span>
+                  </span>
+                )}
                 <span className="text-[10px] text-muted-foreground">
                   {new Date(reply.created_at).toLocaleString()}
                 </span>
@@ -218,7 +226,7 @@ export function ThreadedReplies({
   threadId: string;
   authorNames: Record<string, string>;
   authorTrustLevels?: Record<string, number>;
-  authorProfiles?: Record<string, { avatar_url: string | null; post_count: number }>;
+  authorProfiles?: Record<string, { avatar_url: string | null; post_count: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }>;
 }) {
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
@@ -260,6 +268,8 @@ export function ThreadedReplies({
     author_trust_level: authorTrustLevels[r.author_id] ?? 0,
     author_avatar_url: authorProfiles[r.author_id]?.avatar_url ?? null,
     author_post_count: authorProfiles[r.author_id]?.post_count ?? 0,
+    author_unlock_tier_label: authorProfiles[r.author_id]?.unlock_tier_label ?? null,
+    author_unlock_tier_icon: authorProfiles[r.author_id]?.unlock_tier_icon ?? null,
   }));
 
   const tree = buildTree(repliesWithNames);
