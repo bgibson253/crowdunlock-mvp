@@ -31,6 +31,7 @@ export function NewThreadForm({
   const [sections, setSections] = useState<Section[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trustLevel, setTrustLevel] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -45,6 +46,17 @@ export function NewThreadForm({
 
       if (!sectionId && list.length > 0) {
         setSectionId(list[0].id);
+      }
+
+      // Fetch trust level
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("trust_level")
+          .eq("id", auth.user.id)
+          .maybeSingle();
+        if (profile) setTrustLevel(profile.trust_level ?? 0);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,6 +139,7 @@ export function NewThreadForm({
               onChange={setBody}
               placeholder={`Include:\n- What you want\n- Why it matters\n- Links/sources\n- Budget/interest level`}
               rows={8}
+              authorTrustLevel={trustLevel}
             />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}

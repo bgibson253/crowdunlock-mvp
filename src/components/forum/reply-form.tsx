@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -13,6 +13,22 @@ export function ReplyForm({ threadId }: { threadId: string }) {
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trustLevel, setTrustLevel] = useState(0);
+
+  useEffect(() => {
+    async function fetchTrust() {
+      const supabase = supabaseBrowser();
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("trust_level")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+      if (data) setTrustLevel(data.trust_level ?? 0);
+    }
+    fetchTrust();
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,8 +67,9 @@ export function ReplyForm({ threadId }: { threadId: string }) {
           <MarkdownEditor
             value={body}
             onChange={setBody}
-            placeholder="Write your reply… (Markdown supported, drag & drop images)"
+            placeholder="Write your reply… (Markdown supported)"
             rows={4}
+            authorTrustLevel={trustLevel}
           />
           {error && <div className="text-sm text-red-600">{error}</div>}
           <Button type="submit" disabled={!body || submitting}>

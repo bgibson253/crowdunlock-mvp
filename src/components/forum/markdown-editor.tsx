@@ -47,12 +47,14 @@ export function MarkdownEditor({
   placeholder,
   rows = 6,
   minHeight,
+  authorTrustLevel = 0,
 }: {
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
   rows?: number;
   minHeight?: string;
+  authorTrustLevel?: number;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [preview, setPreview] = useState(false);
@@ -100,6 +102,10 @@ export function MarkdownEditor({
   );
 
   async function handleImageUpload(file: File) {
+    if (authorTrustLevel < 2) {
+      console.warn("Image uploads require trust level 2+");
+      return;
+    }
     setUploading(true);
     try {
       const supabase = supabaseBrowser();
@@ -129,12 +135,14 @@ export function MarkdownEditor({
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
+    if (authorTrustLevel < 2) return;
     const files = Array.from(e.dataTransfer.files);
     const img = files.find((f) => f.type.startsWith("image/"));
     if (img) handleImageUpload(img);
   }
 
   function handlePaste(e: React.ClipboardEvent) {
+    if (authorTrustLevel < 2) return;
     const items = Array.from(e.clipboardData.items);
     const hasText = items.some((i) => i.type === "text/plain");
     const imgItem = items.find((i) => i.type.startsWith("image/"));
@@ -182,11 +190,13 @@ export function MarkdownEditor({
           onClick={() => insertAtCursor("\n1. ")}
         />
         <div className="w-px h-4 bg-border mx-0.5" />
-        <ToolbarButton
-          icon={ImageIcon}
-          label="Upload image"
-          onClick={() => fileInputRef.current?.click()}
-        />
+        {authorTrustLevel >= 2 && (
+          <ToolbarButton
+            icon={ImageIcon}
+            label="Upload image"
+            onClick={() => fileInputRef.current?.click()}
+          />
+        )}
         <div className="flex-1" />
         <button
           type="button"
@@ -206,18 +216,20 @@ export function MarkdownEditor({
         </button>
       </div>
 
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleImageUpload(file);
-          e.target.value = "";
-        }}
-      />
+      {/* Hidden file input — only for Level 2+ */}
+      {authorTrustLevel >= 2 && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleImageUpload(file);
+            e.target.value = "";
+          }}
+        />
+      )}
 
       {/* Editor / Preview */}
       {preview ? (
