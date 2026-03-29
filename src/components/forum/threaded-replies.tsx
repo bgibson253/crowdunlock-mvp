@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownBody } from "@/components/forum/markdown-body";
@@ -17,6 +18,8 @@ export type ReplyNode = {
   author_id: string;
   author_name: string;
   author_trust_level: number;
+  author_avatar_url: string | null;
+  author_post_count: number;
   created_at: string;
   parent_reply_id: string | null;
   children: ReplyNode[];
@@ -113,12 +116,19 @@ function ReplyCard({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 {reply.author_id ? (
-                  <a href={`/profile/${reply.author_id}`} className="text-xs font-medium hover:underline">
-                    {reply.author_name}
+                  <a href={`/profile/${reply.author_id}`} className="flex items-center gap-2 hover:underline">
+                    <Avatar className="h-6 w-6">
+                      {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
+                      <AvatarFallback className="text-[10px]">{reply.author_name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs font-medium">{reply.author_name}</span>
                   </a>
                 ) : (
                   <span className="text-xs font-medium">{reply.author_name}</span>
                 )}
+                <span className="text-[10px] text-muted-foreground">
+                  {reply.author_post_count} posts
+                </span>
                 <span className="text-[10px] text-muted-foreground">
                   {new Date(reply.created_at).toLocaleString()}
                 </span>
@@ -195,6 +205,7 @@ export function ThreadedReplies({
   threadId,
   authorNames,
   authorTrustLevels = {},
+  authorProfiles = {},
 }: {
   replies: Array<{
     id: string;
@@ -207,6 +218,7 @@ export function ThreadedReplies({
   threadId: string;
   authorNames: Record<string, string>;
   authorTrustLevels?: Record<string, number>;
+  authorProfiles?: Record<string, { avatar_url: string | null; post_count: number }>;
 }) {
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
@@ -246,6 +258,8 @@ export function ThreadedReplies({
     ...r,
     author_name: authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
     author_trust_level: authorTrustLevels[r.author_id] ?? 0,
+    author_avatar_url: authorProfiles[r.author_id]?.avatar_url ?? null,
+    author_post_count: authorProfiles[r.author_id]?.post_count ?? 0,
   }));
 
   const tree = buildTree(repliesWithNames);

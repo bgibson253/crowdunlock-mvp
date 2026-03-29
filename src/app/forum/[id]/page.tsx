@@ -105,14 +105,16 @@ export default async function ForumThreadPage({
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, display_name, username, trust_level")
+    .select("id, display_name, username, trust_level, avatar_url, post_count")
     .in("id", authorIds);
 
   const authorNames: Record<string, string> = {};
   const authorTrustLevels: Record<string, number> = {};
+  const authorProfiles: Record<string, { avatar_url: string | null; post_count: number }> = {};
   for (const p of (profiles ?? []) as any[]) {
     authorNames[p.id] = p.display_name || p.username || "Anonymous";
     authorTrustLevels[p.id] = p.trust_level ?? 0;
+    authorProfiles[p.id] = { avatar_url: p.avatar_url ?? null, post_count: p.post_count ?? 0 };
   }
 
   return (
@@ -154,6 +156,7 @@ export default async function ForumThreadPage({
           threadId={id}
           authorNames={authorNames}
           authorTrustLevels={authorTrustLevels}
+          authorProfiles={authorProfiles}
         />
 
         {authData.user ? (
