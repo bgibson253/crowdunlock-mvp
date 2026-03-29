@@ -1,15 +1,14 @@
 import { notFound } from "next/navigation";
 
 import { supabaseServer } from "@/lib/supabase/server";
-import { ReplyForm } from "@/components/forum/reply-form";
-import { ReplyFormGate } from "@/components/forum/reply-form-gate";
+import { ThreadContent } from "@/components/forum/thread-content";
 import { AuthorCard } from "@/components/forum/author-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MarkdownBody } from "@/components/forum/markdown-body";
 import { Reactions } from "@/components/forum/reactions";
 import { FavoriteButton } from "@/components/forum/favorite-button";
 import { SubscribeButton } from "@/components/forum/subscribe-button";
-import { ThreadedReplies } from "@/components/forum/threaded-replies";
+
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/forum/breadcrumbs";
 import { ThreadActions } from "@/components/forum/thread-actions";
@@ -257,7 +256,7 @@ export default async function ForumThreadPage({
           </Card>
         )}
 
-        <ThreadedReplies
+        <ThreadContent
           replies={(replies ?? []) as any[]}
           userId={userId}
           threadId={id}
@@ -266,15 +265,8 @@ export default async function ForumThreadPage({
           authorProfiles={authorProfiles}
           isLocked={isLocked}
           isAdmin={isAdmin}
+          isAuthenticated={!!authData.user}
         />
-
-        {!isLocked && !isDeleted && (
-          authData.user ? (
-            <ReplyForm threadId={id} />
-          ) : (
-            <ReplyFormGate threadId={id} />
-          )
-        )}
       </div>
     </div>
   );
