@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { Nav } from "@/components/site/nav";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
         <TestModeBanner />
         <Nav />
         {children}
+        <Toaster richColors position="top-center" duration={4000} />
       </body>
     </html>
   );
