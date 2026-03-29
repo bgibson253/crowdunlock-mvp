@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bold,
@@ -41,6 +41,12 @@ function ToolbarButton({
   );
 }
 
+type MentionUser = {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+};
+
 export function MarkdownEditor({
   value,
   onChange,
@@ -60,6 +66,14 @@ export function MarkdownEditor({
   const [preview, setPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Mention autocomplete state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionResults, setMentionResults] = useState<MentionUser[]>([]);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const [mentionStart, setMentionStart] = useState(-1);
+  const mentionDebounce = useRef<NodeJS.Timeout | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const wrapSelection = useCallback(
     (before: string, after: string) => {
@@ -100,6 +114,84 @@ export function MarkdownEditor({
     },
     [value, onChange]
   );
+
+  // Mention: detect @query at cursor
+  function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const newValue = e.target.value;
+    onChange(newValue);
+
+    const ta = e.target;
+    const cursor = ta.selectionStart;
+    const textBefore = newValue.substring(0, cursor);
+
+    // Find the last @ before cursor that starts a mention
+    const match = textBefore.match(/@([a-zA-Z0-9_.-]{0,30})$/);
+    if (match) {
+      setMentionQuery(match[1]);
+      setMentionStart(cursor - match[0].length);
+      setMentionIndex(0);
+    } else {
+      setMentionQuery(null);
+      setMentionResults([]);
+    }
+  }
+
+  // Debounced search for mentions
+  useEffect(() => {
+    if (mentionQuery === null || mentionQuery.length < 1) {
+      setMentionResults([]);
+      return;
+    }
+    if (mentionDebounce.current) clearTimeout(mentionDebounce.current);
+    mentionDebounce.current = setTimeout(async () => {
+      const supabase = supabaseBrowser();
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .or(`username.ilike.%${mentionQuery}%,display_name.ilike.%${mentionQuery}%`)
+        .limit(6);
+      setMentionResults((data ?? []) as MentionUser[]);
+    }, 200);
+    return () => {
+      if (mentionDebounce.current) clearTimeout(mentionDebounce.current);
+    };
+  }, [mentionQuery]);
+
+  function insertMention(user: MentionUser) {
+    const name = user.username || user.display_name || "user";
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const cursor = ta.selectionStart;
+    const before = value.substring(0, mentionStart);
+    const after = value.substring(cursor);
+    const newText = before + `@${name} ` + after;
+    onChange(newText);
+    setMentionQuery(null);
+    setMentionResults([]);
+    setTimeout(() => {
+      ta.focus();
+      const pos = mentionStart + name.length + 2;
+      ta.setSelectionRange(pos, pos);
+    }, 0);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (mentionResults.length > 0 && mentionQuery !== null) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionIndex((i) => Math.min(i + 1, mentionResults.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        insertMention(mentionResults[mentionIndex]);
+      } else if (e.key === "Escape") {
+        setMentionQuery(null);
+        setMentionResults([]);
+      }
+    }
+  }
 
   async function handleImageUpload(file: File) {
     if (authorTrustLevel < 2) {
@@ -146,8 +238,6 @@ export function MarkdownEditor({
     const items = Array.from(e.clipboardData.items);
     const hasText = items.some((i) => i.type === "text/plain");
     const imgItem = items.find((i) => i.type.startsWith("image/"));
-    // Only intercept if clipboard has an image but NO text (e.g. screenshot paste).
-    // If there's text, let the browser handle normal Ctrl+V.
     if (imgItem && !hasText) {
       e.preventDefault();
       const file = imgItem.getAsFile();
@@ -216,7 +306,7 @@ export function MarkdownEditor({
         </button>
       </div>
 
-      {/* Hidden file input — only for Level 2+ */}
+      {/* Hidden file input */}
       {authorTrustLevel >= 2 && (
         <input
           ref={fileInputRef}
@@ -245,18 +335,47 @@ export function MarkdownEditor({
           </CardContent>
         </Card>
       ) : (
-        <Textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          rows={rows}
-          style={minHeight ? { minHeight } : undefined}
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onPaste={handlePaste}
-          className="font-mono text-sm"
-        />
+        <div className="relative">
+          <Textarea
+            ref={textareaRef}
+            value={value}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            rows={rows}
+            style={minHeight ? { minHeight } : undefined}
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            onPaste={handlePaste}
+            className="font-mono text-sm"
+          />
+          {/* Mention dropdown */}
+          {mentionQuery !== null && mentionResults.length > 0 && (
+            <div
+              ref={dropdownRef}
+              className="absolute z-50 left-0 mt-1 w-64 bg-popover border rounded-md shadow-lg overflow-hidden"
+            >
+              {mentionResults.map((user, i) => (
+                <button
+                  key={user.id}
+                  type="button"
+                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition ${
+                    i === mentionIndex ? "bg-muted" : ""
+                  }`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    insertMention(user);
+                  }}
+                >
+                  <span className="font-medium">{user.display_name || user.username}</span>
+                  {user.username && user.display_name && (
+                    <span className="text-muted-foreground ml-1 text-xs">@{user.username}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {uploading && (

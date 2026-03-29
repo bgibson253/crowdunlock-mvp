@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  MessageSquare,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  Trash2,
+  Flag,
+  Quote as QuoteIcon,
+} from "lucide-react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +19,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownBody } from "@/components/forum/markdown-body";
 import { MarkdownEditor } from "@/components/forum/markdown-editor";
 import { Reactions } from "@/components/forum/reactions";
+import { ReportModal } from "@/components/forum/report-modal";
+import { relativeTime } from "@/lib/relative-time";
 
 export type ReplyNode = {
   id: string;
@@ -24,6 +34,7 @@ export type ReplyNode = {
   author_unlock_tier_icon: string | null;
   created_at: string;
   parent_reply_id: string | null;
+  deleted_at: string | null;
   children: ReplyNode[];
 };
 
@@ -52,22 +63,34 @@ function ReplyCard({
   depth,
   userId,
   threadId,
+  isLocked,
+  isAdmin,
   onReplyPosted,
+  onQuote,
 }: {
   reply: ReplyNode;
   depth: number;
   userId: string | null;
   threadId: string;
+  isLocked: boolean;
+  isAdmin: boolean;
   onReplyPosted: () => void;
+  onQuote: (text: string) => void;
 }) {
+  const router = useRouter();
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyBody, setReplyBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editBody, setEditBody] = useState(reply.body);
+  const [editSaving, setEditSaving] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
-  // Max 3 levels of indentation, then flatten
   const indent = Math.min(depth, 3);
+  const isAuthor = userId === reply.author_id;
+  const isDeleted = !!reply.deleted_at;
 
   async function handleReply(e: React.FormEvent) {
     e.preventDefault();
@@ -98,6 +121,76 @@ function ReplyCard({
     }
   }
 
+  async function handleEdit() {
+    if (!editBody.trim()) return;
+    setEditSaving(true);
+    try {
+      const supabase = supabaseBrowser();
+      const { error: updateErr } = await supabase
+        .from("forum_replies")
+        .update({ body: editBody.trim() })
+        .eq("id", reply.id);
+      if (updateErr) throw updateErr;
+      setEditing(false);
+      onReplyPosted();
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to save");
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("Delete this reply?")) return;
+    const supabase = supabaseBrowser();
+    await supabase
+      .from("forum_replies")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", reply.id);
+    onReplyPosted();
+  }
+
+  function handleQuote() {
+    const quotedLines = reply.body
+      .split("\n")
+      .map((line) => `> ${line}`)
+      .join("\n");
+    const quoteText = `> **${reply.author_name}** wrote:\n${quotedLines}\n\n`;
+
+    // If nested, open inline reply with quote
+    setReplyBody(quoteText);
+    setShowReplyForm(true);
+
+    // Also trigger parent quote for the main form
+    onQuote(quoteText);
+  }
+
+  if (isDeleted) {
+    return (
+      <div style={{ marginLeft: `${indent * 24}px` }}>
+        <Card className="mt-1 opacity-50">
+          <CardContent className="py-1.5 px-2">
+            <p className="text-xs text-muted-foreground italic">[deleted]</p>
+          </CardContent>
+        </Card>
+        {!collapsed &&
+          reply.children.map((child) => (
+            <ReplyCard
+              key={child.id}
+              reply={child}
+              depth={depth + 1}
+              userId={userId}
+              threadId={threadId}
+              isLocked={isLocked}
+              isAdmin={isAdmin}
+              onReplyPosted={onReplyPosted}
+              onQuote={onQuote}
+            />
+          ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginLeft: `${indent * 24}px` }}>
       <Card className="mt-1">
@@ -117,8 +210,29 @@ function ReplyCard({
             )}
             <div className="flex-1 min-w-0">
               <div className="grid gap-1.5 md:grid-cols-[90px_1fr]">
-                {/* Left: author info */}
-                <div className="md:border-r md:pr-1.5">
+                {/* Mobile: compact horizontal author row */}
+                <div className="md:hidden flex items-center gap-2 pb-1 border-b mb-1">
+                  {reply.author_id ? (
+                    <a href={`/profile/${reply.author_id}`} className="flex items-center gap-1.5 hover:underline">
+                      <Avatar className="h-5 w-5">
+                        {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
+                        <AvatarFallback className="text-[8px]">{reply.author_name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-[10px] font-medium">{reply.author_name}</span>
+                    </a>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <Avatar className="h-5 w-5">
+                        <AvatarFallback className="text-[8px]">A</AvatarFallback>
+                      </Avatar>
+                      <span className="text-[10px] font-medium">Administrator</span>
+                    </div>
+                  )}
+                  <span className="text-[9px] text-muted-foreground">{relativeTime(reply.created_at)}</span>
+                </div>
+
+                {/* Desktop: vertical sidebar */}
+                <div className="hidden md:block md:border-r md:pr-1.5">
                   {reply.author_id ? (
                     <a href={`/profile/${reply.author_id}`} className="flex flex-col items-center gap-0.5 text-center hover:underline">
                       <Avatar className="h-6 w-6">
@@ -145,27 +259,85 @@ function ReplyCard({
                     <span>{reply.author_post_count} posts</span>
                   </div>
                   <div className="text-center text-[9px] text-muted-foreground leading-none">
-                    {new Date(reply.created_at).toLocaleDateString()}
+                    {relativeTime(reply.created_at)}
                   </div>
                 </div>
+
                 {/* Right: content */}
                 <div>
-                  <MarkdownBody content={reply.body} authorTrustLevel={reply.author_trust_level} />
-                  <Reactions targetType="reply" targetId={reply.id} userId={userId} authorId={reply.author_id} />
-
-                  {userId && (
-                    <div className="mt-1">
-                      <button
-                        onClick={() => setShowReplyForm(!showReplyForm)}
-                        className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
-                      >
-                        <MessageSquare className="h-3 w-3" />
-                        Reply
-                      </button>
+                  {editing ? (
+                    <div className="space-y-2">
+                      <MarkdownEditor
+                        value={editBody}
+                        onChange={setEditBody}
+                        rows={4}
+                      />
+                      {error && <div className="text-xs text-red-600">{error}</div>}
+                      <div className="flex gap-2">
+                        <Button size="sm" className="h-7 text-xs" onClick={handleEdit} disabled={editSaving || !editBody.trim()}>
+                          {editSaving ? "Saving…" : "Save"}
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditing(false)}>
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <MarkdownBody content={reply.body} authorTrustLevel={reply.author_trust_level} />
+                      <Reactions targetType="reply" targetId={reply.id} userId={userId} authorId={reply.author_id} />
+
+                      <div className="mt-1 flex items-center gap-2 flex-wrap">
+                        {userId && !isLocked && (
+                          <>
+                            <button
+                              onClick={() => setShowReplyForm(!showReplyForm)}
+                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+                            >
+                              <MessageSquare className="h-3 w-3" />
+                              Reply
+                            </button>
+                            <button
+                              onClick={handleQuote}
+                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+                            >
+                              <QuoteIcon className="h-3 w-3" />
+                              Quote
+                            </button>
+                          </>
+                        )}
+                        {isAuthor && !isLocked && (
+                          <>
+                            <button
+                              onClick={() => { setEditBody(reply.body); setEditing(true); }}
+                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={handleDelete}
+                              className="inline-flex items-center gap-1 text-[11px] text-red-400 hover:text-red-300 transition"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </button>
+                          </>
+                        )}
+                        {userId && (
+                          <button
+                            onClick={() => setShowReport(true)}
+                            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+                          >
+                            <Flag className="h-3 w-3" />
+                            Report
+                          </button>
+                        )}
+                      </div>
+                    </>
                   )}
 
-                  {showReplyForm && (
+                  {showReplyForm && !isLocked && (
                     <form onSubmit={handleReply} className="mt-2 space-y-2">
                       <MarkdownEditor
                         value={replyBody}
@@ -202,6 +374,14 @@ function ReplyCard({
         </CardContent>
       </Card>
 
+      {showReport && (
+        <ReportModal
+          targetType="reply"
+          targetId={reply.id}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+
       {!collapsed &&
         reply.children.map((child) => (
           <ReplyCard
@@ -210,7 +390,10 @@ function ReplyCard({
             depth={depth + 1}
             userId={userId}
             threadId={threadId}
+            isLocked={isLocked}
+            isAdmin={isAdmin}
             onReplyPosted={onReplyPosted}
+            onQuote={onQuote}
           />
         ))}
     </div>
@@ -224,6 +407,9 @@ export function ThreadedReplies({
   authorNames,
   authorTrustLevels = {},
   authorProfiles = {},
+  isLocked = false,
+  isAdmin = false,
+  onQuoteToMain,
 }: {
   replies: Array<{
     id: string;
@@ -231,16 +417,19 @@ export function ThreadedReplies({
     author_id: string;
     created_at: string;
     parent_reply_id: string | null;
+    deleted_at?: string | null;
   }>;
   userId: string | null;
   threadId: string;
   authorNames: Record<string, string>;
   authorTrustLevels?: Record<string, number>;
   authorProfiles?: Record<string, { avatar_url: string | null; post_count: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }>;
+  isLocked?: boolean;
+  isAdmin?: boolean;
+  onQuoteToMain?: (text: string) => void;
 }) {
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
-  // Resolve userId client-side (SSR may pass null even when logged in)
   const [userId, setUserId] = useState<string | null>(serverUserId);
 
   useEffect(() => {
@@ -260,7 +449,7 @@ export function ThreadedReplies({
     const supabase = supabaseBrowser();
     const { data } = await supabase
       .from("forum_replies")
-      .select("id, body, author_id, created_at, parent_reply_id")
+      .select("id, body, author_id, created_at, parent_reply_id, deleted_at")
       .eq("thread_id", threadId)
       .order("created_at", { ascending: true });
 
@@ -268,12 +457,12 @@ export function ThreadedReplies({
       setReplyData(data as any[]);
     }
 
-    // Also try to refresh server component
     router.refresh();
   }
 
   const repliesWithNames = replyData.map((r) => ({
     ...r,
+    deleted_at: (r as any).deleted_at ?? null,
     author_name: authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
     author_trust_level: authorTrustLevels[r.author_id] ?? 0,
     author_avatar_url: authorProfiles[r.author_id]?.avatar_url ?? null,
@@ -303,7 +492,10 @@ export function ThreadedReplies({
           depth={0}
           userId={userId}
           threadId={threadId}
+          isLocked={isLocked}
+          isAdmin={isAdmin}
           onReplyPosted={refreshReplies}
+          onQuote={(text) => onQuoteToMain?.(text)}
         />
       ))}
     </div>

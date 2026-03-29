@@ -8,12 +8,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownEditor } from "@/components/forum/markdown-editor";
 
-export function ReplyForm({ threadId }: { threadId: string }) {
+export function ReplyForm({
+  threadId,
+  initialBody,
+}: {
+  threadId: string;
+  initialBody?: string;
+}) {
   const router = useRouter();
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState(initialBody || "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [trustLevel, setTrustLevel] = useState(0);
+
+  // Update body when initialBody changes (for quote)
+  useEffect(() => {
+    if (initialBody && initialBody !== body) {
+      setBody(initialBody);
+    }
+    // Only trigger when initialBody prop changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialBody]);
 
   useEffect(() => {
     async function fetchTrust() {

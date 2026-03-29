@@ -11,6 +11,10 @@ import { FavoriteButton } from "@/components/forum/favorite-button";
 import { SubscribeButton } from "@/components/forum/subscribe-button";
 import { ThreadedReplies } from "@/components/forum/threaded-replies";
 import { Separator } from "@/components/ui/separator";
+import { Breadcrumbs } from "@/components/forum/breadcrumbs";
+import { ThreadActions } from "@/components/forum/thread-actions";
+import { relativeTime } from "@/lib/relative-time";
+import { Eye, Lock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -42,18 +46,32 @@ export default async function ForumThreadPage({
 
   const supabase = await supabaseServer();
 
+  // Increment view count
+  await supabase.rpc("increment_thread_view", { p_thread_id: id });
+
   const { data: thread, error: threadErr } = await supabase
     .from("forum_threads")
-    .select("id,title,body,created_at,author_id")
+    .select("id,title,body,created_at,author_id,section_id,view_count,locked,pinned,deleted_at")
     .eq("id", id)
     .maybeSingle();
 
   if (threadErr) throw new Error(threadErr.message);
   if (!thread) return notFound();
 
+  // Get section name for breadcrumbs
+  let sectionName = "Forum";
+  if (thread.section_id) {
+    const { data: section } = await supabase
+      .from("forum_sections")
+      .select("name")
+      .eq("id", thread.section_id)
+      .maybeSingle();
+    if (section) sectionName = section.name;
+  }
+
   const { data: replies, error: repliesErr } = await supabase
     .from("forum_replies")
-    .select("id,body,created_at,author_id,parent_reply_id")
+    .select("id,body,created_at,author_id,parent_reply_id,deleted_at")
     .eq("thread_id", id)
     .order("created_at", { ascending: true });
 
@@ -61,7 +79,7 @@ export default async function ForumThreadPage({
 
   const threadAuthor = await getAuthorProfile(supabase, thread.author_id);
 
-  // Build profile map for replies (avoid schema-cache relationship issues)
+  // Build profile map for replies
   const replyAuthorIds = Array.from(
     new Set((replies ?? []).map((r: any) => r.author_id).filter(Boolean)),
   ) as string[];
@@ -97,6 +115,17 @@ export default async function ForumThreadPage({
   const { data: authData } = await supabase.auth.getUser();
   const userId = authData.user?.id ?? null;
 
+  // Check if user is admin
+  let isAdmin = false;
+  if (userId) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", userId)
+      .maybeSingle();
+    isAdmin = profile?.is_admin ?? false;
+  }
+
   // Get author names for threaded replies
   const authorIds = [
     thread.author_id,
@@ -112,9 +141,7 @@ export default async function ForumThreadPage({
   const authorTrustLevels: Record<string, number> = {};
   const authorProfiles: Record<string, { avatar_url: string | null; post_count: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }> = {};
 
-  // Build badge map for all authors (thread + replies)
   const allBadgeMap = new Map<string, any>();
-  // We already have badgeById for reply authors; fetch thread author badge too
   if (thread.author_id && !badgeById.has(thread.author_id)) {
     const b = await fetchProfileBadge(supabase, thread.author_id);
     allBadgeMap.set(thread.author_id, b);
@@ -135,38 +162,100 @@ export default async function ForumThreadPage({
     };
   }
 
+  const isDeleted = !!thread.deleted_at;
+  const isLocked = thread.locked ?? false;
+
   return (
     <div className="relative isolate">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
       <div className="mx-auto max-w-4xl px-4 py-10 space-y-4">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: "Forum", href: "/forum" },
+            ...(thread.section_id
+              ? [{ label: sectionName, href: `/forum/s/${thread.section_id}` }]
+              : []),
+            { label: isDeleted ? "[deleted]" : thread.title },
+          ]}
+        />
+
         <Card>
           <CardHeader>
-            <CardTitle>{thread.title}</CardTitle>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                {isLocked && <Lock className="h-4 w-4 text-red-400 shrink-0" />}
+                <CardTitle>{isDeleted ? "[deleted]" : thread.title}</CardTitle>
+              </div>
+              {!isDeleted && (
+                <ThreadActions
+                  threadId={thread.id}
+                  authorId={thread.author_id}
+                  userId={userId}
+                  isAdmin={isAdmin}
+                  isLocked={isLocked}
+                  isPinned={thread.pinned ?? false}
+                  threadTitle={thread.title}
+                  threadBody={thread.body}
+                />
+              )}
+            </div>
           </CardHeader>
           <CardContent className="grid gap-2 md:grid-cols-[90px_1fr]">
-            <div className="md:border-r md:pr-1.5">
+            {/* Mobile: horizontal author row */}
+            <div className="md:hidden flex items-center gap-2 pb-2 border-b mb-2">
               <AuthorCard author={threadAuthor} compact />
-              <div className="text-center text-[9px] text-muted-foreground leading-none">
-                {new Date(thread.created_at).toLocaleDateString()}
+              <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                <span>{relativeTime(thread.created_at)}</span>
+                <span className="inline-flex items-center gap-0.5">
+                  <Eye className="h-3 w-3" />
+                  {thread.view_count ?? 0}
+                </span>
+              </div>
+            </div>
+            {/* Desktop: sidebar */}
+            <div className="hidden md:block md:border-r md:pr-1.5">
+              <AuthorCard author={threadAuthor} compact />
+              <div className="text-center text-[9px] text-muted-foreground leading-none mt-0.5">
+                {relativeTime(thread.created_at)}
+              </div>
+              <div className="text-center text-[9px] text-muted-foreground leading-none mt-0.5 flex items-center justify-center gap-0.5">
+                <Eye className="h-3 w-3" />
+                {thread.view_count ?? 0}
               </div>
             </div>
             <div>
-              <MarkdownBody content={thread.body} authorTrustLevel={threadAuthor?.trust_level ?? 0} />
-              <Reactions targetType="thread" targetId={thread.id} userId={userId} authorId={thread.author_id} />
-              <Separator className="my-3" />
-              <div className="flex items-center gap-2">
-                <FavoriteButton threadId={thread.id} userId={userId} />
-                <SubscribeButton threadId={thread.id} userId={userId} />
-              </div>
+              {isDeleted ? (
+                <p className="text-sm text-muted-foreground italic">[This thread has been deleted]</p>
+              ) : (
+                <>
+                  <MarkdownBody content={thread.body} authorTrustLevel={threadAuthor?.trust_level ?? 0} />
+                  <Reactions targetType="thread" targetId={thread.id} userId={userId} authorId={thread.author_id} />
+                  <Separator className="my-3" />
+                  <div className="flex items-center gap-2">
+                    <FavoriteButton threadId={thread.id} userId={userId} />
+                    <SubscribeButton threadId={thread.id} userId={userId} />
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
 
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">
-            {(replies?.length ?? 0)} Repl{(replies?.length ?? 0) === 1 ? "y" : "ies"}
+            {(replies?.filter((r: any) => !r.deleted_at).length ?? 0)} Repl{(replies?.filter((r: any) => !r.deleted_at).length ?? 0) === 1 ? "y" : "ies"}
           </h3>
         </div>
+
+        {isLocked && (
+          <Card>
+            <CardContent className="py-3 text-sm text-muted-foreground flex items-center gap-2">
+              <Lock className="h-4 w-4 text-red-400" />
+              This thread is locked. No new replies can be posted.
+            </CardContent>
+          </Card>
+        )}
 
         <ThreadedReplies
           replies={(replies ?? []) as any[]}
@@ -175,12 +264,16 @@ export default async function ForumThreadPage({
           authorNames={authorNames}
           authorTrustLevels={authorTrustLevels}
           authorProfiles={authorProfiles}
+          isLocked={isLocked}
+          isAdmin={isAdmin}
         />
 
-        {authData.user ? (
-          <ReplyForm threadId={id} />
-        ) : (
-          <ReplyFormGate threadId={id} />
+        {!isLocked && !isDeleted && (
+          authData.user ? (
+            <ReplyForm threadId={id} />
+          ) : (
+            <ReplyFormGate threadId={id} />
+          )
         )}
       </div>
     </div>
