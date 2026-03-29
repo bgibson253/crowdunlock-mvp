@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   MessageSquare,
@@ -10,6 +10,7 @@ import {
   Trash2,
   Flag,
   Quote as QuoteIcon,
+  ArrowUpDown,
 } from "lucide-react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -442,8 +443,12 @@ export function ThreadedReplies({
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
   const [userId, setUserId] = useState<string | null>(serverUserId);
+  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
   const REPLIES_PER_PAGE = 15;
   const [visibleCount, setVisibleCount] = useState(REPLIES_PER_PAGE);
+
+  type SortMode = "oldest" | "newest" | "reactions";
+  const [sortMode, setSortMode] = useState<SortMode>("oldest");
 
   useEffect(() => {
     async function resolveUser() {
@@ -457,6 +462,26 @@ export function ThreadedReplies({
     }
     resolveUser();
   }, [serverUserId]);
+
+  // Fetch reaction counts per reply for sorting
+  useEffect(() => {
+    async function fetchReactionCounts() {
+      const supabase = supabaseBrowser();
+      const replyIds = replyData.map((r) => r.id);
+      if (replyIds.length === 0) return;
+      const { data } = await supabase
+        .from("forum_reactions")
+        .select("target_id")
+        .eq("target_type", "reply")
+        .in("target_id", replyIds);
+      const counts: Record<string, number> = {};
+      for (const r of (data ?? []) as any[]) {
+        counts[r.target_id] = (counts[r.target_id] || 0) + 1;
+      }
+      setReactionCounts(counts);
+    }
+    fetchReactionCounts();
+  }, [replyData]);
 
   // Refresh replies when external trigger fires
   useEffect(() => {
@@ -497,7 +522,19 @@ export function ThreadedReplies({
 
   const tree = buildTree(repliesWithNames);
 
-  if (tree.length === 0) {
+  // Sort root-level replies based on selected mode
+  const sortedTree = useMemo(() => {
+    const roots = [...tree];
+    if (sortMode === "newest") {
+      roots.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else if (sortMode === "reactions") {
+      roots.sort((a, b) => (reactionCounts[b.id] ?? 0) - (reactionCounts[a.id] ?? 0));
+    }
+    // "oldest" is default DB order (ascending), no sort needed
+    return roots;
+  }, [tree, sortMode, reactionCounts]);
+
+  if (sortedTree.length === 0) {
     return (
       <Card>
         <CardContent className="py-6 text-sm text-muted-foreground">
@@ -507,12 +544,33 @@ export function ThreadedReplies({
     );
   }
 
-  const visibleRoots = tree.slice(0, visibleCount);
-  const totalRoots = tree.length;
+  const visibleRoots = sortedTree.slice(0, visibleCount);
+  const totalRoots = sortedTree.length;
   const hasMore = visibleCount < totalRoots;
 
   return (
     <div className="space-y-0">
+      {/* Sort pills */}
+      <div className="flex items-center gap-2 mb-3">
+        {(["oldest", "newest", "reactions"] as const).map((s) => {
+          const label = s === "oldest" ? "Oldest first" : s === "newest" ? "Newest first" : "Most reactions";
+          const isActive = sortMode === s;
+          return (
+            <button
+              key={s}
+              onClick={() => { setSortMode(s); setVisibleCount(REPLIES_PER_PAGE); }}
+              className={`text-xs px-3 py-1 rounded-full border transition ${
+                isActive
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {totalRoots > REPLIES_PER_PAGE && (
         <div className="text-xs text-muted-foreground mb-2">
           Showing {Math.min(visibleCount, totalRoots)} of {totalRoots} replies
