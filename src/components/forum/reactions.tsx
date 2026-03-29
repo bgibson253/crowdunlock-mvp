@@ -15,10 +15,12 @@ export function Reactions({
   targetType,
   targetId,
   userId: serverUserId,
+  authorId,
 }: {
   targetType: "thread" | "reply";
   targetId: string;
   userId: string | null;
+  authorId?: string | null;
 }) {
   const [reactions, setReactions] = useState<ReactionCount[]>([]);
   const [showPicker, setShowPicker] = useState(false);
@@ -72,8 +74,11 @@ export function Reactions({
     );
   }
 
+  // Can't react to your own posts
+  const isOwnPost = !!(userId && authorId && userId === authorId);
+
   async function toggleReaction(emoji: string) {
-    if (!userId || loading) return;
+    if (!userId || loading || isOwnPost) return;
     setLoading(true);
     const supabase = supabaseBrowser();
 
@@ -129,7 +134,7 @@ export function Reactions({
         </button>
       ))}
 
-      {userId && (
+      {userId && !isOwnPost && (
         <div className="relative">
           <button
             onClick={() => setShowPicker(!showPicker)}

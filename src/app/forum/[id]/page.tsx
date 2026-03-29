@@ -132,7 +132,7 @@ export default async function ForumThreadPage({
             </div>
             <div>
               <MarkdownBody content={thread.body} authorTrustLevel={threadAuthor?.trust_level ?? 0} />
-              <Reactions targetType="thread" targetId={thread.id} userId={userId} />
+              <Reactions targetType="thread" targetId={thread.id} userId={userId} authorId={thread.author_id} />
               <Separator className="my-3" />
               <div className="flex items-center gap-2">
                 <FavoriteButton threadId={thread.id} userId={userId} />

@@ -125,7 +125,7 @@ function ReplyCard({
               </div>
 
               <MarkdownBody content={reply.body} authorTrustLevel={reply.author_trust_level} />
-              <Reactions targetType="reply" targetId={reply.id} userId={userId} />
+              <Reactions targetType="reply" targetId={reply.id} userId={userId} authorId={reply.author_id} />
 
               {userId && (
                 <div className="mt-1">
