@@ -116,77 +116,87 @@ function ReplyCard({
               </button>
             )}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                {reply.author_id ? (
-                  <a href={`/profile/${reply.author_id}`} className="flex items-center gap-2 hover:underline">
-                    <Avatar className="h-6 w-6">
-                      {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
-                      <AvatarFallback className="text-[10px]">{reply.author_name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs font-medium">{reply.author_name}</span>
-                  </a>
-                ) : (
-                  <span className="text-xs font-medium">{reply.author_name}</span>
-                )}
-                <span className="text-[10px] text-muted-foreground">
-                  {reply.author_post_count} posts
-                </span>
-                {reply.author_unlock_tier_label && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-200">
-                    <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
-                    <span className="truncate">{reply.author_unlock_tier_label}</span>
-                  </span>
-                )}
-                <span className="text-[10px] text-muted-foreground">
-                  {new Date(reply.created_at).toLocaleString()}
-                </span>
-              </div>
-
-              <MarkdownBody content={reply.body} authorTrustLevel={reply.author_trust_level} />
-              <Reactions targetType="reply" targetId={reply.id} userId={userId} authorId={reply.author_id} />
-
-              {userId && (
-                <div className="mt-1">
-                  <button
-                    onClick={() => setShowReplyForm(!showReplyForm)}
-                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
-                  >
-                    <MessageSquare className="h-3 w-3" />
-                    Reply
-                  </button>
-                </div>
-              )}
-
-              {showReplyForm && (
-                <form onSubmit={handleReply} className="mt-2 space-y-2">
-                  <MarkdownEditor
-                    value={replyBody}
-                    onChange={setReplyBody}
-                    placeholder={`Reply to ${reply.author_name}…`}
-                    rows={3}
-                  />
-                  {error && <div className="text-xs text-red-600">{error}</div>}
-                  <div className="flex gap-2">
-                    <Button
-                      type="submit"
-                      size="sm"
-                      disabled={!replyBody.trim() || submitting}
-                      className="h-7 text-xs"
-                    >
-                      {submitting ? "Posting…" : "Reply"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowReplyForm(false)}
-                      className="h-7 text-xs"
-                    >
-                      Cancel
-                    </Button>
+              <div className="grid gap-3 md:grid-cols-[160px_1fr]">
+                {/* Left: author info */}
+                <div className="md:border-r md:pr-3">
+                  {reply.author_id ? (
+                    <a href={`/profile/${reply.author_id}`} className="flex flex-col items-center gap-1.5 text-center hover:underline">
+                      <Avatar className="h-10 w-10">
+                        {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
+                        <AvatarFallback className="text-xs">{reply.author_name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium leading-tight">{reply.author_name}</span>
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5 text-center">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="text-xs">A</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium">Administrator</span>
+                    </div>
+                  )}
+                  <div className="mt-1 flex flex-col items-center gap-1 text-[10px] text-muted-foreground">
+                    {reply.author_unlock_tier_label && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-1.5 py-0.5 font-medium text-amber-200">
+                        <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
+                        <span className="truncate">{reply.author_unlock_tier_label}</span>
+                      </span>
+                    )}
+                    <span>{reply.author_post_count} posts</span>
                   </div>
-                </form>
-              )}
+                  <div className="mt-1 text-center text-[10px] text-muted-foreground">
+                    {new Date(reply.created_at).toLocaleString()}
+                  </div>
+                </div>
+                {/* Right: content */}
+                <div>
+                  <MarkdownBody content={reply.body} authorTrustLevel={reply.author_trust_level} />
+                  <Reactions targetType="reply" targetId={reply.id} userId={userId} authorId={reply.author_id} />
+
+                  {userId && (
+                    <div className="mt-1">
+                      <button
+                        onClick={() => setShowReplyForm(!showReplyForm)}
+                        className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                        Reply
+                      </button>
+                    </div>
+                  )}
+
+                  {showReplyForm && (
+                    <form onSubmit={handleReply} className="mt-2 space-y-2">
+                      <MarkdownEditor
+                        value={replyBody}
+                        onChange={setReplyBody}
+                        placeholder={`Reply to ${reply.author_name}…`}
+                        rows={3}
+                      />
+                      {error && <div className="text-xs text-red-600">{error}</div>}
+                      <div className="flex gap-2">
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={!replyBody.trim() || submitting}
+                          className="h-7 text-xs"
+                        >
+                          {submitting ? "Posting…" : "Reply"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowReplyForm(false)}
+                          className="h-7 text-xs"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
