@@ -16,12 +16,13 @@ export default async function ForumSectionPage({
   searchParams,
 }: {
   params: Promise<{ sectionId: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string }>;
 }) {
   const { sectionId } = await params;
-  const { page: pageStr } = await searchParams;
+  const { page: pageStr, sort } = await searchParams;
   const page = Math.max(1, parseInt(pageStr || "1", 10));
   const offset = (page - 1) * PAGE_SIZE;
+  const sortMode = sort === "replied" || sort === "viewed" ? sort : "latest";
 
   const supabase = await supabaseServer();
 
@@ -34,14 +35,20 @@ export default async function ForumSectionPage({
   if (sectionErr) throw new Error(sectionErr.message);
   if (!section) return notFound();
 
-  // Fetch threads sorted by pinned first, then last_activity_at
-  const { data: threads, error: threadsErr, count } = await supabase
+  // Fetch threads sorted by pinned first, then by sort mode
+  let query = supabase
     .from("forum_threads")
     .select("id,title,created_at,view_count,locked,pinned,deleted_at,last_activity_at", { count: "exact" })
     .eq("section_id", sectionId)
-    .order("pinned", { ascending: false })
-    .order("last_activity_at", { ascending: false, nullsFirst: false })
-    .range(offset, offset + PAGE_SIZE - 1);
+    .order("pinned", { ascending: false });
+
+  if (sortMode === "viewed") {
+    query = query.order("view_count", { ascending: false });
+  } else {
+    query = query.order("last_activity_at", { ascending: false, nullsFirst: false });
+  }
+
+  const { data: threads, error: threadsErr, count } = await query.range(offset, offset + PAGE_SIZE - 1);
 
   if (threadsErr) throw new Error(threadsErr.message);
 
@@ -64,6 +71,19 @@ export default async function ForumSectionPage({
 
   const totalCount = count ?? 0;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // If sorting by most replied, sort client-side
+  let sortedThreads = (threads ?? []) as any[];
+  if (sortMode === "replied") {
+    sortedThreads = [...sortedThreads].sort((a, b) => {
+      const ca = replyCounts[a.id] ?? 0;
+      const cb = replyCounts[b.id] ?? 0;
+      // Keep pinned at top
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return cb - ca;
+    });
+  }
 
   const LISTED_IDS = ["listed_stories", "listed_data", "listed_videos"];
   const isListed = LISTED_IDS.includes(sectionId);
@@ -95,8 +115,32 @@ export default async function ForumSectionPage({
           )}
         </div>
 
+        {/* Sort pills */}
+        <div className="mt-4 flex items-center gap-2">
+          {(["latest", "replied", "viewed"] as const).map((s) => {
+            const label = s === "latest" ? "Latest" : s === "replied" ? "Most replied" : "Most viewed";
+            const isActive = sortMode === s;
+            const href = s === "latest"
+              ? `/forum/s/${encodeURIComponent(sectionId)}`
+              : `/forum/s/${encodeURIComponent(sectionId)}?sort=${s}`;
+            return (
+              <Link
+                key={s}
+                href={href}
+                className={`text-xs px-3 py-1 rounded-full border transition ${
+                  isActive
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+
         <div className="mt-6 space-y-2">
-          {(threads ?? []).map((t: any) => (
+          {sortedThreads.map((t: any) => (
             <ThreadListItem
               key={t.id}
               id={t.id}

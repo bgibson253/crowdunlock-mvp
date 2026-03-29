@@ -75,8 +75,15 @@ export default async function MessagesPage() {
 
         {convList.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No messages yet. Visit a user's profile to send them a message.
+            <CardContent className="py-12 text-center space-y-3">
+              <div className="text-4xl">💬</div>
+              <p className="text-sm font-medium">No conversations yet</p>
+              <p className="text-xs text-muted-foreground">
+                Visit someone&apos;s profile to send them a message.
+              </p>
+              <Link href="/forum" className="inline-block">
+                <span className="text-xs text-indigo-600 hover:underline">Browse the forum →</span>
+              </Link>
             </CardContent>
           </Card>
         ) : (

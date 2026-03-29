@@ -42,8 +42,15 @@ export default async function DashboardPage() {
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
         {(uploads ?? []).length === 0 && !error ? (
-          <div className="col-span-full text-sm text-muted-foreground py-10 text-center">
-            No uploads yet. <Link href="/upload" className="underline">Create your first upload.</Link>
+          <div className="col-span-full py-16 text-center space-y-3">
+            <div className="text-5xl">📦</div>
+            <p className="text-base font-medium">No uploads yet</p>
+            <p className="text-sm text-muted-foreground">
+              Create your first upload and start crowdfunding.
+            </p>
+            <Button asChild>
+              <Link href="/upload">Create your first upload</Link>
+            </Button>
           </div>
         ) : null}
         {(uploads ?? []).map((u) => {

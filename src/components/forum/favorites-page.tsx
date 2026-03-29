@@ -70,11 +70,15 @@ export function FavoritesPage({ userId }: { userId: string }) {
 
       {!loading && favorites.length === 0 && (
         <Card>
-          <CardContent className="py-10 text-center">
-            <Heart className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <div className="text-sm text-muted-foreground">
-              No favorites yet. Click the heart on a thread to save it.
-            </div>
+          <CardContent className="py-12 text-center space-y-3">
+            <Heart className="h-10 w-10 text-muted-foreground mx-auto" />
+            <p className="text-sm font-medium">No favorites yet</p>
+            <p className="text-xs text-muted-foreground">
+              Click the ♡ icon on any thread to save it here.
+            </p>
+            <Link href="/forum" className="inline-block">
+              <span className="text-xs text-indigo-600 hover:underline">Browse the forum →</span>
+            </Link>
           </CardContent>
         </Card>
       )}

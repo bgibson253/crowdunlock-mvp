@@ -1,4 +1,16 @@
 import Link from "next/link";
+import {
+  Home,
+  MessageSquare,
+  Trophy,
+  Compass,
+  Bell,
+  Mail,
+  Flag,
+  Heart,
+  Upload,
+  Plus,
+} from "lucide-react";
 
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -32,41 +44,48 @@ function HamburgerButton() {
 
 function SheetNavLinks({ user, unreadDmCount, isAdmin }: { user: any; unreadDmCount: number; isAdmin: boolean }) {
   return (
-    <div className="mt-6 space-y-2">
-      <Link href="/" className="block px-3 py-2 text-sm hover:underline">
+    <div className="mt-6 space-y-1">
+      <Link href="/" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
+        <Home className="h-4 w-4 text-muted-foreground" />
         Home
       </Link>
-      <Link href="/forum" className="block px-3 py-2 text-sm hover:underline">
+      <Link href="/forum" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
+        <MessageSquare className="h-4 w-4 text-muted-foreground" />
         Forum
       </Link>
-      <Link href="/forum/perks" className="block px-3 py-2 text-sm hover:underline">
+      <Link href="/forum/perks" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
+        <Trophy className="h-4 w-4 text-muted-foreground" />
         Unlock perks
       </Link>
-      <Link href="/browse" className="block px-3 py-2 text-sm hover:underline">
+      <Link href="/browse" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
+        <Compass className="h-4 w-4 text-muted-foreground" />
         Browse
       </Link>
       {user && (
         <Link
           href="/forum/notifications"
-          className="block px-3 py-2 text-sm hover:underline"
+          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md"
         >
+          <Bell className="h-4 w-4 text-muted-foreground" />
           Notifications
         </Link>
       )}
       {user && (
         <Link
           href="/messages"
-          className="block px-3 py-2 text-sm hover:underline"
+          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md"
         >
+          <Mail className="h-4 w-4 text-muted-foreground" />
           Messages{unreadDmCount > 0 ? ` (${unreadDmCount})` : ""}
         </Link>
       )}
       {isAdmin && (
         <Link
           href="/forum/reports"
-          className="block px-3 py-2 text-sm hover:underline text-amber-600 font-medium"
+          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md text-amber-600 font-medium"
         >
-          📋 Reports
+          <Flag className="h-4 w-4" />
+          Reports
         </Link>
       )}
     </div>
@@ -99,7 +118,7 @@ export async function Nav() {
   }
 
   return (
-    <header className="border-b">
+    <header className="sticky top-0 z-50 border-b backdrop-blur-md bg-background/80">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <Sheet>
@@ -135,13 +154,16 @@ export async function Nav() {
                       <div className="text-xs text-muted-foreground">Profile & settings</div>
                     </div>
                   </Link>
-                  <Link href="/dashboard" className="block px-3 py-2 text-sm hover:underline">
+                  <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
                     My uploads
                   </Link>
-                  <Link href="/upload" className="block px-3 py-2 text-sm hover:underline">
+                  <Link href="/upload" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
+                    <Plus className="h-4 w-4 text-muted-foreground" />
                     New upload
                   </Link>
-                  <Link href="/forum/favorites" className="block px-3 py-2 text-sm hover:underline">
+                  <Link href="/forum/favorites" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
+                    <Heart className="h-4 w-4 text-muted-foreground" />
                     Favorites
                   </Link>
                 </div>

@@ -7,6 +7,11 @@ import { SearchBar } from "@/components/forum/search-bar";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Forum",
+  description: "Join the Unmaskr community discussion. Browse threads, start conversations, and connect with others.",
+};
+
 type SectionRow = {
   id: string;
   name: string;

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { Nav } from "@/components/site/nav";
+import { Footer } from "@/components/site/footer";
+import { BackToTop } from "@/components/site/back-to-top";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
 import { Toaster } from "sonner";
 
@@ -17,8 +19,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Unmaskr",
-  description: "Crowdfunded, unlockable journalism and data.",
+  title: {
+    default: "Unmaskr — Crowdfunded Content Unlocking",
+    template: "%s | Unmaskr",
+  },
+  description: "Crowdfund and unlock exclusive journalism, data, and stories. Join the community.",
+  openGraph: {
+    siteName: "Unmaskr",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -31,7 +40,11 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <TestModeBanner />
         <Nav />
-        {children}
+        <main className="min-h-[calc(100vh-140px)]">
+          {children}
+        </main>
+        <Footer />
+        <BackToTop />
         <Toaster richColors position="top-center" duration={4000} />
       </body>
     </html>

@@ -11,6 +11,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Browse",
+  description: "Browse and fund exclusive content on Unmaskr.",
+};
+
 type UploadPublic = {
   id: string;
   title: string;

@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +11,25 @@ import { Separator } from "@/components/ui/separator";
 import { SendDmButton } from "@/components/forum/send-dm-button";
 import { UserFavoriteButton } from "@/components/forum/user-favorite-button";
 import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
+import { relativeTime } from "@/lib/relative-time";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await supabaseServer();
+  const { data } = await supabase
+    .from("profiles")
+    .select("display_name,username")
+    .eq("id", id)
+    .maybeSingle();
+  const name = data?.display_name ?? data?.username ?? "User";
+  return { title: `${name}'s Profile` };
+}
 
 export default async function ProfilePage({
   params,
@@ -26,7 +44,7 @@ export default async function ProfilePage({
   if (!user) redirect(`/auth?redirect=${encodeURIComponent(`/profile/${id}`)}`);
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id,username,display_name,bio,website,location,twitter,github,linkedin,banner_url,avatar_url,post_count,created_at")
+    .select("id,username,display_name,bio,website,location,twitter,github,linkedin,banner_url,avatar_url,post_count,created_at,last_seen_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -76,6 +94,32 @@ export default async function ProfilePage({
 
   // DM button / edit profile logic
   const isOwnProfile = user?.id === id;
+
+  // Online status
+  const lastSeen = profile.last_seen_at ? new Date(profile.last_seen_at) : null;
+  const isOnline = lastSeen && (Date.now() - lastSeen.getTime()) < 5 * 60 * 1000; // within 5 min
+
+  // Total reactions received
+  const allThreadIds = Array.from(new Set((threads ?? []).map((t: any) => t.id)));
+  const allReplyIds = Array.from(new Set((replies ?? []).map((r: any) => r.id)));
+
+  let totalReactionsReceived = 0;
+  if (allThreadIds.length > 0) {
+    const { count: threadReactions } = await supabase
+      .from("forum_reactions")
+      .select("id", { count: "exact", head: true })
+      .eq("target_type", "thread")
+      .in("target_id", allThreadIds);
+    totalReactionsReceived += threadReactions ?? 0;
+  }
+  if (allReplyIds.length > 0) {
+    const { count: replyReactions } = await supabase
+      .from("forum_reactions")
+      .select("id", { count: "exact", head: true })
+      .eq("target_type", "reply")
+      .in("target_id", allReplyIds);
+    totalReactionsReceived += replyReactions ?? 0;
+  }
 
   return (
     <main className="relative isolate">
@@ -129,7 +173,26 @@ export default async function ProfilePage({
               )}
 
               <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  {isOnline ? (
+                    <>
+                      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                      Online
+                    </>
+                  ) : lastSeen ? (
+                    <>
+                      <span className="h-2 w-2 rounded-full bg-gray-400" />
+                      Last seen {relativeTime(profile.last_seen_at)}
+                    </>
+                  ) : (
+                    <>
+                      <span className="h-2 w-2 rounded-full bg-gray-400" />
+                      Never seen
+                    </>
+                  )}
+                </span>
                 <span>{profile.post_count ?? 0} posts</span>
+                <span>❤️ {totalReactionsReceived} reactions</span>
                 {profile.location && <span>📍 {profile.location}</span>}
                 <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
               </div>

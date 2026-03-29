@@ -21,7 +21,24 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Update last_seen_at (throttled to every 5 minutes via cookie)
+  if (user) {
+    const lastUpdate = request.cookies.get("last_seen_update")?.value;
+    if (!lastUpdate) {
+      await supabase
+        .from("profiles")
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq("id", user.id);
+      response.cookies.set("last_seen_update", "1", {
+        maxAge: 300, // 5 minutes
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      });
+    }
+  }
 
   return response;
 }

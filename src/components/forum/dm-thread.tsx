@@ -142,6 +142,58 @@ export function DmThread({
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Realtime subscription for new DMs
+  useEffect(() => {
+    const supabase = supabaseBrowser();
+    const channel = supabase
+      .channel(`dm-${currentUserId}-${recipientId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "forum_dms",
+          filter: `recipient_id=eq.${currentUserId}`,
+        },
+        async (payload) => {
+          const newMsg = payload.new as DmMessage;
+          // Only add messages from this conversation
+          if (newMsg.sender_id !== recipientId) return;
+
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+
+          // Decrypt if needed
+          if (newMsg.encrypted && newMsg.encrypted_body && newMsg.nonce && privateKeyRef.current && recipientPubKeyRef.current) {
+            try {
+              const plaintext = await decryptMessage(
+                newMsg.encrypted_body,
+                newMsg.nonce,
+                privateKeyRef.current,
+                recipientPubKeyRef.current
+              );
+              setDecryptedBodies((prev) => ({ ...prev, [newMsg.id]: plaintext }));
+            } catch {
+              setDecryptedBodies((prev) => ({ ...prev, [newMsg.id]: "[Decryption failed]" }));
+            }
+          }
+
+          // Mark as read
+          await supabase
+            .from("forum_dms")
+            .update({ read: true })
+            .eq("id", newMsg.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId, recipientId]);
+
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!body.trim() || sending) return;

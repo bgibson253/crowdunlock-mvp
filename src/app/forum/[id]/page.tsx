@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { ThreadContent } from "@/components/forum/thread-content";
@@ -14,6 +15,23 @@ import { Breadcrumbs } from "@/components/forum/breadcrumbs";
 import { ThreadActions } from "@/components/forum/thread-actions";
 import { relativeTime } from "@/lib/relative-time";
 import { Eye, Lock } from "lucide-react";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await supabaseServer();
+  const { data } = await supabase
+    .from("forum_threads")
+    .select("title")
+    .eq("id", id)
+    .maybeSingle();
+  return {
+    title: data?.title ?? "Thread",
+  };
+}
 
 export const dynamic = "force-dynamic";
 

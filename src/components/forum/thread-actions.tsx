@@ -11,10 +11,12 @@ import {
   Pin,
   PinOff,
   Flag,
+  Share2,
 } from "lucide-react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -150,6 +152,15 @@ export function ThreadActions({
           <DropdownMenuItem onClick={() => setShowReport(true)}>
             <Flag className="h-3.5 w-3.5 mr-2" />
             Report
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied!");
+            }}
+          >
+            <Share2 className="h-3.5 w-3.5 mr-2" />
+            Share
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
