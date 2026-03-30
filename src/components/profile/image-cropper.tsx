@@ -6,35 +6,43 @@ import type { Area } from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
-async function getCroppedImg(imageSrc: string, crop: Area): Promise<Blob> {
-  const image = new Image();
-  image.crossOrigin = "anonymous";
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = reject;
-    image.src = imageSrc;
-  });
+async function getCroppedImg(
+  imageSrc: string,
+  crop: Area,
+  outputWidth?: number
+): Promise<Blob> {
+  // Use createImageBitmap to avoid EXIF rotation issues and get true pixel data
+  const response = await fetch(imageSrc);
+  const blob = await response.blob();
+  const bitmap = await createImageBitmap(blob);
+
+  // Determine output size — scale to outputWidth if provided, else use crop pixel size
+  const scale = outputWidth ? outputWidth / crop.width : 1;
+  const outW = Math.round(crop.width * scale);
+  const outH = Math.round(crop.height * scale);
 
   const canvas = document.createElement("canvas");
-  canvas.width = crop.width;
-  canvas.height = crop.height;
+  canvas.width = outW;
+  canvas.height = outH;
   const ctx = canvas.getContext("2d")!;
 
   ctx.drawImage(
-    image,
+    bitmap,
     crop.x,
     crop.y,
     crop.width,
     crop.height,
     0,
     0,
-    crop.width,
-    crop.height
+    outW,
+    outH
   );
+
+  bitmap.close();
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("Canvas toBlob failed"))),
+      (b) => (b ? resolve(b) : reject(new Error("Canvas toBlob failed"))),
       "image/jpeg",
       0.92
     );
@@ -44,12 +52,13 @@ async function getCroppedImg(imageSrc: string, crop: Area): Promise<Blob> {
 interface ImageCropperProps {
   imageSrc: string;
   aspect: number; // e.g. 1 for avatar (square), 3 for banner
+  outputWidth?: number; // target output width in px (e.g. 1200 for banner)
   onCropComplete: (blob: Blob) => void;
   onCancel: () => void;
   title?: string;
 }
 
-export function ImageCropper({ imageSrc, aspect, onCropComplete, onCancel, title }: ImageCropperProps) {
+export function ImageCropper({ imageSrc, aspect, outputWidth, onCropComplete, onCancel, title }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedArea, setCroppedArea] = useState<Area | null>(null);
@@ -60,7 +69,7 @@ export function ImageCropper({ imageSrc, aspect, onCropComplete, onCancel, title
 
   async function handleApply() {
     if (!croppedArea) return;
-    const blob = await getCroppedImg(imageSrc, croppedArea);
+    const blob = await getCroppedImg(imageSrc, croppedArea, outputWidth);
     onCropComplete(blob);
   }
 

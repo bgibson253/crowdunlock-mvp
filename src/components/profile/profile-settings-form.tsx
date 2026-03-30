@@ -229,6 +229,7 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
         <ImageCropper
           imageSrc={cropperSrc}
           aspect={cropperMode === "avatar" ? 1 : 3}
+          outputWidth={cropperMode === "avatar" ? 400 : 1200}
           title={cropperMode === "avatar" ? "Crop avatar" : "Crop banner"}
           onCropComplete={handleCropComplete}
           onCancel={() => setCropperSrc(null)}
