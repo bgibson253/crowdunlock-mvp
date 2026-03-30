@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { SendDmButton } from "@/components/forum/send-dm-button";
 import { UserFavoriteButton } from "@/components/forum/user-favorite-button";
 import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
+import { BlockUserButton } from "@/components/forum/block-user-button";
 import { relativeTime } from "@/lib/relative-time";
 
 export const dynamic = "force-dynamic";
@@ -99,6 +100,18 @@ export default async function ProfilePage({
   const lastSeen = profile.last_seen_at ? new Date(profile.last_seen_at) : null;
   const isOnline = lastSeen && (Date.now() - lastSeen.getTime()) < 5 * 60 * 1000; // within 5 min
 
+  // Check if current user has blocked this profile
+  let isBlocked = false;
+  if (user && !isOwnProfile) {
+    const { data: blockRow } = await supabase
+      .from("user_blocks")
+      .select("id")
+      .eq("blocker_id", user.id)
+      .eq("blocked_id", id)
+      .maybeSingle();
+    isBlocked = !!blockRow;
+  }
+
   // Total reactions received
   const allThreadIds = Array.from(new Set((threads ?? []).map((t: any) => t.id)));
   const allReplyIds = Array.from(new Set((replies ?? []).map((r: any) => r.id)));
@@ -169,6 +182,7 @@ export default async function ProfilePage({
                 <div className="mt-3 flex items-center gap-1">
                   <UserFavoriteButton targetUserId={id} />
                   <UserSubscribeButton targetUserId={id} />
+                  <BlockUserButton targetUserId={id} targetName={name} isBlocked={isBlocked} />
                 </div>
               )}
 

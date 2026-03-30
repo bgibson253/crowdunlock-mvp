@@ -11,6 +11,7 @@ import {
   Flag,
   Quote as QuoteIcon,
   ArrowUpDown,
+  CheckCircle2,
 } from "lucide-react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -22,6 +23,7 @@ import { MarkdownEditor } from "@/components/forum/markdown-editor";
 import { Reactions } from "@/components/forum/reactions";
 import { ReportModal } from "@/components/forum/report-modal";
 import { relativeTime } from "@/lib/relative-time";
+import { toast } from "sonner";
 
 export type ReplyNode = {
   id: string;
@@ -69,6 +71,9 @@ function ReplyCard({
   isAdmin,
   onReplyPosted,
   onQuote,
+  threadAuthorId,
+  solutionReplyId,
+  onMarkSolution,
 }: {
   reply: ReplyNode;
   depth: number;
@@ -78,6 +83,9 @@ function ReplyCard({
   isAdmin: boolean;
   onReplyPosted: () => void;
   onQuote: (text: string) => void;
+  threadAuthorId: string | null;
+  solutionReplyId: string | null;
+  onMarkSolution: (replyId: string) => void;
 }) {
   const router = useRouter();
   const [showReplyForm, setShowReplyForm] = useState(false);
@@ -187,6 +195,9 @@ function ReplyCard({
               isAdmin={isAdmin}
               onReplyPosted={onReplyPosted}
               onQuote={onQuote}
+              threadAuthorId={threadAuthorId}
+              solutionReplyId={solutionReplyId}
+              onMarkSolution={onMarkSolution}
             />
           ))}
       </div>
@@ -343,6 +354,22 @@ function ReplyCard({
                             Report
                           </button>
                         )}
+                        {/* Mark as solution: thread author or admin can mark */}
+                        {userId && (userId === threadAuthorId || isAdmin) && solutionReplyId !== reply.id && (
+                          <button
+                            onClick={() => onMarkSolution(reply.id)}
+                            className="inline-flex items-center gap-1 text-[11px] text-emerald-600 hover:text-emerald-500 transition"
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            Mark solution
+                          </button>
+                        )}
+                        {solutionReplyId === reply.id && (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Solution
+                          </span>
+                        )}
                       </div>
                     </>
                   )}
@@ -404,6 +431,9 @@ function ReplyCard({
             isAdmin={isAdmin}
             onReplyPosted={onReplyPosted}
             onQuote={onQuote}
+            threadAuthorId={threadAuthorId}
+            solutionReplyId={solutionReplyId}
+            onMarkSolution={onMarkSolution}
           />
         ))}
     </div>
@@ -421,6 +451,8 @@ export function ThreadedReplies({
   isAdmin = false,
   onQuoteToMain,
   onExternalRefresh,
+  threadAuthorId,
+  solutionReplyId,
 }: {
   replies: Array<{
     id: string;
@@ -439,16 +471,34 @@ export function ThreadedReplies({
   isAdmin?: boolean;
   onQuoteToMain?: (text: string) => void;
   onExternalRefresh?: number;
+  threadAuthorId?: string | null;
+  solutionReplyId?: string | null;
 }) {
   const router = useRouter();
   const [replyData, setReplyData] = useState(replies);
   const [userId, setUserId] = useState<string | null>(serverUserId);
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
+  const [currentSolutionId, setCurrentSolutionId] = useState<string | null>(solutionReplyId ?? null);
   const REPLIES_PER_PAGE = 15;
   const [visibleCount, setVisibleCount] = useState(REPLIES_PER_PAGE);
 
   type SortMode = "oldest" | "newest" | "reactions";
   const [sortMode, setSortMode] = useState<SortMode>("oldest");
+
+  async function handleMarkSolution(replyId: string) {
+    const supabase = supabaseBrowser();
+    const newId = currentSolutionId === replyId ? null : replyId;
+    const { error } = await supabase
+      .from("forum_threads")
+      .update({ solution_reply_id: newId })
+      .eq("id", threadId);
+    if (error) {
+      toast.error("Failed to mark solution");
+      return;
+    }
+    setCurrentSolutionId(newId);
+    toast.success(newId ? "Marked as solution" : "Solution unmarked");
+  }
 
   useEffect(() => {
     async function resolveUser() {
@@ -587,6 +637,9 @@ export function ThreadedReplies({
           isAdmin={isAdmin}
           onReplyPosted={refreshReplies}
           onQuote={(text) => onQuoteToMain?.(text)}
+          threadAuthorId={threadAuthorId ?? null}
+          solutionReplyId={currentSolutionId}
+          onMarkSolution={handleMarkSolution}
         />
       ))}
       {hasMore && (

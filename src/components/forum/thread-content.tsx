@@ -15,6 +15,8 @@ export function ThreadContent({
   isLocked,
   isAdmin,
   isAuthenticated,
+  threadAuthorId,
+  solutionReplyId,
 }: {
   replies: any[];
   userId: string | null;
@@ -25,6 +27,8 @@ export function ThreadContent({
   isLocked: boolean;
   isAdmin: boolean;
   isAuthenticated: boolean;
+  threadAuthorId?: string | null;
+  solutionReplyId?: string | null;
 }) {
   const [quoteBody, setQuoteBody] = useState<string | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -32,7 +36,6 @@ export function ThreadContent({
 
   function handleReplyPosted() {
     setRefreshKey((k) => k + 1);
-    // Scroll to bottom after a brief delay so the DOM updates
     setTimeout(() => {
       repliesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 500);
@@ -52,6 +55,8 @@ export function ThreadContent({
         isAdmin={isAdmin}
         onQuoteToMain={(text) => setQuoteBody(text)}
         onExternalRefresh={refreshKey}
+        threadAuthorId={threadAuthorId ?? null}
+        solutionReplyId={solutionReplyId ?? null}
       />
 
       <div ref={repliesEndRef} />

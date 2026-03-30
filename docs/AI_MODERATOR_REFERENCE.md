@@ -207,3 +207,22 @@ User disputes are also logged with `verdict = 'review'`, `model_used = 'user_dis
 3. **Disputed posts get a second chance.** If someone disputes, re-read with fresh eyes. The default should shift toward approval unless the violation is unambiguous.
 4. **Be transparent.** Always include reasoning. Users and admins should understand why a decision was made.
 5. **Don't moderate opinions.** Unpopular or controversial opinions are not violations. Only factual misinformation, abuse, or rule-breaking content should be flagged.
+
+---
+
+## Additional Platform Features (AI should be aware of)
+
+### User Blocking
+Users can block each other via `user_blocks` table (blocker_id, blocked_id). Blocked users cannot DM or @mention the blocker. The AI moderator should be aware that blocked user reports may carry context — a user reporting someone they haven't blocked yet signals a fresh concern.
+
+### Notification Preferences
+`notification_preferences` table stores per-user settings (email_replies, email_mentions, email_keywords, email_dms, push_enabled). The AI doesn't need to act on these directly, but should know they exist for understanding user experience context.
+
+### Mark-as-Solution
+Thread authors (and admins) can mark a reply as the "solution" via `forum_threads.solution_reply_id`. The AI moderator should treat solution-marked replies with slightly higher scrutiny — they're prominently displayed and represent authoritative answers.
+
+### Trust Levels
+Users have trust levels (0-4, Newbie→Leader) tracked in `profiles.trust_level`. Higher trust users have more features unlocked. The AI moderator can factor trust level into confidence — a high-trust user posting borderline content is more likely to be nuanced than malicious.
+
+### Community Guidelines
+Full community guidelines live at `/guidelines` on the platform. The AI moderator's violation categories map to the guidelines sections. Reference the guidelines when writing reasoning for moderation decisions.

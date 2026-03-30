@@ -68,7 +68,7 @@ export default async function ForumThreadPage({
 
   const { data: thread, error: threadErr } = await supabase
     .from("forum_threads")
-    .select("id,title,body,created_at,edited_at,author_id,section_id,view_count,locked,pinned,deleted_at")
+    .select("id,title,body,created_at,edited_at,author_id,section_id,view_count,locked,pinned,deleted_at,solution_reply_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -292,6 +292,8 @@ export default async function ForumThreadPage({
           isLocked={isLocked}
           isAdmin={isAdmin}
           isAuthenticated={!!authData.user}
+          threadAuthorId={thread.author_id}
+          solutionReplyId={thread.solution_reply_id ?? null}
         />
       </div>
     </div>

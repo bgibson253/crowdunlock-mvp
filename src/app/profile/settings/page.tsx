@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { ProfileSettingsForm } from "@/components/profile/profile-settings-form";
+import { NotificationPreferences } from "@/components/profile/notification-preferences";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Profile Settings" };
 
 export default async function ProfileSettingsPage() {
   const supabase = await supabaseServer();
@@ -44,6 +47,10 @@ export default async function ProfileSettingsPage() {
             banner_url: (profile as any)?.banner_url ?? null,
           }}
         />
+
+        <div className="mt-8">
+          <NotificationPreferences userId={data.user.id} />
+        </div>
       </div>
     </div>
   );
