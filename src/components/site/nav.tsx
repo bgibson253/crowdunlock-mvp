@@ -49,6 +49,7 @@ function SheetNavLinks({ user, unreadDmCount, isAdmin }: { user: any; unreadDmCo
       <NavLink href="/" icon={Home} label="Home" />
       <NavLink href="/forum" icon={MessageSquare} label="Forum" />
       <NavLink href="/forum/perks" icon={Trophy} label="Unlock Perks" />
+      <NavLink href="/leaderboard" icon={Trophy} label="Leaderboard" />
       <NavLink href="/browse" icon={Compass} label="Browse" />
       {user && <NavLink href="/forum/notifications" icon={Bell} label="Notifications" />}
       {user && <NavLink href="/messages" icon={Mail} label="Messages" badge={unreadDmCount} />}

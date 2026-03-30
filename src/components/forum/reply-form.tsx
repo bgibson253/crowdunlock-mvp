@@ -61,11 +61,23 @@ export function ReplyForm({
         return;
       }
 
-      const { error: insertErr } = await supabase
+      const { data: replyData, error: insertErr } = await supabase
         .from("forum_replies")
-        .insert({ thread_id: threadId, body });
+        .insert({ thread_id: threadId, body })
+        .select("id")
+        .single();
 
       if (insertErr) throw insertErr;
+
+      // Award points for posting a reply
+      try {
+        await supabase.rpc("award_points", {
+          p_user_id: auth.user.id,
+          p_points: 3,
+          p_reason: "reply_posted",
+          p_ref_id: replyData.id,
+        });
+      } catch {}
 
       setBody("");
       onReplyPosted?.();

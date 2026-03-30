@@ -96,6 +96,16 @@ export function NewThreadForm({
 
       if (insertErr) throw insertErr;
 
+      // Award points for creating a thread
+      try {
+        await supabase.rpc("award_points", {
+          p_user_id: auth.user.id,
+          p_points: 5,
+          p_reason: "thread_created",
+          p_ref_id: data.id,
+        });
+      } catch {}
+
       router.push(`/forum/${data.id}`);
       router.refresh();
     } catch (err: any) {

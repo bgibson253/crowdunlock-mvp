@@ -31,6 +31,10 @@ export async function middleware(request: NextRequest) {
         .from("profiles")
         .update({ last_seen_at: new Date().toISOString() })
         .eq("id", user.id);
+
+      // Record daily visit for streak tracking (no-op if already recorded today)
+      try { await supabase.rpc("record_daily_visit", { p_user_id: user.id }); } catch {}
+
       response.cookies.set("last_seen_update", "1", {
         maxAge: 300, // 5 minutes
         httpOnly: true,

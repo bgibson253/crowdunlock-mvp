@@ -109,6 +109,18 @@ export function Reactions({
         target_id: targetId,
         emoji,
       });
+
+      // Award 1 point to the post author (not self)
+      if (authorId && authorId !== userId) {
+        try {
+          await supabase.rpc("award_points", {
+            p_user_id: authorId,
+            p_points: 1,
+            p_reason: "reaction_received",
+            p_ref_id: targetId,
+          });
+        } catch {}
+      }
     }
 
     await fetchReactions();

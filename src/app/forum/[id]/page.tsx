@@ -9,6 +9,7 @@ import { MarkdownBody } from "@/components/forum/markdown-body";
 import { Reactions } from "@/components/forum/reactions";
 import { FavoriteButton } from "@/components/forum/favorite-button";
 import { SubscribeButton } from "@/components/forum/subscribe-button";
+import { ShareButton } from "@/components/forum/share-button";
 
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/forum/breadcrumbs";
@@ -263,6 +264,7 @@ export default async function ForumThreadPage({
                   <div className="flex items-center gap-2">
                     <FavoriteButton threadId={thread.id} userId={userId} />
                     <SubscribeButton threadId={thread.id} userId={userId} />
+                    <ShareButton threadId={thread.id} title={thread.title} />
                   </div>
                 </>
               )}

@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchBar } from "@/components/forum/search-bar";
+import { TrendingSidebar } from "@/components/engagement/trending-sidebar";
 import { MessageSquare, Users, Zap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -180,8 +181,9 @@ export default async function ForumIndexPage() {
           </div>
         </div>
 
-        {/* Sections */}
-        <div className="mt-8 space-y-6">
+        <div className="mt-8 grid md:grid-cols-[1fr_280px] gap-8">
+          {/* Main sections column */}
+          <div className="space-y-6">
           {(general || introduce) && (
             <div className="space-y-2">
               <CategoryHeader title="General Discussion" icon={MessageSquare} variant="slate" />
@@ -208,6 +210,12 @@ export default async function ForumIndexPage() {
                 <SectionCard key={s.id} {...s} />
               ))}
             </div>
+          </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="hidden md:block space-y-4">
+            <TrendingSidebar />
           </div>
         </div>
       </div>

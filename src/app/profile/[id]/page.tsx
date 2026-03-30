@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { SendDmButton } from "@/components/forum/send-dm-button";
 import { UserFavoriteButton } from "@/components/forum/user-favorite-button";
 import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
 import { BlockUserButton } from "@/components/forum/block-user-button";
+import { AchievementBadges } from "@/components/engagement/achievement-badges";
+import { StreakIndicator } from "@/components/engagement/streak-indicator";
 import { relativeTime } from "@/lib/relative-time";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function ProfilePage({
   if (!user) redirect(`/auth?redirect=${encodeURIComponent(`/profile/${id}`)}`);
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id,username,display_name,bio,website,location,twitter,github,linkedin,banner_url,avatar_url,post_count,created_at,last_seen_at")
+    .select("id,username,display_name,bio,twitter,instagram,tiktok,reddit,banner_url,avatar_url,post_count,total_points,current_streak,created_at,last_seen_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -206,29 +207,43 @@ export default async function ProfilePage({
                   )}
                 </span>
                 <span>{profile.post_count ?? 0} posts</span>
+                <span>⭐ {(profile.total_points ?? 0).toLocaleString()} points</span>
                 <span>❤️ {totalReactionsReceived} reactions</span>
-                {profile.location && <span>📍 {profile.location}</span>}
+                <StreakIndicator userId={id} />
                 <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
+              </div>
+
+              {/* Achievement badges */}
+              <div className="mt-3">
+                <AchievementBadges userId={id} limit={8} />
               </div>
 
               {profile.bio && (
                 <p className="mt-3 text-sm leading-6 whitespace-pre-wrap">{profile.bio}</p>
               )}
 
-              {(profile.website || profile.twitter || profile.github || profile.linkedin) && (
+              {(profile.twitter || profile.instagram || profile.tiktok || profile.reddit) && (
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                  {profile.website && (
-                    <a className="text-primary hover:underline" href={profile.website} target="_blank" rel="noreferrer">
-                      🌐 Website
+                  {profile.twitter && (
+                    <a className="text-primary hover:underline" href={`https://x.com/${profile.twitter}`} target="_blank" rel="noreferrer">
+                      𝕏 @{profile.twitter}
                     </a>
                   )}
-                  {profile.twitter && <span>𝕏 {profile.twitter}</span>}
-                  {profile.github && (
-                    <a className="text-primary hover:underline" href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer">
-                      GitHub
+                  {profile.instagram && (
+                    <a className="text-primary hover:underline" href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noreferrer">
+                      📷 @{profile.instagram}
                     </a>
                   )}
-                  {profile.linkedin && <span>LinkedIn: {profile.linkedin}</span>}
+                  {profile.tiktok && (
+                    <a className="text-primary hover:underline" href={`https://tiktok.com/@${profile.tiktok}`} target="_blank" rel="noreferrer">
+                      🎵 @{profile.tiktok}
+                    </a>
+                  )}
+                  {profile.reddit && (
+                    <a className="text-primary hover:underline" href={`https://reddit.com/u/${profile.reddit}`} target="_blank" rel="noreferrer">
+                      🟠 u/{profile.reddit}
+                    </a>
+                  )}
                 </div>
               )}
             </div>
