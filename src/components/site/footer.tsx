@@ -1,6 +1,23 @@
 import Link from "next/link";
 import { Twitter } from "lucide-react";
 
+function GradientText({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <span
+      className={className}
+      style={{
+        background: "linear-gradient(135deg, #9b7af5, #c470d4)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+        color: "transparent",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function Footer() {
   return (
     <footer className="relative border-t border-border/50 bg-card/50 backdrop-blur-sm">
@@ -8,7 +25,7 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-3">
           {/* Brand */}
           <div>
-            <div className="text-xl font-bold tracking-tight" style={{ background: "linear-gradient(135deg, oklch(0.75 0.2 275), oklch(0.7 0.22 310))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Unmaskr</div>
+            <GradientText className="text-xl font-bold tracking-tight">Unmaskr</GradientText>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               You decide what gets uncovered. Crowdfund, unlock, and share the stories that matter.
             </p>
@@ -27,7 +44,7 @@ export function Footer() {
 
           {/* Platform */}
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ background: "linear-gradient(135deg, oklch(0.75 0.2 275), oklch(0.7 0.22 310))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Platform</div>
+            <GradientText className="text-xs font-bold uppercase tracking-widest mb-4 block">Platform</GradientText>
             <div className="space-y-2.5 text-sm">
               <Link href="/browse" className="block text-muted-foreground hover:text-foreground transition-colors">Browse</Link>
               <Link href="/forum" className="block text-muted-foreground hover:text-foreground transition-colors">Forum</Link>
@@ -38,7 +55,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ background: "linear-gradient(135deg, oklch(0.75 0.2 275), oklch(0.7 0.22 310))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Company</div>
+            <GradientText className="text-xs font-bold uppercase tracking-widest mb-4 block">Company</GradientText>
             <div className="space-y-2.5 text-sm">
               <Link href="/faq" className="block text-muted-foreground hover:text-foreground transition-colors">FAQ</Link>
               <Link href="/guidelines" className="block text-muted-foreground hover:text-foreground transition-colors">Community Guidelines</Link>
