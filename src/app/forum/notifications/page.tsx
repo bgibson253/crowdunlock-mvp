@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { NotificationsPage } from "@/components/forum/notifications-page";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Notifications" };
 
 export default async function ForumNotificationsPage() {
   const supabase = await supabaseServer();

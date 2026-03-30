@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessagesClient } from "@/components/forum/messages-client";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Messages" };
 
 export default async function MessagesPage() {
   const supabase = await supabaseServer();

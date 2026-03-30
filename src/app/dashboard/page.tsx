@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase/server";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "My Uploads" };
 
 export default async function DashboardPage() {
   const supabase = await supabaseServer();

@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { FavoritesPage } from "@/components/forum/favorites-page";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Favorites" };
 
 export default async function ForumFavoritesPage() {
   const supabase = await supabaseServer();
