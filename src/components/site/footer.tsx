@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Twitter } from "lucide-react";
 
-function GradientText({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function GradientText({ children, className = "", as: Tag = "span" }: { children: React.ReactNode; className?: string; as?: "span" | "div" }) {
   return (
-    <span
+    <Tag
       className={className}
       style={{
         background: "linear-gradient(135deg, #9b7af5, #c470d4)",
@@ -11,10 +11,11 @@ function GradientText({ children, className = "" }: { children: React.ReactNode;
         WebkitTextFillColor: "transparent",
         backgroundClip: "text",
         color: "transparent",
+        display: Tag === "span" ? "inline-block" : "block",
       }}
     >
       {children}
-    </span>
+    </Tag>
   );
 }
 
@@ -44,7 +45,7 @@ export function Footer() {
 
           {/* Platform */}
           <div>
-            <GradientText className="text-xs font-bold uppercase tracking-widest mb-4 block">Platform</GradientText>
+            <GradientText as="div" className="text-xs font-bold uppercase tracking-widest mb-4">Platform</GradientText>
             <div className="space-y-2.5 text-sm">
               <Link href="/browse" className="block text-muted-foreground hover:text-foreground transition-colors">Browse</Link>
               <Link href="/forum" className="block text-muted-foreground hover:text-foreground transition-colors">Forum</Link>
@@ -55,7 +56,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <GradientText className="text-xs font-bold uppercase tracking-widest mb-4 block">Company</GradientText>
+            <GradientText as="div" className="text-xs font-bold uppercase tracking-widest mb-4">Company</GradientText>
             <div className="space-y-2.5 text-sm">
               <Link href="/faq" className="block text-muted-foreground hover:text-foreground transition-colors">FAQ</Link>
               <Link href="/guidelines" className="block text-muted-foreground hover:text-foreground transition-colors">Community Guidelines</Link>
