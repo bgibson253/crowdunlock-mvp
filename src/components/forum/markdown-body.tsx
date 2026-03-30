@@ -51,7 +51,7 @@ export function MarkdownBody({
             <li className="text-sm" {...props}>{children}</li>
           ),
           blockquote: ({ children, ...props }) => (
-            <blockquote className="border-l-4 border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30 pl-4 py-2 italic text-muted-foreground my-3 rounded-r-md" {...props}>
+            <blockquote className="border-l-4 border-primary/40 bg-primary/5 pl-4 py-2 italic text-muted-foreground my-3 rounded-r-md" {...props}>
               {children}
             </blockquote>
           ),
@@ -93,7 +93,7 @@ export function MarkdownBody({
               return (
                 <a
                   href={href}
-                  className="inline-flex items-center rounded-full bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition no-underline"
+                  className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary hover:bg-primary/20 transition no-underline"
                   {...props}
                 >
                   {children}
@@ -105,7 +105,7 @@ export function MarkdownBody({
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-indigo-600 hover:underline"
+                className="text-primary hover:underline"
                 {...props}
               >
                 {children}

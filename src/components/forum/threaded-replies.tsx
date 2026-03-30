@@ -178,11 +178,9 @@ function ReplyCard({
   if (isDeleted) {
     return (
       <div style={{ marginLeft: `${indent * 24}px` }}>
-        <Card className="mt-1 opacity-50">
-          <CardContent className="py-1.5 px-2">
+        <div className="mt-1 rounded-xl border border-border/30 bg-card/30 opacity-50 py-2 px-3">
             <p className="text-xs text-muted-foreground italic">[deleted]</p>
-          </CardContent>
-        </Card>
+        </div>
         {!collapsed &&
           reply.children.map((child) => (
             <ReplyCard
@@ -206,8 +204,8 @@ function ReplyCard({
 
   return (
     <div style={{ marginLeft: `${indent * 24}px` }}>
-      <Card className="mt-1">
-        <CardContent className="py-1.5 px-2">
+      <div className="card-hover mt-1 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
+        <div className="py-2 px-3">
           <div className="flex items-start gap-2">
             {reply.children.length > 0 && (
               <button
@@ -408,8 +406,8 @@ function ReplyCard({
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {showReport && (
         <ReportModal
@@ -586,11 +584,9 @@ export function ThreadedReplies({
 
   if (sortedTree.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-6 text-sm text-muted-foreground">
+      <div className="rounded-xl border border-border/50 bg-card/50 px-4 py-6 text-sm text-muted-foreground backdrop-blur-sm">
           No replies yet.
-        </CardContent>
-      </Card>
+      </div>
     );
   }
 
@@ -609,10 +605,10 @@ export function ThreadedReplies({
             <button
               key={s}
               onClick={() => { setSortMode(s); setVisibleCount(REPLIES_PER_PAGE); }}
-              className={`text-xs px-3 py-1 rounded-full border transition ${
+              className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-all duration-150 ${
                 isActive
-                  ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-background text-muted-foreground border-border hover:bg-muted"
+                  ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                  : "bg-card/50 text-muted-foreground border-border/50 hover:bg-card hover:text-foreground hover:border-primary/30"
               }`}
             >
               {label}

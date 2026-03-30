@@ -23,20 +23,20 @@ export function AuthorCard({
     if (compact) {
       return (
         <div className="flex flex-col items-center gap-0.5 text-center">
-          <Avatar className="h-6 w-6">
-            <AvatarFallback className="text-[9px]">A</AvatarFallback>
+          <Avatar className="h-6 w-6 ring-1 ring-border/50">
+            <AvatarFallback className="text-[9px] bg-muted">A</AvatarFallback>
           </Avatar>
-          <span className="text-[10px] font-medium">Administrator</span>
+          <span className="text-[10px] font-medium text-muted-foreground">Administrator</span>
         </div>
       );
     }
     return (
       <div className="flex items-center gap-3">
-        <Avatar className="h-10 w-10">
-          <AvatarFallback>A</AvatarFallback>
+        <Avatar className="h-10 w-10 ring-2 ring-border/50">
+          <AvatarFallback className="bg-muted">A</AvatarFallback>
         </Avatar>
         <div className="text-sm">
-          <div className="font-medium">Administrator</div>
+          <div className="font-semibold">Administrator</div>
           <div className="text-xs text-muted-foreground">System</div>
         </div>
       </div>
@@ -51,16 +51,16 @@ export function AuthorCard({
   if (compact) {
     return (
       <div>
-        <Link href={`/profile/${author.id}`} className="flex flex-col items-center gap-0.5 text-center hover:underline">
-          <Avatar className="h-6 w-6">
+        <Link href={`/profile/${author.id}`} className="flex flex-col items-center gap-0.5 text-center hover:opacity-80 transition-opacity">
+          <Avatar className="h-7 w-7 ring-2 ring-primary/20">
             {author.avatar_url ? <AvatarImage src={author.avatar_url} alt={name} /> : null}
-            <AvatarFallback className="text-[9px]">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback className="text-[9px] bg-primary/10 text-primary font-bold">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className="text-[10px] font-medium leading-none truncate max-w-[80px]">{name}</span>
+          <span className="text-[10px] font-semibold leading-none truncate max-w-[80px]">{name}</span>
         </Link>
-        <div className="flex flex-col items-center text-[9px] text-muted-foreground leading-tight">
+        <div className="flex flex-col items-center text-[9px] text-muted-foreground leading-tight mt-0.5">
           {badgeText && (
-            <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/25 bg-amber-500/10 px-1 py-0 font-medium text-amber-200 text-[9px]">
+            <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-1.5 py-0 font-medium text-amber-400 text-[9px]">
               <span aria-hidden>{badgeIcon ?? "💸"}</span>
               <span className="truncate">{badgeText}</span>
             </span>
@@ -73,16 +73,16 @@ export function AuthorCard({
 
   return (
     <div>
-      <Link href={`/profile/${author.id}`} className="flex items-center gap-3">
-        <Avatar className="h-10 w-10">
+      <Link href={`/profile/${author.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <Avatar className="h-10 w-10 ring-2 ring-primary/20">
           {author.avatar_url ? <AvatarImage src={author.avatar_url} alt={name} /> : null}
-          <AvatarFallback>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
+          <AvatarFallback className="bg-primary/10 text-primary font-bold">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="text-sm min-w-0">
-          <div className="font-medium leading-4 truncate">{name}</div>
+          <div className="font-semibold leading-4 truncate">{name}</div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {badgeText ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-200">
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
                 <span aria-hidden>{badgeIcon ?? "💸"}</span>
                 <span className="truncate">{badgeText}</span>
               </span>

@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchBar } from "@/components/forum/search-bar";
+import { MessageSquare, Users, Zap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ type SectionRow = {
   replies_count: number;
 };
 
-function SectionRowLine({
+function SectionCard({
   id,
   name,
   description,
@@ -29,61 +30,55 @@ function SectionRowLine({
   replies_count,
 }: SectionRow) {
   return (
-    <div className="py-2">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <Link
-            href={`/forum/s/${encodeURIComponent(id)}`}
-            className="text-[13px] font-semibold leading-tight hover:underline"
-          >
-            {name}
-          </Link>
-          {description && (
-            <div className="mt-0.5 text-[11px] leading-snug text-muted-foreground line-clamp-2">
-              {description}
+    <Link href={`/forum/s/${encodeURIComponent(id)}`} className="block">
+      <div className="card-hover group relative rounded-xl border border-border/50 bg-card/50 p-4 backdrop-blur-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+              {name}
+            </h3>
+            {description && (
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
+                {description}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground shrink-0">
+            <div className="flex items-center gap-1.5">
+              <MessageSquare className="h-3.5 w-3.5 text-primary/50" />
+              <span className="tabular-nums font-medium">{threads_count}</span>
             </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-[110px_110px] items-center gap-2 text-[11px] text-muted-foreground">
-          <div className="text-right tabular-nums">{threads_count} posts</div>
-          <div className="text-right tabular-nums">{replies_count} replies</div>
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-primary/50" />
+              <span className="tabular-nums font-medium">{replies_count}</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
-function CollapsibleHeader({
+function CategoryHeader({
   title,
+  icon: Icon,
   variant,
 }: {
   title: string;
+  icon: any;
   variant: "slate" | "indigo" | "emerald";
 }) {
-  const cls =
-    variant === "emerald"
-      ? "from-emerald-600 to-emerald-500"
-      : variant === "indigo"
-        ? "from-indigo-600 to-indigo-500"
-        : "from-slate-700 to-slate-600";
+  const gradients: Record<string, string> = {
+    slate: "from-slate-600/80 to-slate-500/80",
+    indigo: "from-primary/80 to-primary/60",
+    emerald: "from-emerald-600/80 to-emerald-500/80",
+  };
 
   return (
-    <summary
-      className={
-        "cursor-pointer select-none list-none rounded-md bg-gradient-to-r " +
-        cls +
-        " px-3 py-2"
-      }
-    >
-      <div className="flex items-center justify-between">
-        <div className="text-[12px] font-semibold text-white">{title}</div>
-        <div className="text-white/90 text-[12px] font-semibold">
-          <span className="group-open:hidden">^</span>
-          <span className="hidden group-open:inline">v</span>
-        </div>
-      </div>
-    </summary>
+    <div className={`flex items-center gap-2 rounded-lg bg-gradient-to-r ${gradients[variant]} px-4 py-2.5 backdrop-blur-sm`}>
+      <Icon className="h-4 w-4 text-white/80" />
+      <span className="text-xs font-bold uppercase tracking-wider text-white">{title}</span>
+    </div>
   );
 }
 
@@ -161,52 +156,59 @@ export default async function ForumIndexPage() {
   ].filter(Boolean) as SectionRow[];
 
   return (
-    <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
-      <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="relative isolate min-h-screen">
+      {/* Background gradient */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Forum</h1>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">Forum</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Public can read. Sign in to start threads and reply.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <SearchBar />
-            <Button asChild className="h-8 px-3 text-xs">
+            <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-sm font-medium">
               <Link href="/forum/new">New thread</Link>
             </Button>
           </div>
         </div>
 
-        <div className="mt-4 space-y-4">
+        {/* Sections */}
+        <div className="mt-8 space-y-6">
           {(general || introduce) && (
-            <details open className="group">
-              <CollapsibleHeader title="General Discussion" variant="slate" />
-              <div className="mt-1 space-y-1">
-                {general && <SectionRowLine {...general} />}
-                {introduce && <SectionRowLine {...introduce} />}
+            <div className="space-y-2">
+              <CategoryHeader title="General Discussion" icon={MessageSquare} variant="slate" />
+              <div className="space-y-1.5">
+                {general && <SectionCard {...general} />}
+                {introduce && <SectionCard {...introduce} />}
               </div>
-            </details>
+            </div>
           )}
 
-          <details open className="group">
-            <CollapsibleHeader title="Requested Items" variant="indigo" />
-            <div className="mt-1 space-y-1">
+          <div className="space-y-2">
+            <CategoryHeader title="Requested Items" icon={Zap} variant="indigo" />
+            <div className="space-y-1.5">
               {requested.map((s) => (
-                <SectionRowLine key={s.id} {...s} />
+                <SectionCard key={s.id} {...s} />
               ))}
             </div>
-          </details>
+          </div>
 
-          <details open className="group">
-            <CollapsibleHeader title="Listed Items" variant="emerald" />
-            <div className="mt-1 space-y-1">
+          <div className="space-y-2">
+            <CategoryHeader title="Listed Items" icon={Users} variant="emerald" />
+            <div className="space-y-1.5">
               {listed.map((s) => (
-                <SectionRowLine key={s.id} {...s} />
+                <SectionCard key={s.id} {...s} />
               ))}
             </div>
-          </details>
+          </div>
         </div>
       </div>
     </div>

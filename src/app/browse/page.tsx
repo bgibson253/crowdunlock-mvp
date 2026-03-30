@@ -40,21 +40,21 @@ export default async function BrowsePage() {
 
   if (!user) {
     return (
-      <main className="relative isolate">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
-        <div className="mx-auto max-w-lg px-4 py-20">
-          <Card>
-            <CardContent className="py-12 text-center space-y-4">
-              <div className="text-3xl">🔒</div>
-              <h2 className="text-lg font-semibold">Log in to see exclusive content</h2>
-              <p className="text-sm text-muted-foreground">
-                Sign in to browse uploads, contribute to funding, and access unlocked content.
-              </p>
-              <Button asChild>
-                <Link href="/auth?redirect=%2Fbrowse">Sign in</Link>
-              </Button>
-            </CardContent>
-          </Card>
+      <main className="relative isolate min-h-[80vh] flex items-center justify-center">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/8 rounded-full blur-3xl" />
+        </div>
+        <div className="mx-auto max-w-lg px-4">
+          <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl p-12 text-center space-y-4 shadow-2xl shadow-primary/5">
+            <div className="text-4xl">🔒</div>
+            <h2 className="text-xl font-bold">Log in to see exclusive content</h2>
+            <p className="text-sm text-muted-foreground">
+              Sign in to browse uploads, contribute to funding, and access unlocked content.
+            </p>
+            <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+              <Link href="/auth?redirect=%2Fbrowse">Sign in</Link>
+            </Button>
+          </div>
         </div>
       </main>
     );
@@ -79,12 +79,14 @@ export default async function BrowsePage() {
   const uploads = (data ?? []) as UploadPublic[];
 
   return (
-    <main className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+    <main className="relative isolate min-h-screen">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      </div>
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Browse</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Browse</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Teasers only. Unlocks go public when funded.
               {testMode ? " (Test mode: use Test Unlock buttons.)" : ""}
@@ -96,7 +98,7 @@ export default async function BrowsePage() {
                 <Link href="/test-admin">Test Admin</Link>
               </Button>
             ) : null}
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="border-border/50">
               <Link href="/upload">Upload</Link>
             </Button>
           </div>
@@ -113,15 +115,15 @@ export default async function BrowsePage() {
                 const pct = Math.min(100, Math.round((current / goal) * 100));
 
                 return (
-                  <Card
+                  <div
                     key={u.id}
-                    className="overflow-hidden transition hover:border-indigo-200 hover:bg-indigo-50/20"
+                    className="card-hover overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm"
                   >
-                    <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400" />
-                    <CardHeader>
-                      <CardTitle className="line-clamp-2 text-base">{u.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                    <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/60 to-primary/30" />
+                    <div className="p-5">
+                      <h3 className="line-clamp-2 text-base font-semibold">{u.title}</h3>
+                    </div>
+                    <div className="px-5 pb-5 space-y-3">
                       <p className="line-clamp-4 text-sm text-muted-foreground">
                         {u.ai_teaser ?? "(Teaser pending)"}
                       </p>
@@ -146,7 +148,7 @@ export default async function BrowsePage() {
                           </Avatar>
                           <span className="line-clamp-1">{u.uploader_username ?? "Anonymous"}</span>
                         </div>
-                        <Button asChild size="sm" className="shrink-0" disabled={false}>
+                        <Button asChild size="sm" className="shrink-0 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20" disabled={false}>
                           <Link href={`/uploads/${u.id}`}>{testMode ? "View / Test" : "View"}</Link>
                         </Button>
                       </div>
@@ -155,8 +157,8 @@ export default async function BrowsePage() {
                           Locked (unlocked listings will appear and open automatically)
                         </div>
                       ) : null}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 );
               })}
             </div>

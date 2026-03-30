@@ -183,8 +183,11 @@ export default async function ForumThreadPage({
   const isLocked = thread.locked ?? false;
 
   return (
-    <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+    <div className="relative isolate min-h-screen">
+      {/* Background */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      </div>
       <div className="mx-auto max-w-4xl px-4 py-10 space-y-4">
         {/* Breadcrumbs */}
         <Breadcrumbs

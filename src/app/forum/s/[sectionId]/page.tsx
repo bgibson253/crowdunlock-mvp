@@ -89,8 +89,11 @@ export default async function ForumSectionPage({
   const isListed = LISTED_IDS.includes(sectionId);
 
   return (
-    <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+    <div className="relative isolate min-h-screen">
+      {/* Background */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      </div>
       <div className="mx-auto max-w-6xl px-4 py-10">
         <Breadcrumbs
           items={[
@@ -101,13 +104,13 @@ export default async function ForumSectionPage({
 
         <div className="mt-2 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{section.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{section.name}</h1>
             {section.description && (
               <p className="mt-1 text-sm text-muted-foreground">{section.description}</p>
             )}
           </div>
           {!isListed && (
-            <Button asChild>
+            <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
               <Link href={`/forum/new?section=${encodeURIComponent(sectionId)}`}>
                 New thread
               </Link>
@@ -127,10 +130,10 @@ export default async function ForumSectionPage({
               <Link
                 key={s}
                 href={href}
-                className={`text-xs px-3 py-1 rounded-full border transition ${
+                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-all duration-150 ${
                   isActive
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                    : "bg-card/50 text-muted-foreground border-border/50 hover:bg-card hover:text-foreground hover:border-primary/30"
                 }`}
               >
                 {label}
@@ -155,25 +158,23 @@ export default async function ForumSectionPage({
           ))}
 
           {(threads?.length ?? 0) === 0 && (
-            <Card className="rounded-2xl">
-              <CardContent className="py-10">
-                <div className="text-sm font-medium">No threads yet</div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {isListed
-                    ? `Threads here are auto-created from listings.`
-                    : `Be the first to post in ${section.name}.`}
-                </p>
-                {!isListed && (
-                  <div className="mt-4">
-                    <Button asChild>
-                      <Link href={`/forum/new?section=${encodeURIComponent(sectionId)}`}>
-                        Create a thread
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div className="rounded-xl border border-border/50 bg-card/50 p-10 backdrop-blur-sm">
+              <div className="text-sm font-medium">No threads yet</div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {isListed
+                  ? `Threads here are auto-created from listings.`
+                  : `Be the first to post in ${section.name}.`}
+              </p>
+              {!isListed && (
+                <div className="mt-4">
+                  <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                    <Link href={`/forum/new?section=${encodeURIComponent(sectionId)}`}>
+                      Create a thread
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 

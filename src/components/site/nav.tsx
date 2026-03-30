@@ -10,6 +10,7 @@ import {
   Heart,
   Upload,
   Plus,
+  Menu,
 } from "lucide-react";
 
 import { supabaseServer } from "@/lib/supabase/server";
@@ -25,64 +26,36 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/forum/notification-bell";
 
-function HamburgerButton() {
+function NavLink({ href, icon: Icon, label, badge }: { href: string; icon: any; label: string; badge?: number }) {
   return (
-    <button
-      type="button"
-      aria-label="Open menu"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background text-foreground hover:bg-muted"
+    <Link
+      href={href}
+      className="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 rounded-lg transition-all duration-150"
     >
-      <span className="sr-only">Open navigation</span>
-      <div className="flex flex-col gap-1">
-        <span className="h-0.5 w-5 bg-current" />
-        <span className="h-0.5 w-5 bg-current" />
-        <span className="h-0.5 w-5 bg-current" />
-      </div>
-    </button>
+      <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+      <span>{label}</span>
+      {badge && badge > 0 ? (
+        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+          {badge}
+        </span>
+      ) : null}
+    </Link>
   );
 }
 
 function SheetNavLinks({ user, unreadDmCount, isAdmin }: { user: any; unreadDmCount: number; isAdmin: boolean }) {
   return (
-    <div className="mt-6 space-y-1">
-      <Link href="/" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
-        <Home className="h-4 w-4 text-muted-foreground" />
-        Home
-      </Link>
-      <Link href="/forum" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
-        <MessageSquare className="h-4 w-4 text-muted-foreground" />
-        Forum
-      </Link>
-      <Link href="/forum/perks" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
-        <Trophy className="h-4 w-4 text-muted-foreground" />
-        Unlock perks
-      </Link>
-      <Link href="/browse" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
-        <Compass className="h-4 w-4 text-muted-foreground" />
-        Browse
-      </Link>
-      {user && (
-        <Link
-          href="/forum/notifications"
-          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md"
-        >
-          <Bell className="h-4 w-4 text-muted-foreground" />
-          Notifications
-        </Link>
-      )}
-      {user && (
-        <Link
-          href="/messages"
-          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md"
-        >
-          <Mail className="h-4 w-4 text-muted-foreground" />
-          Messages{unreadDmCount > 0 ? ` (${unreadDmCount})` : ""}
-        </Link>
-      )}
+    <div className="mt-6 space-y-0.5">
+      <NavLink href="/" icon={Home} label="Home" />
+      <NavLink href="/forum" icon={MessageSquare} label="Forum" />
+      <NavLink href="/forum/perks" icon={Trophy} label="Unlock Perks" />
+      <NavLink href="/browse" icon={Compass} label="Browse" />
+      {user && <NavLink href="/forum/notifications" icon={Bell} label="Notifications" />}
+      {user && <NavLink href="/messages" icon={Mail} label="Messages" badge={unreadDmCount} />}
       {isAdmin && (
         <Link
           href="/forum/reports"
-          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md text-amber-600 font-medium"
+          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-amber-500 hover:text-amber-400 hover:bg-amber-500/5 rounded-lg transition-all duration-150"
         >
           <Flag className="h-4 w-4" />
           Reports
@@ -106,7 +79,6 @@ export async function Nav() {
         .maybeSingle()
     : { data: null };
 
-  // Count unread DMs for the logged-in user
   let unreadDmCount = 0;
   if (user) {
     const { count } = await supabase
@@ -118,17 +90,23 @@ export async function Nav() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b backdrop-blur-md bg-background/80">
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <Sheet>
             <SheetTrigger asChild>
-              <HamburgerButton />
+              <button
+                type="button"
+                aria-label="Open menu"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-card/50 text-muted-foreground hover:text-foreground hover:bg-card hover:border-primary/30 transition-all duration-150"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80">
+            <SheetContent side="left" className="w-80 border-r border-border/50 bg-background/95 backdrop-blur-xl">
               <SheetHeader>
                 <SheetTitle>
-                  <Link href="/" className="hover:underline">
+                  <Link href="/" className="gradient-text text-lg font-bold tracking-tight hover:opacity-80 transition-opacity">
                     Unmaskr
                   </Link>
                 </SheetTitle>
@@ -137,47 +115,38 @@ export async function Nav() {
               <SheetNavLinks user={user} unreadDmCount={unreadDmCount} isAdmin={profile?.is_admin ?? false} />
 
               {user ? (
-                <div className="mt-6 border-t pt-4 space-y-1">
-                  <Link href="/profile/settings" className="flex items-center gap-3 px-3 py-2 hover:bg-muted rounded-md">
-                    <Avatar className="h-7 w-7">
+                <div className="mt-6 border-t border-border/50 pt-4 space-y-0.5">
+                  <Link href="/profile/settings" className="flex items-center gap-3 px-3 py-2.5 hover:bg-primary/5 rounded-lg transition-all duration-150">
+                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                       {profile?.avatar_url ? (
                         <AvatarImage src={profile.avatar_url} alt={profile.username ?? "User"} />
                       ) : null}
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                         {(profile?.username ?? "U").slice(0, 1).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <div className="text-sm font-medium leading-4 line-clamp-1">
+                      <div className="text-sm font-semibold leading-4 line-clamp-1">
                         {profile?.username ?? user.email ?? "Account"}
                       </div>
                       <div className="text-xs text-muted-foreground">Profile & settings</div>
                     </div>
                   </Link>
-                  <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
-                    <Upload className="h-4 w-4 text-muted-foreground" />
-                    My uploads
-                  </Link>
-                  <Link href="/upload" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
-                    <Plus className="h-4 w-4 text-muted-foreground" />
-                    New upload
-                  </Link>
-                  <Link href="/forum/favorites" className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted rounded-md">
-                    <Heart className="h-4 w-4 text-muted-foreground" />
-                    Favorites
-                  </Link>
+                  <NavLink href="/dashboard" icon={Upload} label="My Uploads" />
+                  <NavLink href="/upload" icon={Plus} label="New Upload" />
+                  <NavLink href="/forum/favorites" icon={Heart} label="Favorites" />
                 </div>
               ) : null}
 
-              <div className="mt-6 border-t pt-4">
+              <div className="mt-6 border-t border-border/50 pt-4">
                 {user ? (
                   <form action="/auth/signout" method="post">
-                    <Button variant="outline" type="submit" className="w-full">
+                    <Button variant="outline" type="submit" className="w-full border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30">
                       Sign out
                     </Button>
                   </form>
                 ) : (
-                  <Button asChild className="w-full">
+                  <Button asChild className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
                     <Link href="/auth">Sign in</Link>
                   </Button>
                 )}
@@ -185,7 +154,7 @@ export async function Nav() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" className="font-semibold tracking-tight">
+          <Link href="/" className="gradient-text font-bold tracking-tight text-lg">
             Unmaskr
           </Link>
         </div>
@@ -194,12 +163,12 @@ export async function Nav() {
           {user && <NotificationBell userId={user.id} />}
           {user ? (
             <form action="/auth/signout" method="post" className="hidden sm:block">
-              <Button variant="outline" size="sm" type="submit">
+              <Button variant="outline" size="sm" type="submit" className="border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30">
                 Sign out
               </Button>
             </form>
           ) : (
-            <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Button asChild size="sm" className="hidden sm:inline-flex bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
               <Link href="/auth">Sign in</Link>
             </Button>
           )}

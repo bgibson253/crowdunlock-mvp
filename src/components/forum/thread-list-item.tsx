@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { Eye, MessageSquare, Lock, Pin } from "lucide-react";
-
-import { Card, CardContent } from "@/components/ui/card";
+import { Eye, MessageSquare, Lock, Pin, CheckCircle2 } from "lucide-react";
 import { relativeTime } from "@/lib/relative-time";
 
 export function ThreadListItem({
@@ -13,6 +11,7 @@ export function ThreadListItem({
   locked = false,
   pinned = false,
   deleted = false,
+  hasSolution = false,
 }: {
   id: string;
   title: string;
@@ -22,50 +21,52 @@ export function ThreadListItem({
   locked?: boolean;
   pinned?: boolean;
   deleted?: boolean;
+  hasSolution?: boolean;
 }) {
   if (deleted) {
     return (
-      <Card className="opacity-50">
-        <CardContent className="py-4">
-          <span className="text-sm text-muted-foreground italic">[deleted]</span>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-border/30 bg-card/30 px-4 py-3 opacity-40">
+        <span className="text-sm text-muted-foreground italic">[deleted]</span>
+      </div>
     );
   }
 
   return (
-    <Card className="transition hover:border-indigo-200 hover:bg-indigo-50/30">
-      <CardContent className="py-3">
-        <div className="flex items-start justify-between gap-2">
+    <Link href={`/forum/${id}`} className="block">
+      <div className="card-hover group rounded-xl border border-border/50 bg-card/50 px-4 py-3 backdrop-blur-sm">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {pinned && (
-                <Pin className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                <span className="inline-flex h-5 items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-1.5 text-[10px] font-semibold text-amber-400">
+                  <Pin className="h-3 w-3" />
+                  Pinned
+                </span>
               )}
               {locked && (
-                <Lock className="h-3.5 w-3.5 text-red-400 shrink-0" />
+                <Lock className="h-3.5 w-3.5 text-red-400/70 shrink-0" />
               )}
-              <Link
-                className="font-medium tracking-tight hover:underline truncate"
-                href={`/forum/${id}`}
-              >
+              {hasSolution && (
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+              )}
+              <span className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
                 {title}
-              </Link>
+              </span>
             </div>
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1">
+            <div className="flex items-center gap-4 text-[11px] text-muted-foreground mt-1.5">
               <span>{relativeTime(createdAt)}</span>
-              <span className="inline-flex items-center gap-0.5">
-                <Eye className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1">
+                <Eye className="h-3 w-3 opacity-60" />
                 {viewCount}
               </span>
-              <span className="inline-flex items-center gap-0.5">
-                <MessageSquare className="h-3 w-3" />
-                {replyCount} {replyCount === 1 ? "reply" : "replies"}
+              <span className="inline-flex items-center gap-1">
+                <MessageSquare className="h-3 w-3 opacity-60" />
+                {replyCount}
               </span>
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </Link>
   );
 }
