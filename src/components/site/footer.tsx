@@ -27,7 +27,7 @@ export function Footer() {
 
           {/* Platform */}
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-4">Platform</div>
+            <div className="gradient-text text-xs font-bold uppercase tracking-widest mb-4">Platform</div>
             <div className="space-y-2.5 text-sm">
               <Link href="/browse" className="block text-muted-foreground hover:text-foreground transition-colors">Browse</Link>
               <Link href="/forum" className="block text-muted-foreground hover:text-foreground transition-colors">Forum</Link>
@@ -38,7 +38,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-4">Company</div>
+            <div className="gradient-text text-xs font-bold uppercase tracking-widest mb-4">Company</div>
             <div className="space-y-2.5 text-sm">
               <Link href="/faq" className="block text-muted-foreground hover:text-foreground transition-colors">FAQ</Link>
               <Link href="/guidelines" className="block text-muted-foreground hover:text-foreground transition-colors">Community Guidelines</Link>
