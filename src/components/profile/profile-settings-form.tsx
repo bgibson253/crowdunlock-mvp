@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageCropper } from "@/components/profile/image-cropper";
 import { toast } from "sonner";
-import { Camera, Pencil, Check, Clock } from "lucide-react";
+import { Camera, Pencil, Check, Clock, Link2, Link2Off } from "lucide-react";
 
 /* ─── Types ─── */
 type SocialKey = "twitter" | "instagram" | "tiktok" | "reddit";
@@ -31,11 +32,11 @@ interface ProfileInitial {
   username_changed_at: string | null;
 }
 
-const SOCIALS: { key: SocialKey; label: string; prefix: string; icon: string }[] = [
-  { key: "twitter", label: "X / Twitter", prefix: "@", icon: "𝕏" },
-  { key: "instagram", label: "Instagram", prefix: "@", icon: "📷" },
-  { key: "tiktok", label: "TikTok", prefix: "@", icon: "🎵" },
-  { key: "reddit", label: "Reddit", prefix: "u/", icon: "🟠" },
+const SOCIALS: { key: SocialKey; label: string; prefix: string; icon: string; connectUrl: string }[] = [
+  { key: "twitter", label: "X / Twitter", prefix: "@", icon: "𝕏", connectUrl: "/api/social/twitter" },
+  { key: "instagram", label: "Instagram", prefix: "@", icon: "📷", connectUrl: "/api/social/instagram" },
+  { key: "tiktok", label: "TikTok", prefix: "@", icon: "🎵", connectUrl: "/api/social/tiktok" },
+  { key: "reddit", label: "Reddit", prefix: "u/", icon: "🟠", connectUrl: "/api/social/reddit" },
 ];
 
 function canChangeUsername(changedAt: string | null): { allowed: boolean; nextDate: Date | null } {
@@ -46,6 +47,8 @@ function canChangeUsername(changedAt: string | null): { allowed: boolean; nextDa
 }
 
 export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
+  const searchParams = useSearchParams();
+
   /* ─── State ─── */
   const [displayName, setDisplayName] = React.useState(initial.display_name);
   const [bio, setBio] = React.useState(initial.bio);
@@ -79,6 +82,19 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
   const usernameChange = canChangeUsername(initial.username_changed_at);
 
   const [saving, setSaving] = React.useState(false);
+  const [disconnecting, setDisconnecting] = React.useState<SocialKey | null>(null);
+
+  /* ─── Show toasts from OAuth redirect ─── */
+  React.useEffect(() => {
+    const connected = searchParams.get("social_connected");
+    const error = searchParams.get("social_error");
+    if (connected) {
+      toast.success(`${connected.charAt(0).toUpperCase() + connected.slice(1)} connected!`);
+    }
+    if (error) {
+      toast.error(`Failed to connect ${error.split("_")[0]}. Please try again.`);
+    }
+  }, [searchParams]);
 
   /* ─── File pickers ─── */
   const avatarInputRef = React.useRef<HTMLInputElement>(null);
@@ -105,6 +121,22 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
       setBannerPreview(url);
     }
     setCropperSrc(null);
+  }
+
+  /* ─── Disconnect social ─── */
+  async function disconnectSocial(key: SocialKey) {
+    setDisconnecting(key);
+    try {
+      const supabase = supabaseBrowser();
+      await supabase.from("profiles").update({ [key]: null, [`sig_${key}`]: false }).eq("id", initial.id);
+      setSocials((p) => ({ ...p, [key]: "" }));
+      setSigs((p) => ({ ...p, [`sig_${key}`]: false }));
+      toast.success(`${key.charAt(0).toUpperCase() + key.slice(1)} disconnected.`);
+    } catch {
+      toast.error("Failed to disconnect.");
+    } finally {
+      setDisconnecting(null);
+    }
   }
 
   /* ─── Save ─── */
@@ -147,10 +179,6 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         sig_bio: sigBio,
-        twitter: socials.twitter.trim() || null,
-        instagram: socials.instagram.trim() || null,
-        tiktok: socials.tiktok.trim() || null,
-        reddit: socials.reddit.trim() || null,
         sig_twitter: sigs.sig_twitter,
         sig_instagram: sigs.sig_instagram,
         sig_tiktok: sigs.sig_tiktok,
@@ -230,16 +258,16 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
           {/* Avatar overlay */}
           <div className="relative px-5 -mt-12 pb-5">
             <div className="relative inline-block group">
-              <Avatar className="h-24 w-24 ring-4 ring-card shadow-xl">
-                {avatarPreview ? <AvatarImage src={avatarPreview} alt={displayName || "User"} /> : null}
-                <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+              <Avatar className="h-24 w-24 rounded-xl ring-4 ring-card shadow-xl">
+                {avatarPreview ? <AvatarImage src={avatarPreview} alt={displayName || "User"} className="rounded-xl" /> : null}
+                <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-2xl font-bold">
                   {(displayName || "U").slice(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <button
                 type="button"
                 onClick={() => avatarInputRef.current?.click()}
-                className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 group-hover:bg-black/40 transition-all"
+                className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/0 group-hover:bg-black/40 transition-all"
               >
                 <Camera className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
@@ -332,39 +360,72 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
           <div className="text-[11px] text-muted-foreground text-right">{bio.length}/280</div>
         </div>
 
-        {/* ─── Social Accounts ─── */}
+        {/* ─── Connected Accounts ─── */}
         <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 space-y-5">
-          <h2 className="text-sm font-bold">Social accounts</h2>
-          <div className="space-y-3">
-            {SOCIALS.map((s) => (
-              <div key={s.key} className="flex items-center gap-3">
-                <span className="w-6 text-center text-base">{s.icon}</span>
-                <div className="flex-1 relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/60 pointer-events-none">
-                    {s.prefix}
-                  </span>
-                  <input
-                    value={socials[s.key]}
-                    onChange={(e) => setSocials((p) => ({ ...p, [s.key]: e.target.value }))}
-                    placeholder={s.label}
-                    className="w-full rounded-lg border border-border/50 bg-background/50 pl-8 pr-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  />
-                </div>
-                <label className="flex items-center gap-1.5 cursor-pointer shrink-0" title="Add to forum signature">
-                  <span className="text-[10px] text-muted-foreground hidden sm:inline">Signature</span>
-                  <input
-                    type="checkbox"
-                    checked={sigs[`sig_${s.key}` as SigKey]}
-                    onChange={(e) => setSigs((p) => ({ ...p, [`sig_${s.key}`]: e.target.checked }))}
-                    className="accent-primary h-3.5 w-3.5 rounded"
-                  />
-                </label>
-              </div>
-            ))}
-          </div>
-          <p className="text-[11px] text-muted-foreground">
-            Check "Signature" to display an account on your forum posts.
+          <h2 className="text-sm font-bold">Connected accounts</h2>
+          <p className="text-[11px] text-muted-foreground -mt-2">
+            Connect your social media accounts to verify ownership. Check "Signature" to show them on your forum posts.
           </p>
+          <div className="space-y-3">
+            {SOCIALS.map((s) => {
+              const connected = !!socials[s.key];
+              return (
+                <div key={s.key} className="flex items-center gap-3 rounded-xl border border-border/30 bg-background/30 px-4 py-3">
+                  <span className="w-6 text-center text-base shrink-0">{s.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">{s.label}</div>
+                    {connected ? (
+                      <div className="text-xs text-emerald-400 flex items-center gap-1">
+                        <Link2 className="h-3 w-3" />
+                        {s.prefix}{socials[s.key]}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground/60">Not connected</div>
+                    )}
+                  </div>
+
+                  {/* Signature checkbox (only when connected) */}
+                  {connected && (
+                    <label className="flex items-center gap-1.5 cursor-pointer shrink-0" title="Add to forum signature">
+                      <span className="text-[10px] text-muted-foreground hidden sm:inline">Signature</span>
+                      <input
+                        type="checkbox"
+                        checked={sigs[`sig_${s.key}` as SigKey]}
+                        onChange={(e) => setSigs((p) => ({ ...p, [`sig_${s.key}`]: e.target.checked }))}
+                        className="accent-primary h-3.5 w-3.5 rounded"
+                      />
+                    </label>
+                  )}
+
+                  {/* Connect / Disconnect button */}
+                  {connected ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={disconnecting === s.key}
+                      onClick={() => disconnectSocial(s.key)}
+                      className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50 text-xs shrink-0"
+                    >
+                      <Link2Off className="h-3 w-3 mr-1" />
+                      {disconnecting === s.key ? "…" : "Disconnect"}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { window.location.href = s.connectUrl; }}
+                      className="border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 text-xs shrink-0"
+                    >
+                      <Link2 className="h-3 w-3 mr-1" />
+                      Connect
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* ─── Save ─── */}

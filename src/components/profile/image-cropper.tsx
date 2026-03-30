@@ -85,7 +85,7 @@ export function ImageCropper({ imageSrc, aspect, onCropComplete, onCancel, title
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropAreaChange}
-            cropShape={aspect === 1 ? "round" : "rect"}
+            cropShape="rect"
             showGrid={false}
             style={{
               containerStyle: { background: "oklch(0.1 0.015 260)" },
