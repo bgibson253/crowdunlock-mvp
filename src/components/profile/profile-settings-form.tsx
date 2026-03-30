@@ -155,8 +155,11 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
         const path = `avatars/${auth.user.id}_${Date.now()}.jpg`;
         const { error: upErr } = await supabase.storage
           .from("uploads")
-          .upload(path, avatarBlob, { upsert: true, contentType: "image/jpeg" });
-        if (upErr) throw upErr;
+          .upload(path, avatarBlob, { contentType: "image/jpeg" });
+        if (upErr) {
+          console.error("Avatar upload error:", upErr);
+          throw new Error(`Avatar upload failed: ${upErr.message}`);
+        }
         const { data } = supabase.storage.from("uploads").getPublicUrl(path);
         nextAvatarUrl = data.publicUrl;
       }
@@ -166,8 +169,11 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
         const path = `banners/${auth.user.id}_${Date.now()}.jpg`;
         const { error: upErr } = await supabase.storage
           .from("uploads")
-          .upload(path, bannerBlob, { upsert: true, contentType: "image/jpeg" });
-        if (upErr) throw upErr;
+          .upload(path, bannerBlob, { contentType: "image/jpeg" });
+        if (upErr) {
+          console.error("Banner upload error:", upErr);
+          throw new Error(`Banner upload failed: ${upErr.message}`);
+        }
         const { data } = supabase.storage.from("uploads").getPublicUrl(path);
         nextBannerUrl = data.publicUrl;
       }
