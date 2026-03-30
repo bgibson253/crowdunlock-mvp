@@ -21,7 +21,7 @@ export default async function ProfileSettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id,username,display_name,bio,twitter,instagram,tiktok,reddit,sig_bio,sig_twitter,sig_instagram,sig_tiktok,sig_reddit,avatar_url,banner_url,username_changed_at")
+    .select("id,username,bio,twitter,instagram,tiktok,reddit,sig_bio,sig_twitter,sig_instagram,sig_tiktok,sig_reddit,avatar_url,banner_url,username_changed_at")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -44,7 +44,6 @@ export default async function ProfileSettingsPage() {
           initial={{
             id: data.user.id,
             username: p?.username ?? "",
-            display_name: p?.display_name ?? p?.username ?? "",
             bio: p?.bio ?? "",
             twitter: p?.twitter ?? "",
             instagram: p?.instagram ?? "",

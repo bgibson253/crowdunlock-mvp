@@ -16,7 +16,6 @@ type SigKey = `sig_${SocialKey}`;
 interface ProfileInitial {
   id: string;
   username: string;
-  display_name: string;
   bio: string;
   twitter: string;
   instagram: string;
@@ -50,7 +49,6 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
   const searchParams = useSearchParams();
 
   /* ─── State ─── */
-  const [displayName, setDisplayName] = React.useState(initial.display_name);
   const [bio, setBio] = React.useState(initial.bio);
   const [sigBio, setSigBio] = React.useState(initial.sig_bio);
 
@@ -176,7 +174,6 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
 
       const payload: Record<string, unknown> = {
         id: auth.user.id,
-        display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         sig_bio: sigBio,
         sig_twitter: sigs.sig_twitter,
@@ -259,9 +256,9 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
           <div className="relative px-5 -mt-12 pb-5">
             <div className="relative inline-block group">
               <Avatar className="h-24 w-24 rounded-xl ring-4 ring-card shadow-xl">
-                {avatarPreview ? <AvatarImage src={avatarPreview} alt={displayName || "User"} className="rounded-xl" /> : null}
+                {avatarPreview ? <AvatarImage src={avatarPreview} alt={initial.username || "User"} className="rounded-xl" /> : null}
                 <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-2xl font-bold">
-                  {(displayName || "U").slice(0, 1).toUpperCase()}
+                  {(initial.username || "U").slice(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <button
@@ -274,22 +271,9 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
               <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect("avatar")} />
             </div>
             <div className="mt-2">
-              <div className="text-lg font-bold">{displayName || "(no display name)"}</div>
-              <div className="text-xs text-muted-foreground">@{initial.username}</div>
+              <div className="text-lg font-bold">@{initial.username}</div>
             </div>
           </div>
-        </div>
-
-        {/* ─── Display Name ─── */}
-        <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 space-y-4">
-          <h2 className="text-sm font-bold">Display name</h2>
-          <input
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Your name"
-            maxLength={50}
-            className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
-          />
         </div>
 
         {/* ─── Username Change ─── */}
