@@ -1,65 +1,115 @@
 "use client";
 
 import * as React from "react";
-
 import { supabaseBrowser } from "@/lib/supabase/client";
-
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
+import { ImageCropper } from "@/components/profile/image-cropper";
+import { toast } from "sonner";
+import { Camera, Pencil, Check, Clock } from "lucide-react";
 
-const urlOrEmpty = (s: string) => {
-  const v = s.trim();
-  if (!v) return null;
-  try {
-    // allow http(s) only
-    const u = new URL(v);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
-    return v;
-  } catch {
-    return null;
-  }
-};
+/* ─── Types ─── */
+type SocialKey = "twitter" | "instagram" | "tiktok" | "reddit";
+type SigKey = `sig_${SocialKey}`;
 
-export function ProfileSettingsForm({
-  initial,
-}: {
-  initial: {
-    id: string;
-    display_name: string;
-    bio: string;
-    website: string;
-    location: string;
-    twitter: string;
-    github: string;
-    linkedin: string;
-    avatar_url: string | null;
-    banner_url: string | null;
-  };
-}) {
+interface ProfileInitial {
+  id: string;
+  username: string;
+  display_name: string;
+  bio: string;
+  twitter: string;
+  instagram: string;
+  tiktok: string;
+  reddit: string;
+  sig_bio: boolean;
+  sig_twitter: boolean;
+  sig_instagram: boolean;
+  sig_tiktok: boolean;
+  sig_reddit: boolean;
+  avatar_url: string | null;
+  banner_url: string | null;
+  username_changed_at: string | null;
+}
+
+const SOCIALS: { key: SocialKey; label: string; prefix: string; icon: string }[] = [
+  { key: "twitter", label: "X / Twitter", prefix: "@", icon: "𝕏" },
+  { key: "instagram", label: "Instagram", prefix: "@", icon: "📷" },
+  { key: "tiktok", label: "TikTok", prefix: "@", icon: "🎵" },
+  { key: "reddit", label: "Reddit", prefix: "u/", icon: "🟠" },
+];
+
+function canChangeUsername(changedAt: string | null): { allowed: boolean; nextDate: Date | null } {
+  if (!changedAt) return { allowed: true, nextDate: null };
+  const next = new Date(changedAt);
+  next.setMonth(next.getMonth() + 6);
+  return { allowed: new Date() >= next, nextDate: next };
+}
+
+export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
+  /* ─── State ─── */
   const [displayName, setDisplayName] = React.useState(initial.display_name);
   const [bio, setBio] = React.useState(initial.bio);
-  const [website, setWebsite] = React.useState(initial.website);
-  const [location, setLocation] = React.useState(initial.location);
-  const [twitter, setTwitter] = React.useState(initial.twitter);
-  const [github, setGithub] = React.useState(initial.github);
-  const [linkedin, setLinkedin] = React.useState(initial.linkedin);
+  const [sigBio, setSigBio] = React.useState(initial.sig_bio);
 
-  const [avatarUrl, setAvatarUrl] = React.useState<string>(initial.avatar_url ?? "");
-  const [bannerUrl, setBannerUrl] = React.useState<string>(initial.banner_url ?? "");
-  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
+  const [socials, setSocials] = React.useState<Record<SocialKey, string>>({
+    twitter: initial.twitter,
+    instagram: initial.instagram,
+    tiktok: initial.tiktok,
+    reddit: initial.reddit,
+  });
+  const [sigs, setSigs] = React.useState<Record<SigKey, boolean>>({
+    sig_twitter: initial.sig_twitter,
+    sig_instagram: initial.sig_instagram,
+    sig_tiktok: initial.sig_tiktok,
+    sig_reddit: initial.sig_reddit,
+  });
+
+  const [avatarPreview, setAvatarPreview] = React.useState<string>(initial.avatar_url ?? "");
+  const [bannerPreview, setBannerPreview] = React.useState<string>(initial.banner_url ?? "");
+  const [avatarBlob, setAvatarBlob] = React.useState<Blob | null>(null);
+  const [bannerBlob, setBannerBlob] = React.useState<Blob | null>(null);
+
+  // Cropper state
+  const [cropperSrc, setCropperSrc] = React.useState<string | null>(null);
+  const [cropperMode, setCropperMode] = React.useState<"avatar" | "banner">("avatar");
+
+  // Username change
+  const [showUsernameEdit, setShowUsernameEdit] = React.useState(false);
+  const [newUsername, setNewUsername] = React.useState(initial.username);
+  const usernameChange = canChangeUsername(initial.username_changed_at);
 
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [notice, setNotice] = React.useState<string | null>(null);
 
+  /* ─── File pickers ─── */
+  const avatarInputRef = React.useRef<HTMLInputElement>(null);
+  const bannerInputRef = React.useRef<HTMLInputElement>(null);
+
+  function handleFileSelect(mode: "avatar" | "banner") {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      setCropperSrc(url);
+      setCropperMode(mode);
+      e.target.value = "";
+    };
+  }
+
+  function handleCropComplete(blob: Blob) {
+    const url = URL.createObjectURL(blob);
+    if (cropperMode === "avatar") {
+      setAvatarBlob(blob);
+      setAvatarPreview(url);
+    } else {
+      setBannerBlob(blob);
+      setBannerPreview(url);
+    }
+    setCropperSrc(null);
+  }
+
+  /* ─── Save ─── */
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setNotice(null);
     setSaving(true);
 
     try {
@@ -67,200 +117,264 @@ export function ProfileSettingsForm({
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) throw new Error("You must be signed in.");
 
-      let nextAvatarUrl: string | null = urlOrEmpty(avatarUrl) ?? null;
+      let nextAvatarUrl: string | null = avatarPreview || null;
+      let nextBannerUrl: string | null = bannerPreview || null;
 
-      if (avatarFile) {
-        const ext = avatarFile.name.split(".").pop() || "png";
-        const path = `avatars/${auth.user.id}.${ext}`;
-
+      // Upload avatar
+      if (avatarBlob) {
+        const path = `avatars/${auth.user.id}_${Date.now()}.jpg`;
         const { error: upErr } = await supabase.storage
           .from("uploads")
-          .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
+          .upload(path, avatarBlob, { upsert: true, contentType: "image/jpeg" });
         if (upErr) throw upErr;
-
         const { data } = supabase.storage.from("uploads").getPublicUrl(path);
         nextAvatarUrl = data.publicUrl;
       }
 
-      const payload = {
+      // Upload banner
+      if (bannerBlob) {
+        const path = `banners/${auth.user.id}_${Date.now()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("uploads")
+          .upload(path, bannerBlob, { upsert: true, contentType: "image/jpeg" });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("uploads").getPublicUrl(path);
+        nextBannerUrl = data.publicUrl;
+      }
+
+      const payload: Record<string, unknown> = {
         id: auth.user.id,
-        // NO username editing. display_name is the public label.
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
-        website: urlOrEmpty(website),
-        location: location.trim() || null,
-        twitter: twitter.trim() || null,
-        github: github.trim() || null,
-        linkedin: linkedin.trim() || null,
+        sig_bio: sigBio,
+        twitter: socials.twitter.trim() || null,
+        instagram: socials.instagram.trim() || null,
+        tiktok: socials.tiktok.trim() || null,
+        reddit: socials.reddit.trim() || null,
+        sig_twitter: sigs.sig_twitter,
+        sig_instagram: sigs.sig_instagram,
+        sig_tiktok: sigs.sig_tiktok,
+        sig_reddit: sigs.sig_reddit,
         avatar_url: nextAvatarUrl,
-        banner_url: urlOrEmpty(bannerUrl),
+        banner_url: nextBannerUrl,
       };
+
+      // Handle username change request
+      if (showUsernameEdit && newUsername.trim() !== initial.username && usernameChange.allowed) {
+        const cleaned = newUsername.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+        if (cleaned.length < 3) throw new Error("Username must be at least 3 characters.");
+        if (cleaned.length > 24) throw new Error("Username must be 24 characters or fewer.");
+
+        // Check uniqueness
+        const { data: existing } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("username", cleaned)
+          .neq("id", auth.user.id)
+          .maybeSingle();
+        if (existing) throw new Error("That username is already taken.");
+
+        payload.username = cleaned;
+        payload.username_changed_at = new Date().toISOString();
+      }
 
       const { error: updErr } = await supabase.from("profiles").upsert(payload);
       if (updErr) throw updErr;
 
-      setNotice("Saved.");
-      setAvatarFile(null);
+      setAvatarBlob(null);
+      setBannerBlob(null);
+      toast.success("Profile saved!");
     } catch (err: any) {
-      setError(err?.message ?? "Failed to save");
+      toast.error(err?.message ?? "Failed to save");
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <Card className="rounded-2xl">
-      <CardContent className="py-6 space-y-6">
-        {error ? (
-          <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </div>
-        ) : null}
-        {notice ? (
-          <div className="rounded-md border bg-muted/40 p-3 text-sm">{notice}</div>
-        ) : null}
+    <>
+      {/* Cropper modal */}
+      {cropperSrc && (
+        <ImageCropper
+          imageSrc={cropperSrc}
+          aspect={cropperMode === "avatar" ? 1 : 3}
+          title={cropperMode === "avatar" ? "Crop avatar" : "Crop banner"}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setCropperSrc(null)}
+        />
+      )}
 
-        <div className="space-y-2">
-          <div className="text-sm font-medium">Preview</div>
-          {bannerUrl ? (
-            <div className="h-24 w-full overflow-hidden border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={bannerUrl} alt="Banner" className="h-full w-full object-cover" />
+      <form onSubmit={onSave} className="space-y-8">
+        {/* ─── Banner + Avatar ─── */}
+        <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          {/* Banner */}
+          <div className="relative group h-36 sm:h-44">
+            {bannerPreview ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={bannerPreview} alt="Banner" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5" />
+            )}
+            <button
+              type="button"
+              onClick={() => bannerInputRef.current?.click()}
+              className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-all"
+            >
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-3 py-1.5 text-xs font-medium">
+                <Camera className="h-3.5 w-3.5" /> Change banner
+              </span>
+            </button>
+            <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect("banner")} />
+          </div>
+
+          {/* Avatar overlay */}
+          <div className="relative px-5 -mt-12 pb-5">
+            <div className="relative inline-block group">
+              <Avatar className="h-24 w-24 ring-4 ring-card shadow-xl">
+                {avatarPreview ? <AvatarImage src={avatarPreview} alt={displayName || "User"} /> : null}
+                <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+                  {(displayName || "U").slice(0, 1).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 group-hover:bg-black/40 transition-all"
+              >
+                <Camera className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect("avatar")} />
             </div>
-          ) : (
-            <div className="h-24 w-full border bg-gradient-to-r from-indigo-200 via-fuchsia-200 to-amber-100" />
-          )}
-          <div className="-mt-7 flex items-center gap-4 px-4">
-            <Avatar className="h-14 w-14 border bg-background">
-              {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName || "User"} /> : null}
-              <AvatarFallback>{(displayName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 pt-6">
-              <div className="text-base font-semibold leading-5 line-clamp-1">
-                {displayName || "(no display name)"}
-              </div>
-              {location ? (
-                <div className="text-xs text-muted-foreground line-clamp-1">{location}</div>
-              ) : null}
+            <div className="mt-2">
+              <div className="text-lg font-bold">{displayName || "(no display name)"}</div>
+              <div className="text-xs text-muted-foreground">@{initial.username}</div>
             </div>
           </div>
         </div>
 
-        <form onSubmit={onSave} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="display">Display name</Label>
-            <Input
-              id="display"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
-              autoComplete="name"
-            />
+        {/* ─── Display Name ─── */}
+        <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 space-y-4">
+          <h2 className="text-sm font-bold">Display name</h2>
+          <input
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Your name"
+            maxLength={50}
+            className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+        </div>
+
+        {/* ─── Username Change ─── */}
+        <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold">Username</h2>
+            {!showUsernameEdit && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!usernameChange.allowed}
+                onClick={() => setShowUsernameEdit(true)}
+                className="border-border/50 text-xs"
+              >
+                <Pencil className="h-3 w-3 mr-1" />
+                Request change
+              </Button>
+            )}
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={4}
-              maxLength={280}
-              placeholder="What do you plan to upload? Credibility, sources, and focus."
-            />
-            <div className="text-xs text-muted-foreground">{bio.length}/280</div>
+          <div className="text-sm text-muted-foreground">
+            Current: <span className="font-mono text-foreground">@{initial.username}</span>
           </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
-                autoComplete="url"
-              />
+          {!usernameChange.allowed && usernameChange.nextDate && (
+            <div className="flex items-center gap-1.5 text-xs text-amber-400">
+              <Clock className="h-3 w-3" />
+              Next change available {usernameChange.nextDate.toLocaleDateString()}
             </div>
-
+          )}
+          {showUsernameEdit && usernameChange.allowed && (
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, Country"
-                autoComplete="address-level2"
+              <input
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                placeholder="new_username"
+                maxLength={24}
+                className="w-full rounded-lg border border-primary/30 bg-background/50 px-3 py-2 text-sm font-mono placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
+              <p className="text-[11px] text-muted-foreground">
+                Lowercase letters, numbers, underscores, hyphens. 3–24 chars. You can only change this once every 6 months.
+              </p>
             </div>
+          )}
+        </div>
+
+        {/* ─── Bio ─── */}
+        <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold">Bio</h2>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <span className="text-[11px] text-muted-foreground">Add to signature</span>
+              <input
+                type="checkbox"
+                checked={sigBio}
+                onChange={(e) => setSigBio(e.target.checked)}
+                className="accent-primary h-3.5 w-3.5 rounded"
+              />
+            </label>
           </div>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            rows={3}
+            maxLength={280}
+            placeholder="Tell people about yourself…"
+            className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+          />
+          <div className="text-[11px] text-muted-foreground text-right">{bio.length}/280</div>
+        </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="twitter">X / Twitter</Label>
-              <Input
-                id="twitter"
-                value={twitter}
-                onChange={(e) => setTwitter(e.target.value)}
-                placeholder="@handle"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="github">GitHub</Label>
-              <Input
-                id="github"
-                value={github}
-                onChange={(e) => setGithub(e.target.value)}
-                placeholder="username"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input
-                id="linkedin"
-                value={linkedin}
-                onChange={(e) => setLinkedin(e.target.value)}
-                placeholder="profile slug"
-              />
-            </div>
+        {/* ─── Social Accounts ─── */}
+        <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 space-y-5">
+          <h2 className="text-sm font-bold">Social accounts</h2>
+          <div className="space-y-3">
+            {SOCIALS.map((s) => (
+              <div key={s.key} className="flex items-center gap-3">
+                <span className="w-6 text-center text-base">{s.icon}</span>
+                <div className="flex-1 relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/60 pointer-events-none">
+                    {s.prefix}
+                  </span>
+                  <input
+                    value={socials[s.key]}
+                    onChange={(e) => setSocials((p) => ({ ...p, [s.key]: e.target.value }))}
+                    placeholder={s.label}
+                    className="w-full rounded-lg border border-border/50 bg-background/50 pl-8 pr-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+                <label className="flex items-center gap-1.5 cursor-pointer shrink-0" title="Add to forum signature">
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline">Signature</span>
+                  <input
+                    type="checkbox"
+                    checked={sigs[`sig_${s.key}` as SigKey]}
+                    onChange={(e) => setSigs((p) => ({ ...p, [`sig_${s.key}`]: e.target.checked }))}
+                    className="accent-primary h-3.5 w-3.5 rounded"
+                  />
+                </label>
+              </div>
+            ))}
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            Check "Signature" to display an account on your forum posts.
+          </p>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="avatar-file">Avatar (upload)</Label>
-            <Input
-              id="avatar-file"
-              type="file"
-              accept="image/*"
-              onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="avatar-url">Avatar URL (optional)</Label>
-              <Input
-                id="avatar-url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="banner-url">Banner URL (optional)</Label>
-              <Input
-                id="banner-url"
-                value={bannerUrl}
-                onChange={(e) => setBannerUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-
-          <Button type="submit" disabled={saving}>
+        {/* ─── Save ─── */}
+        <div className="flex justify-end">
+          <Button type="submit" disabled={saving} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 px-8">
+            <Check className="h-4 w-4 mr-1.5" />
             {saving ? "Saving…" : "Save changes"}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      </form>
+    </>
   );
 }

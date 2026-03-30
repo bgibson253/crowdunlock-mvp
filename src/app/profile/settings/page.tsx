@@ -21,9 +21,11 @@ export default async function ProfileSettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id,username,display_name,bio,website,location,twitter,github,linkedin,avatar_url,banner_url")
+    .select("id,username,display_name,bio,twitter,instagram,tiktok,reddit,sig_bio,sig_twitter,sig_instagram,sig_tiktok,sig_reddit,avatar_url,banner_url,username_changed_at")
     .eq("id", data.user.id)
     .maybeSingle();
+
+  const p = profile as any;
 
   return (
     <div className="relative isolate min-h-screen">
@@ -34,22 +36,28 @@ export default async function ProfileSettingsPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight">Profile settings</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Set your public username, avatar, and preferences.
+            Customize your profile, avatar, and forum signature.
           </p>
         </div>
 
         <ProfileSettingsForm
           initial={{
             id: data.user.id,
-            display_name: (profile as any)?.display_name ?? (profile as any)?.username ?? "",
-            bio: (profile as any)?.bio ?? "",
-            website: (profile as any)?.website ?? "",
-            location: (profile as any)?.location ?? "",
-            twitter: (profile as any)?.twitter ?? "",
-            github: (profile as any)?.github ?? "",
-            linkedin: (profile as any)?.linkedin ?? "",
-            avatar_url: (profile as any)?.avatar_url ?? null,
-            banner_url: (profile as any)?.banner_url ?? null,
+            username: p?.username ?? "",
+            display_name: p?.display_name ?? p?.username ?? "",
+            bio: p?.bio ?? "",
+            twitter: p?.twitter ?? "",
+            instagram: p?.instagram ?? "",
+            tiktok: p?.tiktok ?? "",
+            reddit: p?.reddit ?? "",
+            sig_bio: p?.sig_bio ?? false,
+            sig_twitter: p?.sig_twitter ?? false,
+            sig_instagram: p?.sig_instagram ?? false,
+            sig_tiktok: p?.sig_tiktok ?? false,
+            sig_reddit: p?.sig_reddit ?? false,
+            avatar_url: p?.avatar_url ?? null,
+            banner_url: p?.banner_url ?? null,
+            username_changed_at: p?.username_changed_at ?? null,
           }}
         />
 
