@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-3">
           {/* Brand */}
           <div>
-            <div className="gradient-text text-xl font-bold tracking-tight">Unmaskr</div>
+            <div className="text-xl font-bold tracking-tight" style={{ background: "linear-gradient(135deg, oklch(0.75 0.2 275), oklch(0.7 0.22 310))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Unmaskr</div>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               You decide what gets uncovered. Crowdfund, unlock, and share the stories that matter.
             </p>
@@ -27,7 +27,7 @@ export function Footer() {
 
           {/* Platform */}
           <div>
-            <div className="gradient-text text-xs font-bold uppercase tracking-widest mb-4">Platform</div>
+            <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ background: "linear-gradient(135deg, oklch(0.75 0.2 275), oklch(0.7 0.22 310))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Platform</div>
             <div className="space-y-2.5 text-sm">
               <Link href="/browse" className="block text-muted-foreground hover:text-foreground transition-colors">Browse</Link>
               <Link href="/forum" className="block text-muted-foreground hover:text-foreground transition-colors">Forum</Link>
@@ -38,7 +38,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <div className="gradient-text text-xs font-bold uppercase tracking-widest mb-4">Company</div>
+            <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ background: "linear-gradient(135deg, oklch(0.75 0.2 275), oklch(0.7 0.22 310))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Company</div>
             <div className="space-y-2.5 text-sm">
               <Link href="/faq" className="block text-muted-foreground hover:text-foreground transition-colors">FAQ</Link>
               <Link href="/guidelines" className="block text-muted-foreground hover:text-foreground transition-colors">Community Guidelines</Link>
