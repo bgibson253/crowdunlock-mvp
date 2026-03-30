@@ -129,7 +129,7 @@ export function NotificationsPage({ userId }: { userId: string }) {
           {notifications.map((n) => (
             <Card
               key={n.id}
-              className={`transition hover:border-indigo-200 ${!n.read ? "bg-indigo-50/30 border-indigo-100" : ""}`}
+              className={`transition hover:border-primary/25 ${!n.read ? "bg-primary/5 border-primary/15" : ""}`}
             >
               <CardContent className="py-3">
                 <div className="flex items-start justify-between gap-2">
@@ -142,7 +142,7 @@ export function NotificationsPage({ userId }: { userId: string }) {
                   >
                     <div className="flex items-center gap-2">
                       {!n.read && (
-                        <div className="h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0" />
+                        <div className="h-2 w-2 rounded-full bg-primary/50 flex-shrink-0" />
                       )}
                       <Badge variant="secondary" className="text-[10px]">
                         {typeLabel(n.type)}

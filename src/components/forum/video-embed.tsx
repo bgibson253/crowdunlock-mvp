@@ -105,7 +105,7 @@ export function VideoEmbed({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-indigo-600 hover:underline break-all"
+        className="text-primary hover:underline break-all"
       >
         {href}
       </a>

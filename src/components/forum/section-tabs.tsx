@@ -22,9 +22,9 @@ export function SectionTabs({
           key={s.id}
           href={s.id === "all" ? "/forum" : `/forum?section=${encodeURIComponent(s.id)}`}
           className={cn(
-            "rounded-full border px-3 py-1 text-sm text-muted-foreground hover:text-foreground hover:border-indigo-200",
+            "rounded-full border px-3 py-1 text-sm text-muted-foreground hover:text-foreground hover:border-primary/25",
             active === s.id &&
-              "bg-indigo-600 text-white border-indigo-600 hover:text-white hover:border-indigo-600"
+              "bg-primary text-white border-primary hover:text-white hover:border-primary"
           )}
         >
           {s.name}

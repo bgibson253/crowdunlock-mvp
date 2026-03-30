@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
@@ -40,7 +39,6 @@ export function NotificationBell({ userId }: { userId: string }) {
     setNotifications(notifs);
     setUnreadCount(notifs.filter((n) => !n.read).length);
 
-    // Fetch thread titles
     const tids = [...new Set(notifs.map((n) => n.thread_id).filter(Boolean))] as string[];
     if (tids.length > 0) {
       const { data: threads } = await supabase
@@ -57,7 +55,6 @@ export function NotificationBell({ userId }: { userId: string }) {
 
   useEffect(() => {
     fetchNotifications();
-    // Poll every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
@@ -101,22 +98,27 @@ export function NotificationBell({ userId }: { userId: string }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
+          aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+        >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[10px] bg-red-500 text-white hover:bg-red-500">
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">
               {unreadCount > 9 ? "9+" : unreadCount}
-            </Badge>
+            </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between px-3 py-2 border-b">
-          <span className="text-sm font-semibold">Notifications</span>
+      <PopoverContent className="w-80 p-0 border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl" align="end">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+          <span className="text-sm font-bold">Notifications</span>
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="text-[11px] text-indigo-600 hover:underline"
+              className="text-[11px] text-primary hover:underline font-medium"
             >
               Mark all read
             </button>
@@ -124,7 +126,7 @@ export function NotificationBell({ userId }: { userId: string }) {
         </div>
         <div className="max-h-80 overflow-y-auto">
           {notifications.length === 0 && (
-            <div className="py-6 text-center text-xs text-muted-foreground">
+            <div className="py-8 text-center text-xs text-muted-foreground">
               No notifications yet.
             </div>
           )}
@@ -136,20 +138,20 @@ export function NotificationBell({ userId }: { userId: string }) {
                 if (!n.read) markRead(n.id);
                 setOpen(false);
               }}
-              className={`block px-3 py-2.5 border-b last:border-0 hover:bg-muted/50 transition ${!n.read ? "bg-indigo-50/50" : ""}`}
+              className={`block px-4 py-3 border-b border-border/30 last:border-0 hover:bg-primary/5 transition-colors ${!n.read ? "bg-primary/5" : ""}`}
             >
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2.5">
                 {!n.read && (
-                  <div className="h-2 w-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                  <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-sm shadow-primary/50" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-medium">{typeLabel(n.type)}</div>
+                  <div className="text-xs font-semibold">{typeLabel(n.type)}</div>
                   {n.thread_id && threadTitles[n.thread_id] && (
                     <div className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
                       {threadTitles[n.thread_id]}
                     </div>
                   )}
-                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                  <div className="text-[10px] text-muted-foreground/60 mt-0.5">
                     {new Date(n.created_at).toLocaleString()}
                   </div>
                 </div>
@@ -157,13 +159,13 @@ export function NotificationBell({ userId }: { userId: string }) {
             </Link>
           ))}
         </div>
-        <div className="border-t px-3 py-2">
+        <div className="border-t border-border/50 px-4 py-2.5">
           <Link
             href="/forum/notifications"
-            className="text-[11px] text-indigo-600 hover:underline"
+            className="text-[11px] text-primary hover:underline font-medium"
             onClick={() => setOpen(false)}
           >
-            View all notifications
+            View all notifications →
           </Link>
         </div>
       </PopoverContent>

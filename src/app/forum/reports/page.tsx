@@ -47,7 +47,7 @@ export default async function ForumReportsPage() {
 
   return (
     <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
       <div className="mx-auto max-w-4xl px-4 py-10 space-y-4">
         <Breadcrumbs items={[{ label: "Forum", href: "/forum" }, { label: "Reports" }]} />
 
@@ -96,7 +96,7 @@ export default async function ForumReportsPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href={report.target_type === "thread" ? `/forum/${report.target_id}` : "#"}
-                      className="text-xs text-indigo-600 hover:underline"
+                      className="text-xs text-primary hover:underline"
                     >
                       View {report.target_type} →
                     </Link>

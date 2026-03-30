@@ -51,7 +51,7 @@ export default async function ConversationPage({
 
   return (
     <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="flex items-center gap-3 mb-4">
           <Link href="/messages" className="text-sm text-muted-foreground hover:underline">

@@ -151,7 +151,7 @@ export function ForumSearchPage({ sections, isLoggedIn = true }: { sections: Sec
           variant="outline"
           size="icon"
           onClick={() => setShowFilters(!showFilters)}
-          className={showFilters ? "bg-indigo-50" : ""}
+          className={showFilters ? "bg-primary/5" : ""}
         >
           <Filter className="h-4 w-4" />
         </Button>
@@ -227,7 +227,7 @@ export function ForumSearchPage({ sections, isLoggedIn = true }: { sections: Sec
               {threads.map((t) => (
                 <Card
                   key={t.id}
-                  className="transition hover:border-indigo-200 hover:bg-indigo-50/30"
+                  className="transition hover:border-primary/25 hover:bg-primary/5"
                 >
                   <CardContent className="py-3">
                     <Link
@@ -260,12 +260,12 @@ export function ForumSearchPage({ sections, isLoggedIn = true }: { sections: Sec
               {replies.map((r) => (
                 <Card
                   key={r.id}
-                  className="transition hover:border-indigo-200 hover:bg-indigo-50/30"
+                  className="transition hover:border-primary/25 hover:bg-primary/5"
                 >
                   <CardContent className="py-3">
                     <Link
                       href={`/forum/${r.thread_id}`}
-                      className="text-xs text-indigo-600 hover:underline"
+                      className="text-xs text-primary hover:underline"
                     >
                       {r.thread_title}
                     </Link>

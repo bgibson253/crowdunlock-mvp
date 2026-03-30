@@ -17,15 +17,17 @@ export default async function ForumNotificationsPage() {
   }
 
   return (
-    <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <div className="text-sm text-muted-foreground mb-4">
-          <Link className="hover:underline" href="/forum">
+    <div className="relative isolate min-h-screen">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      </div>
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <div className="text-sm text-muted-foreground/70 mb-4">
+          <Link className="hover:text-primary transition-colors font-medium" href="/forum">
             Forum
           </Link>{" "}
-          <span className="mx-1">›</span>
-          <span className="text-foreground">Notifications</span>
+          <span className="mx-1 opacity-40">›</span>
+          <span className="text-foreground font-semibold">Notifications</span>
         </div>
         <NotificationsPage userId={data.user.id} />
       </div>

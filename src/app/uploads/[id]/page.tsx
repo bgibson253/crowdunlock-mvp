@@ -39,7 +39,7 @@ export default async function UploadDetailPage({
   if (!user) {
     return (
       <main className="relative isolate">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
         <div className="mx-auto max-w-lg px-4 py-20">
           <Card>
             <CardContent className="py-12 text-center space-y-4">

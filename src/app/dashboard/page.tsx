@@ -27,13 +27,17 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <main className="relative isolate min-h-screen">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      </div>
+      <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">My uploads</h1>
+          <h1 className="text-3xl font-bold tracking-tight">My uploads</h1>
           <p className="mt-2 text-sm text-muted-foreground">Your uploads and funding progress.</p>
         </div>
-        <Button asChild>
+        <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
           <Link href="/upload">New upload</Link>
         </Button>
       </div>
@@ -50,7 +54,7 @@ export default async function DashboardPage() {
             <p className="text-sm text-muted-foreground">
               Create your first upload and start crowdfunding.
             </p>
-            <Button asChild>
+            <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
               <Link href="/upload">Create your first upload</Link>
             </Button>
           </div>
@@ -60,18 +64,19 @@ export default async function DashboardPage() {
           const goal = Math.floor((u.funding_goal ?? 50000) / 100);
           return (
             <Link key={u.id} href={`/uploads/${u.id}`}>
-              <Card className="transition hover:border-indigo-200 hover:bg-indigo-50/20">
-                <CardHeader className="flex flex-row items-start justify-between gap-3">
-                  <CardTitle className="text-base">{u.title}</CardTitle>
-                  <Badge variant="secondary">{u.status}</Badge>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
+              <div className="card-hover rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+                <div className="p-5 flex items-start justify-between gap-3">
+                  <h3 className="text-base font-semibold">{u.title}</h3>
+                  <Badge variant="secondary" className="bg-muted/50">{u.status}</Badge>
+                </div>
+                <div className="px-5 pb-5 text-sm text-muted-foreground">
                   <div>Funding: ${funded} / ${goal}</div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </Link>
           );
         })}
+      </div>
       </div>
     </main>
   );

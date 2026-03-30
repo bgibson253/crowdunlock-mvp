@@ -64,7 +64,7 @@ const faqs = [
 export default function FAQPage() {
   return (
     <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
       <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Frequently Asked Questions</h1>
@@ -78,7 +78,7 @@ export default function FAQPage() {
             <Card key={i}>
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
-                  <faq.icon className="h-5 w-5 text-indigo-600 mt-0.5 shrink-0" />
+                  <faq.icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
                     <div className="font-medium text-sm">{faq.q}</div>
                     <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>

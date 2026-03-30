@@ -125,7 +125,7 @@ export function Reactions({
           disabled={!userId}
           className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition hover:bg-muted/50 ${
             r.reacted
-              ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+              ? "border-primary/30 bg-primary/5 text-primary"
               : "border-border text-muted-foreground"
           }`}
         >

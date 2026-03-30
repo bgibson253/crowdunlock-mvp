@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function GuidelinesPage() {
   return (
     <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
       <div className="mx-auto max-w-3xl px-4 py-10 prose prose-sm dark:prose-invert">
         <h1>Community Guidelines</h1>
         <p className="text-muted-foreground">Last updated: March 29, 2026</p>
@@ -108,10 +108,10 @@ export default function GuidelinesPage() {
         <h2>Questions?</h2>
         <p>
           If you&apos;re unsure whether something is allowed, ask in the{" "}
-          <a href="/forum/s/general" className="text-indigo-600 hover:underline">
+          <a href="/forum/s/general" className="text-primary hover:underline">
             General Discussion
           </a>{" "}
-          section or <a href="/contact" className="text-indigo-600 hover:underline">contact us</a>.
+          section or <a href="/contact" className="text-primary hover:underline">contact us</a>.
         </p>
       </div>
     </div>

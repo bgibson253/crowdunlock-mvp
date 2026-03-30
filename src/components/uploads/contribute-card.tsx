@@ -95,7 +95,7 @@ export function ContributeCard({
           </div>
           <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60 transition-all"
               style={{ width: `${pct}%` }}
             />
           </div>

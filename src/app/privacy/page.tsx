@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
       <div className="mx-auto max-w-3xl px-4 py-10 prose prose-sm dark:prose-invert">
         <h1>Privacy Policy</h1>
         <p className="text-muted-foreground">Last updated: March 29, 2026</p>
@@ -88,10 +88,10 @@ export default function PrivacyPage() {
         <h2>10. Contact</h2>
         <p>
           Questions about this policy? Contact us at{" "}
-          <a href="mailto:privacy@unmaskr.org" className="text-indigo-600 hover:underline">
+          <a href="mailto:privacy@unmaskr.org" className="text-primary hover:underline">
             privacy@unmaskr.org
           </a>{" "}
-          or visit our <a href="/contact" className="text-indigo-600 hover:underline">contact page</a>.
+          or visit our <a href="/contact" className="text-primary hover:underline">contact page</a>.
         </p>
       </div>
     </div>

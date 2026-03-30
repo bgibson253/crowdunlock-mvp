@@ -6,6 +6,7 @@ import "./globals.css";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import { BackToTop } from "@/components/site/back-to-top";
+import { KeyboardShortcuts } from "@/components/site/keyboard-shortcuts";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
 import { Toaster } from "sonner";
 
@@ -40,12 +41,16 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <TestModeBanner />
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg">
+          Skip to content
+        </a>
         <Nav />
-        <main className="min-h-[calc(100vh-140px)]">
+        <main id="main-content" className="min-h-[calc(100vh-140px)]">
           {children}
         </main>
         <Footer />
         <BackToTop />
+        <KeyboardShortcuts />
         <Toaster
           richColors
           position="top-center"

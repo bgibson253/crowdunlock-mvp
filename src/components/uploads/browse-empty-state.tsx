@@ -15,8 +15,8 @@ function ExampleCard({
   trending?: boolean;
 }) {
   return (
-    <Card className="overflow-hidden border-indigo-100/80">
-      <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400" />
+    <Card className="overflow-hidden border-primary/15/80">
+      <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/60 to-amber-500/40" />
       <CardContent className="space-y-3 py-5">
         <div className="flex items-start justify-between gap-3">
           <div className="text-sm font-semibold tracking-tight line-clamp-2">
@@ -42,7 +42,7 @@ function ExampleCard({
           </div>
           <div className="h-2 w-full rounded-full bg-muted">
             <div
-              className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500"
+              className="h-2 rounded-full bg-gradient-to-r from-primary to-primary/60"
               style={{ width: `${pct}%` }}
             />
           </div>

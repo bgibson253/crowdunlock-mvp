@@ -77,7 +77,7 @@ export function FavoritesPage({ userId }: { userId: string }) {
               Click the ♡ icon on any thread to save it here.
             </p>
             <Link href="/forum" className="inline-block">
-              <span className="text-xs text-indigo-600 hover:underline">Browse the forum →</span>
+              <span className="text-xs text-primary hover:underline">Browse the forum →</span>
             </Link>
           </CardContent>
         </Card>
@@ -88,7 +88,7 @@ export function FavoritesPage({ userId }: { userId: string }) {
           {favorites.map((f) => (
             <Card
               key={f.thread_id}
-              className="transition hover:border-indigo-200 hover:bg-indigo-50/30"
+              className="transition hover:border-primary/25 hover:bg-primary/5"
             >
               <CardContent className="py-3">
                 <Link

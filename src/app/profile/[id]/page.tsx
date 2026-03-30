@@ -136,7 +136,7 @@ export default async function ProfilePage({
 
   return (
     <main className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
       <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
         {/* Profile Card */}
         <Card>
@@ -218,13 +218,13 @@ export default async function ProfilePage({
               {(profile.website || profile.twitter || profile.github || profile.linkedin) && (
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                   {profile.website && (
-                    <a className="text-indigo-600 hover:underline" href={profile.website} target="_blank" rel="noreferrer">
+                    <a className="text-primary hover:underline" href={profile.website} target="_blank" rel="noreferrer">
                       🌐 Website
                     </a>
                   )}
                   {profile.twitter && <span>𝕏 {profile.twitter}</span>}
                   {profile.github && (
-                    <a className="text-indigo-600 hover:underline" href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer">
+                    <a className="text-primary hover:underline" href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer">
                       GitHub
                     </a>
                   )}
@@ -283,7 +283,7 @@ export default async function ProfilePage({
                   <div key={r.id} className="py-2 border-b last:border-0">
                     <Link
                       href={`/forum/${r.thread_id}`}
-                      className="text-xs text-indigo-600 hover:underline line-clamp-1"
+                      className="text-xs text-primary hover:underline line-clamp-1"
                     >
                       {threadTitleMap[r.thread_id] ?? "Thread"}
                     </Link>

@@ -1,51 +1,50 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function ThreadLoading() {
   return (
-    <div className="relative isolate">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-background to-background" />
+    <div className="relative isolate min-h-screen">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      </div>
       <div className="mx-auto max-w-4xl px-4 py-10 space-y-4">
         {/* Breadcrumbs */}
-        <Skeleton className="h-4 w-64" />
+        <Skeleton className="h-4 w-64 bg-muted/50" />
 
         {/* Thread card */}
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-3/4" />
-          </CardHeader>
-          <CardContent className="grid gap-2 md:grid-cols-[90px_1fr]">
+        <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="p-6">
+            <Skeleton className="h-7 w-3/4 bg-muted/50" />
+          </div>
+          <div className="px-6 pb-6 grid gap-3 md:grid-cols-[90px_1fr]">
             <div className="hidden md:flex md:flex-col md:items-center gap-2">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-12 w-12 rounded-full bg-muted/50" />
+              <Skeleton className="h-3 w-16 bg-muted/50" />
+              <Skeleton className="h-3 w-12 bg-muted/50" />
             </div>
             <div className="space-y-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-full bg-muted/50" />
+              <Skeleton className="h-4 w-5/6 bg-muted/50" />
+              <Skeleton className="h-4 w-3/4 bg-muted/50" />
+              <Skeleton className="h-4 w-2/3 bg-muted/50" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Replies header */}
-        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-5 w-24 bg-muted/50" />
 
         {/* Reply skeletons */}
         {[1, 2, 3].map((i) => (
-          <Card key={i}>
-            <CardContent className="py-3 grid gap-2 md:grid-cols-[90px_1fr]">
-              <div className="hidden md:flex md:flex-col md:items-center gap-2">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <Skeleton className="h-3 w-14" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-              </div>
-            </CardContent>
-          </Card>
+          <div key={i} className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4 grid gap-3 md:grid-cols-[90px_1fr]">
+            <div className="hidden md:flex md:flex-col md:items-center gap-2">
+              <Skeleton className="h-10 w-10 rounded-full bg-muted/50" />
+              <Skeleton className="h-3 w-14 bg-muted/50" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full bg-muted/50" />
+              <Skeleton className="h-4 w-4/5 bg-muted/50" />
+            </div>
+          </div>
         ))}
       </div>
     </div>

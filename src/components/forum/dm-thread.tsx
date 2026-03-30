@@ -306,7 +306,7 @@ export function DmThread({
               <div
                 className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
                   isMine
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-primary text-white"
                     : "bg-muted text-foreground"
                 }`}
               >
