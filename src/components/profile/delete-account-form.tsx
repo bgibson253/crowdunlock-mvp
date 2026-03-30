@@ -28,11 +28,15 @@ export function DeleteAccountForm({ userId, email }: { userId: string; email: st
           username: `deleted_${userId.slice(0, 8)}`,
           display_name: "Deleted User",
           bio: null,
-          website: null,
-          location: null,
           twitter: null,
-          github: null,
-          linkedin: null,
+          instagram: null,
+          tiktok: null,
+          reddit: null,
+          sig_bio: false,
+          sig_twitter: false,
+          sig_instagram: false,
+          sig_tiktok: false,
+          sig_reddit: false,
           avatar_url: null,
           banner_url: null,
         })
@@ -46,6 +50,9 @@ export function DeleteAccountForm({ userId, email }: { userId: string; email: st
 
       // Delete public keys (E2E encryption)
       await supabase.from("user_public_keys").delete().eq("user_id", userId);
+
+      // Delete social verifications
+      await supabase.from("social_verifications").delete().eq("user_id", userId);
 
       // Sign out
       await supabase.auth.signOut();
