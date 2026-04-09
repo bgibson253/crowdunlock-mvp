@@ -59,7 +59,7 @@ async function getAuthorProfile(supabase: any, authorId: string | null) {
   if (!authorId) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id,username,display_name,avatar_url,post_count,trust_level")
+    .select("id,username,display_name,avatar_url,post_count,trust_level,total_points,current_streak")
     .eq("id", authorId)
     .maybeSingle();
   if (!data) return null;
@@ -124,7 +124,7 @@ export default async function ForumThreadPage({
   const { data: replyProfilesRaw } = replyAuthorIds.length
     ? await supabase
         .from("profiles")
-        .select("id,username,display_name,avatar_url,post_count,trust_level")
+        .select("id,username,display_name,avatar_url,post_count,trust_level,total_points,current_streak")
         .in("id", replyAuthorIds)
     : { data: [] as any[] };
 
@@ -179,12 +179,12 @@ export default async function ForumThreadPage({
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, display_name, username, trust_level, avatar_url, post_count")
+    .select("id, display_name, username, trust_level, avatar_url, post_count, total_points, current_streak")
     .in("id", authorIds);
 
   const authorNames: Record<string, string> = {};
   const authorTrustLevels: Record<string, number> = {};
-  const authorProfiles: Record<string, { avatar_url: string | null; post_count: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }> = {};
+  const authorProfiles: Record<string, { avatar_url: string | null; post_count: number; total_points: number; current_streak: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }> = {};
 
   const allBadgeMap = new Map<string, any>();
   if (thread.author_id && !badgeById.has(thread.author_id)) {
@@ -202,6 +202,8 @@ export default async function ForumThreadPage({
     authorProfiles[p.id] = {
       avatar_url: p.avatar_url ?? null,
       post_count: p.post_count ?? 0,
+      total_points: p.total_points ?? 0,
+      current_streak: p.current_streak ?? 0,
       unlock_tier_label: badge?.unlock_tier_label ?? null,
       unlock_tier_icon: badge?.unlock_tier_icon ?? null,
     };
@@ -249,7 +251,7 @@ export default async function ForumThreadPage({
               )}
             </div>
           </CardHeader>
-          <CardContent className="grid gap-2 md:grid-cols-[90px_1fr]">
+          <CardContent className="grid gap-2 md:grid-cols-[120px_1fr]">
             {/* Mobile: horizontal author row */}
             <div className="md:hidden flex items-center gap-2 pb-2 border-b mb-2">
               <AuthorCard author={threadAuthor} compact />

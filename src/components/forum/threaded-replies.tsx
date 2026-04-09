@@ -23,6 +23,7 @@ import { MarkdownEditor } from "@/components/forum/markdown-editor";
 import { Reactions } from "@/components/forum/reactions";
 import { ReportModal } from "@/components/forum/report-modal";
 import { relativeTime } from "@/lib/relative-time";
+import { getTrustLevelName } from "@/lib/trust-levels";
 import { toast } from "sonner";
 
 export type ReplyNode = {
@@ -33,6 +34,8 @@ export type ReplyNode = {
   author_trust_level: number;
   author_avatar_url: string | null;
   author_post_count: number;
+  author_total_points: number;
+  author_current_streak: number;
   author_unlock_tier_label: string | null;
   author_unlock_tier_icon: string | null;
   created_at: string;
@@ -220,9 +223,9 @@ function ReplyCard({
               </button>
             )}
             <div className="flex-1 min-w-0">
-              <div className="grid gap-1.5 md:grid-cols-[90px_1fr]">
+              <div className="grid gap-1.5 md:grid-cols-[120px_1fr]">
                 {/* Mobile: compact horizontal author row */}
-                <div className="md:hidden flex items-center gap-2 pb-1 border-b mb-1">
+                <div className="md:hidden flex items-center gap-2 pb-1 border-b mb-1 flex-wrap">
                   {reply.author_id ? (
                     <a href={`/profile/${reply.author_id}`} className="flex items-center gap-1.5 hover:underline">
                       <Avatar className="h-5 w-5">
@@ -239,6 +242,21 @@ function ReplyCard({
                       <span className="text-[10px] font-medium">Administrator</span>
                     </div>
                   )}
+                  <span className={`inline-flex items-center rounded-md border px-1 py-0 text-[9px] font-semibold leading-tight whitespace-nowrap ${
+                    reply.author_trust_level >= 4 ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
+                    : reply.author_trust_level >= 3 ? "text-purple-400 border-purple-500/30 bg-purple-500/10"
+                    : reply.author_trust_level >= 2 ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
+                    : reply.author_trust_level >= 1 ? "text-sky-400 border-sky-500/30 bg-sky-500/10"
+                    : "text-zinc-400 border-zinc-500/30 bg-zinc-500/10"
+                  }`}>
+                    {getTrustLevelName(reply.author_trust_level)}
+                  </span>
+                  {reply.author_unlock_tier_label && (
+                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-400 whitespace-nowrap">
+                      <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
+                      {reply.author_unlock_tier_label}
+                    </span>
+                  )}
                   <span className="text-[9px] text-muted-foreground">{relativeTime(reply.created_at)}</span>
                   {reply.edited_at && (
                     <span className="text-[9px] text-muted-foreground italic">(edited {relativeTime(reply.edited_at)})</span>
@@ -246,32 +264,54 @@ function ReplyCard({
                 </div>
 
                 {/* Desktop: vertical sidebar */}
-                <div className="hidden md:block md:border-r md:pr-1.5">
+                <div className="hidden md:flex md:flex-col md:items-center md:gap-1 md:border-r md:pr-1.5 w-[110px]">
                   {reply.author_id ? (
                     <a href={`/profile/${reply.author_id}`} className="flex flex-col items-center gap-0.5 text-center hover:underline">
-                      <Avatar className="h-6 w-6">
+                      <Avatar className="h-7 w-7">
                         {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
                         <AvatarFallback className="text-[9px]">{reply.author_name.slice(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
-                      <span className="text-[10px] font-medium leading-none truncate max-w-[80px]">{reply.author_name}</span>
+                      <span className="text-[11px] font-semibold leading-tight text-center break-words max-w-full">{reply.author_name}</span>
                     </a>
                   ) : (
                     <div className="flex flex-col items-center gap-0.5 text-center">
-                      <Avatar className="h-6 w-6">
+                      <Avatar className="h-7 w-7">
                         <AvatarFallback className="text-[9px]">A</AvatarFallback>
                       </Avatar>
                       <span className="text-[10px] font-medium">Administrator</span>
                     </div>
                   )}
-                  <div className="flex flex-col items-center text-[9px] text-muted-foreground leading-tight">
-                    {reply.author_unlock_tier_label && (
-                      <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/25 bg-amber-500/10 px-1 py-0 font-medium text-amber-200 text-[9px]">
-                        <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
-                        <span className="truncate">{reply.author_unlock_tier_label}</span>
-                      </span>
-                    )}
+
+                  {/* Trust level badge */}
+                  <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-none whitespace-nowrap ${
+                    reply.author_trust_level >= 4 ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
+                    : reply.author_trust_level >= 3 ? "text-purple-400 border-purple-500/30 bg-purple-500/10"
+                    : reply.author_trust_level >= 2 ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
+                    : reply.author_trust_level >= 1 ? "text-sky-400 border-sky-500/30 bg-sky-500/10"
+                    : "text-zinc-400 border-zinc-500/30 bg-zinc-500/10"
+                  }`}>
+                    {getTrustLevelName(reply.author_trust_level)}
+                  </span>
+
+                  {/* Spending tier badge */}
+                  {reply.author_unlock_tier_label && (
+                    <span className="inline-flex items-center gap-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-bold text-amber-400 text-[10px] leading-none whitespace-nowrap" title={reply.author_unlock_tier_label}>
+                      <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
+                      <span>{reply.author_unlock_tier_label}</span>
+                    </span>
+                  )}
+
+                  {/* Stats */}
+                  <div className="flex flex-wrap items-center justify-center gap-x-1.5 text-[9px] text-muted-foreground leading-tight">
                     <span>{reply.author_post_count} posts</span>
+                    {reply.author_total_points > 0 && <span>⭐ {reply.author_total_points.toLocaleString()}</span>}
                   </div>
+
+                  {/* Streak */}
+                  {reply.author_current_streak >= 2 && (
+                    <span className="text-[9px] text-orange-400 font-medium">🔥 {reply.author_current_streak}d streak</span>
+                  )}
+
                   <div className="text-center text-[9px] text-muted-foreground leading-none">
                     {relativeTime(reply.created_at)}
                   </div>
@@ -464,7 +504,7 @@ export function ThreadedReplies({
   threadId: string;
   authorNames: Record<string, string>;
   authorTrustLevels?: Record<string, number>;
-  authorProfiles?: Record<string, { avatar_url: string | null; post_count: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }>;
+  authorProfiles?: Record<string, { avatar_url: string | null; post_count: number; total_points: number; current_streak: number; unlock_tier_label: string | null; unlock_tier_icon: string | null }>;
   isLocked?: boolean;
   isAdmin?: boolean;
   onQuoteToMain?: (text: string) => void;
@@ -564,6 +604,8 @@ export function ThreadedReplies({
     author_trust_level: authorTrustLevels[r.author_id] ?? 0,
     author_avatar_url: authorProfiles[r.author_id]?.avatar_url ?? null,
     author_post_count: authorProfiles[r.author_id]?.post_count ?? 0,
+    author_total_points: authorProfiles[r.author_id]?.total_points ?? 0,
+    author_current_streak: authorProfiles[r.author_id]?.current_streak ?? 0,
     author_unlock_tier_label: authorProfiles[r.author_id]?.unlock_tier_label ?? null,
     author_unlock_tier_icon: authorProfiles[r.author_id]?.unlock_tier_icon ?? null,
   }));
