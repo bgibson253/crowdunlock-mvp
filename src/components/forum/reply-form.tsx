@@ -87,6 +87,8 @@ export function ReplyForm({
           p_reason: "reply_posted",
           p_ref_id: replyData.id,
         });
+        // Check achievements
+        supabase.rpc("check_achievements", { p_user_id: auth.user.id }).then(() => {});
       } catch {}
 
       setBody("");

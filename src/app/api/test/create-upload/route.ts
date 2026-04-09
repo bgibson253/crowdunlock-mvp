@@ -163,5 +163,10 @@ export async function POST(req: Request) {
     console.error("forum thread create failed", threadErr.message);
   }
 
+  // Check achievements for uploader
+  if (authUser) {
+    supabase.rpc("check_achievements", { p_user_id: authUser.id }).then(() => {});
+  }
+
   return NextResponse.json({ ok: true, uploadId: uploadRow.id });
 }
