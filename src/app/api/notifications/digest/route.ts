@@ -64,6 +64,14 @@ function digestEmailHtml(
 // POST /api/notifications/digest
 // Call via cron. Requires Authorization: Bearer <CRON_SECRET> or service key.
 export async function POST(req: NextRequest) {
+  return handleDigest(req);
+}
+
+export async function GET(req: NextRequest) {
+  return handleDigest(req);
+}
+
+async function handleDigest(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

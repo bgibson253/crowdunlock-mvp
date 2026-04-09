@@ -8,6 +8,7 @@ import { Footer } from "@/components/site/footer";
 import { BackToTop } from "@/components/site/back-to-top";
 import { KeyboardShortcuts } from "@/components/site/keyboard-shortcuts";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
+import { CookieConsent } from "@/components/site/cookie-consent";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -84,6 +85,7 @@ export default function RootLayout({
             __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}`
           }}
         />
+        <CookieConsent />
       </body>
     </html>
   );

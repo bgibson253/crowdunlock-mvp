@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in",
               "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co",
-              "frame-src 'self' https://www.youtube.com https://player.vimeo.com",
+              "frame-src 'self' https://www.youtube.com https://player.vimeo.com https://rumble.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
