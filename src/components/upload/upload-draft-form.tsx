@@ -35,7 +35,7 @@ const schema = z.object({
     .int()
     .min(10, "Minimum $10")
     .max(100000, "Max $100,000"),
-  content_type: z.enum(["story", "video", "data"], {
+  content_type: z.enum(["story", "video", "data", "document", "image", "other"], {
     message: "Pick a type",
   }),
   category_slug: z.string().min(1, "Pick a category"),
@@ -168,9 +168,12 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="story">Story</SelectItem>
+                    <SelectItem value="story">Story / Article</SelectItem>
                     <SelectItem value="video">Video</SelectItem>
-                    <SelectItem value="data">Data</SelectItem>
+                    <SelectItem value="data">Data / Dataset</SelectItem>
+                    <SelectItem value="document">Document</SelectItem>
+                    <SelectItem value="image">Image</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

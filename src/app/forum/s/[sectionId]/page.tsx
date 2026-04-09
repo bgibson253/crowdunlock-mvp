@@ -121,7 +121,7 @@ export default async function ForumSectionPage({
     });
   }
 
-  const LISTED_IDS = ["listed_stories", "listed_data", "listed_videos"];
+  const LISTED_IDS = ["listed_stories", "listed_data", "listed_videos", "listed_documents", "listed_images", "listed_other"];
   const isListed = LISTED_IDS.includes(sectionId);
 
   return (

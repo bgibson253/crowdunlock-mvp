@@ -9,6 +9,9 @@ export const runtime = "nodejs";
 function listedSectionId(contentType: string) {
   if (contentType === "video") return "listed_videos";
   if (contentType === "data") return "listed_data";
+  if (contentType === "document") return "listed_documents";
+  if (contentType === "image") return "listed_images";
+  if (contentType === "other") return "listed_other";
   return "listed_stories";
 }
 

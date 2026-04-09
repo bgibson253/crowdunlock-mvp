@@ -63,9 +63,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "request_story",
     "request_data",
     "request_video",
+    "request_document",
+    "request_image",
+    "request_other",
     "listed_stories",
     "listed_data",
     "listed_videos",
+    "listed_documents",
+    "listed_images",
+    "listed_other",
   ];
   const sectionRoutes: MetadataRoute.Sitemap = sectionIds.map((id) => ({
     url: `${siteUrl}/forum/s/${id}`,

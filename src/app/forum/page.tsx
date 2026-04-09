@@ -148,12 +148,18 @@ export default async function ForumIndexPage() {
     byId.get("request_story"),
     byId.get("request_data"),
     byId.get("request_video"),
+    byId.get("request_document"),
+    byId.get("request_image"),
+    byId.get("request_other"),
   ].filter(Boolean) as SectionRow[];
 
   const listed = [
     byId.get("listed_stories"),
     byId.get("listed_data"),
     byId.get("listed_videos"),
+    byId.get("listed_documents"),
+    byId.get("listed_images"),
+    byId.get("listed_other"),
   ].filter(Boolean) as SectionRow[];
 
   return (
