@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Browse",
-  description: "Browse and fund exclusive content on Unmaskr.",
+  description: "Browse and fund content on Unmaskr. Unlocked content is public.",
 };
 
 const PAGE_SIZE = 12;
@@ -52,9 +52,9 @@ export default async function BrowsePage({
         <div className="mx-auto max-w-lg px-4">
           <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl p-12 text-center space-y-4 shadow-2xl shadow-primary/5">
             <div className="text-4xl">🔒</div>
-            <h2 className="text-xl font-bold">Log in to see exclusive content</h2>
+            <h2 className="text-xl font-bold">Log in to browse content</h2>
             <p className="text-sm text-muted-foreground">
-              Sign in to browse uploads, contribute to funding, and access unlocked content.
+              Sign in to browse uploads, contribute to funding, and view unlocked content.
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
               <Link href="/auth?redirect=%2Fbrowse">Sign in</Link>

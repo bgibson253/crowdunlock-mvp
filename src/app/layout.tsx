@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     default: "Unmaskr — You Decide What Gets Uncovered",
     template: "%s | Unmaskr",
   },
-  description: "Crowdfund and unlock exclusive journalism, data, and stories. Join the community.",
+  description: "Crowdfund and unlock journalism, data, and stories for the public. Join the community.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

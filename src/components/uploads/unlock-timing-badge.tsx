@@ -69,7 +69,7 @@ export function UnlockTimingBadge({
       <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
         <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
         <span className="text-sm font-medium text-emerald-400">
-          Fully funded! Content unlocked for all contributors.
+          Fully funded! Content is now public.
         </span>
       </div>
     );

@@ -63,8 +63,8 @@ export default function TermsPage() {
         <h2>7. Crowdfunding</h2>
         <ul>
           <li>Contributions fund the unlocking of specific content</li>
-          <li>Once a funding goal is met, content is unlocked for all contributors</li>
-          <li>Contributions are non-refundable unless the content creator fails to deliver</li>
+          <li>Once a funding goal is met, content is unlocked publicly for everyone</li>
+          <li>Contributions are non-refundable once the funding goal is met; if the deadline passes without reaching the goal, all contributions are refunded</li>
           <li>Unmaskr may charge a platform fee on successfully funded content</li>
           <li>Unmaskr does not guarantee the accuracy or quality of unlocked content</li>
         </ul>

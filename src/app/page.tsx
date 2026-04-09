@@ -212,7 +212,7 @@ export default async function HomePage() {
               step: "04",
               icon: Eye,
               title: "Truth Unlocked",
-              desc: "Once fully funded, the content unlocks instantly for all contributors. The community decides what matters.",
+              desc: "Once fully funded, the content unlocks instantly and goes public for everyone. The community decides what matters.",
               color: "text-amber-400",
             },
           ].map((item) => (
@@ -414,7 +414,7 @@ export default async function HomePage() {
             {
               icon: Zap,
               title: "Instant Unlock",
-              desc: "The moment funding hits 100%, content unlocks for everyone who contributed. No delays, no gatekeepers.",
+              desc: "The moment funding hits 100%, content goes public for everyone — not just contributors. No delays, no gatekeepers.",
               gradient: "from-yellow-500/10 to-amber-500/10",
               iconColor: "text-yellow-400",
             },
@@ -502,7 +502,7 @@ export default async function HomePage() {
             {
               emoji: "💰",
               title: "Citizens & Contributors",
-              desc: "Fund the investigations you care about. Read AI-generated teasers to decide what's worth backing. Your money only moves when goals are met.",
+              desc: "Fund the investigations you care about. Read AI-generated teasers to decide what's worth backing. Once funded, the content goes public for everyone.",
             },
           ].map((persona) => (
             <Card

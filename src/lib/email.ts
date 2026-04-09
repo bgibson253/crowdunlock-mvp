@@ -72,7 +72,7 @@ export function fullyFundedEmailHtml(uploadTitle: string, uploadUrl: string): st
   return baseTemplate(`
     <div class="card">
       <h2>💰 "${uploadTitle}" is fully funded!</h2>
-      <p>Your upload has reached its funding goal. The content will be unlocked for all contributors.</p>
+      <p>Your upload has reached its funding goal. The content is now publicly available.</p>
       <a href="${uploadUrl}" class="btn">View Upload</a>
     </div>
   `);

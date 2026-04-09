@@ -87,9 +87,9 @@ export default async function UploadDetailPage({
           <Card>
             <CardContent className="py-12 text-center space-y-4">
               <div className="text-3xl">🔒</div>
-              <h2 className="text-lg font-semibold">Log in to see exclusive content</h2>
+              <h2 className="text-lg font-semibold">Log in to view this content</h2>
               <p className="text-sm text-muted-foreground">
-                Sign in to view uploads, contribute to funding, and access unlocked content.
+                Sign in to view uploads, contribute to funding, and access public content.
               </p>
               <Button asChild>
                 <Link href={`/auth?redirect=${encodeURIComponent(`/uploads/${id}`)}`}>Sign in</Link>
@@ -219,7 +219,7 @@ export default async function UploadDetailPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Your upload is fully funded! Click below to unlock it for all contributors.
+                Your upload is fully funded! Click below to make it publicly available.
               </p>
               <ManualUnlockButton uploadId={u.id} />
             </CardContent>
