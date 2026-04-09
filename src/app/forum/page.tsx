@@ -144,6 +144,7 @@ export default async function ForumIndexPage() {
 
   const general = byId.get("general");
   const introduce = byId.get("introduce_yourself");
+  const recommendations = byId.get("recommendations");
   const requested = [
     byId.get("request_story"),
     byId.get("request_data"),
@@ -190,12 +191,13 @@ export default async function ForumIndexPage() {
         <div className="mt-8 grid md:grid-cols-[1fr_280px] gap-8">
           {/* Main sections column */}
           <div className="space-y-6">
-          {(general || introduce) && (
+          {(general || introduce || recommendations) && (
             <div className="space-y-2">
               <CategoryHeader title="General Discussion" icon={MessageSquare} variant="slate" />
               <div className="space-y-1.5">
                 {general && <SectionCard {...general} />}
                 {introduce && <SectionCard {...introduce} />}
+                {recommendations && <SectionCard {...recommendations} />}
               </div>
             </div>
           )}
