@@ -57,7 +57,7 @@ export function InlineThreadEditor({
         placeholder="Thread body..."
         rows={6}
       />
-      {error && <div className="text-xs text-red-600">{error}</div>}
+      {error && <div className="text-xs text-destructive">{error}</div>}
       <div className="flex gap-2">
         <Button size="sm" onClick={handleSave} disabled={saving || !title.trim() || !body.trim()}>
           {saving ? "Saving…" : "Save"}

@@ -261,7 +261,7 @@ export function DmThread({
       <div className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-md bg-muted/50">
         {recipientHasKey ? (
           <>
-            <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
             <span className="text-green-700 dark:text-green-400 font-medium">
               End-to-end encrypted
             </span>

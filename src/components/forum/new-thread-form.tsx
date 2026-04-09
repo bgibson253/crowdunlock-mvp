@@ -83,6 +83,16 @@ export function NewThreadForm({
         return;
       }
 
+      // Check rate limit
+      const { data: rlData } = await supabase.rpc("rate_limit_info", {
+        p_user_id: auth.user.id,
+        p_action_type: "thread",
+      });
+      if (rlData && !rlData.allowed) {
+        setError(`Rate limited: max ${rlData.limit} threads per ${rlData.window}. ${rlData.remaining} remaining.`);
+        return;
+      }
+
       const { data, error: insertErr } = await supabase
         .from("forum_threads")
         .insert({
@@ -152,7 +162,7 @@ export function NewThreadForm({
               authorTrustLevel={trustLevel}
             />
           </div>
-          {error && <div className="text-sm text-red-600">{error}</div>}
+          {error && <div className="text-sm text-destructive">{error}</div>}
           <Button type="submit" disabled={submitting || !title || !body || !sectionId}>
             {submitting ? "Creating…" : "Create"}
           </Button>

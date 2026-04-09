@@ -6,7 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { ProfileSettingsForm } from "@/components/profile/profile-settings-form";
 import { NotificationPreferences } from "@/components/profile/notification-preferences";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, UserX } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Profile Settings" };
@@ -62,6 +62,22 @@ export default async function ProfileSettingsPage() {
 
         <div className="mt-10">
           <NotificationPreferences userId={data.user.id} />
+        </div>
+
+        {/* Blocked users */}
+        <div className="mt-10 pt-8 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold">Blocked users</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Manage users you&apos;ve blocked.</p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/profile/settings/blocked">
+                <UserX className="h-3.5 w-3.5 mr-1.5" />
+                View blocked users
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Danger zone */}

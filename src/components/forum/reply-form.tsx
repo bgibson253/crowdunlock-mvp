@@ -61,6 +61,16 @@ export function ReplyForm({
         return;
       }
 
+      // Check rate limit
+      const { data: rlData } = await supabase.rpc("rate_limit_info", {
+        p_user_id: auth.user.id,
+        p_action_type: "reply",
+      });
+      if (rlData && !rlData.allowed) {
+        setError(`Rate limited: max ${rlData.limit} replies per ${rlData.window}. ${rlData.remaining} remaining.`);
+        return;
+      }
+
       const { data: replyData, error: insertErr } = await supabase
         .from("forum_replies")
         .insert({ thread_id: threadId, body })
@@ -101,7 +111,7 @@ export function ReplyForm({
             rows={4}
             authorTrustLevel={trustLevel}
           />
-          {error && <div className="text-sm text-red-600">{error}</div>}
+          {error && <div className="text-sm text-destructive">{error}</div>}
           <Button type="submit" disabled={!body || submitting}>
             {submitting ? "Posting…" : "Post reply"}
           </Button>

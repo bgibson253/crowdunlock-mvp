@@ -214,12 +214,12 @@ export default async function ProfilePage({
                     </>
                   ) : lastSeen ? (
                     <>
-                      <span className="h-2 w-2 rounded-full bg-gray-400" />
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
                       Last seen {relativeTime(profile.last_seen_at)}
                     </>
                   ) : (
                     <>
-                      <span className="h-2 w-2 rounded-full bg-gray-400" />
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
                       Never seen
                     </>
                   )}

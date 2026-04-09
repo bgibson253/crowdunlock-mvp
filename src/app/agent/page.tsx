@@ -120,7 +120,7 @@ export default function AgentDashboard() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{item.type}</span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded ${statusColor[item.status] ?? "bg-gray-100"}`}>
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${statusColor[item.status] ?? "bg-muted text-muted-foreground"}`}>
                     {item.status}
                   </span>
                   <span className="text-xs text-muted-foreground">

@@ -161,7 +161,7 @@ export function Reactions({
                   key={emoji}
                   onClick={() => toggleReaction(emoji)}
                   className={`rounded p-1 text-base transition ${
-                    myEmoji === emoji ? "bg-indigo-100 ring-1 ring-indigo-300" : "hover:bg-muted"
+                    myEmoji === emoji ? "bg-primary/15 ring-1 ring-primary/30" : "hover:bg-muted"
                   }`}
                 >
                   {emoji}

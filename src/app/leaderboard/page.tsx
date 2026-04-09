@@ -27,7 +27,7 @@ async function getTrending() {
 
 function RankIcon({ rank }: { rank: number }) {
   if (rank === 1) return <Crown className="h-5 w-5 text-amber-400" />;
-  if (rank === 2) return <Medal className="h-5 w-5 text-gray-300" />;
+  if (rank === 2) return <Medal className="h-5 w-5 text-muted-foreground" />;
   if (rank === 3) return <Medal className="h-5 w-5 text-amber-600" />;
   return <span className="text-sm text-muted-foreground font-mono w-5 text-center">{rank}</span>;
 }

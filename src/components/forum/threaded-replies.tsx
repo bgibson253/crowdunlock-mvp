@@ -291,7 +291,7 @@ function ReplyCard({
                         onChange={setEditBody}
                         rows={4}
                       />
-                      {error && <div className="text-xs text-red-600">{error}</div>}
+                      {error && <div className="text-xs text-destructive">{error}</div>}
                       <div className="flex gap-2">
                         <Button size="sm" className="h-7 text-xs" onClick={handleEdit} disabled={editSaving || !editBody.trim()}>
                           {editSaving ? "Saving…" : "Save"}
@@ -380,7 +380,7 @@ function ReplyCard({
                         placeholder={`Reply to ${reply.author_name}…`}
                         rows={3}
                       />
-                      {error && <div className="text-xs text-red-600">{error}</div>}
+                      {error && <div className="text-xs text-destructive">{error}</div>}
                       <div className="flex gap-2">
                         <Button
                           type="submit"

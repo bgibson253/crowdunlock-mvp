@@ -12,6 +12,8 @@ const serverSchema = z.object({
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  INTERNAL_API_SECRET: z.string().min(1).optional(),
   TEST_MODE: z.enum(["true", "false"]).optional(),
   TEST_USER_EMAIL: z.string().email().optional(),
 });
@@ -37,6 +39,8 @@ export function envServer() {
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    INTERNAL_API_SECRET: process.env.INTERNAL_API_SECRET,
     TEST_MODE: process.env.TEST_MODE,
     TEST_USER_EMAIL: process.env.TEST_USER_EMAIL,
   });

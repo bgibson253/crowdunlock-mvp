@@ -61,10 +61,10 @@ export default async function ReportsPage() {
   }
 
   const statusColor: Record<string, string> = {
-    open: "bg-yellow-100 text-yellow-800",
-    pending: "bg-yellow-100 text-yellow-800",
-    resolved: "bg-green-100 text-green-800",
-    dismissed: "bg-gray-100 text-gray-600",
+    open: "bg-yellow-500/15 text-yellow-400",
+    pending: "bg-yellow-500/15 text-yellow-400",
+    resolved: "bg-green-500/15 text-green-400",
+    dismissed: "bg-muted text-muted-foreground",
   };
 
   const openForumCount = (forumReports ?? []).filter((r: any) => r.status === "open").length;

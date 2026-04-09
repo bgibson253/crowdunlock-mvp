@@ -72,6 +72,20 @@ export async function POST(req: Request) {
   const { data: { user: authUser } } = await supabaseAuth.auth.getUser();
   const uploaderId: string | null = authUser?.id ?? null;
 
+  // Check rate limit for uploads
+  if (uploaderId) {
+    const { data: rlData } = await supabase.rpc("rate_limit_info", {
+      p_user_id: uploaderId,
+      p_action_type: "upload",
+    });
+    if (rlData && !rlData.allowed) {
+      return NextResponse.json(
+        { error: `Rate limited: max ${rlData.limit} uploads per ${rlData.window}. You have ${rlData.remaining} remaining.` },
+        { status: 429 },
+      );
+    }
+  }
+
   // Resolve category_id from slug
   let categoryId: string | null = null;
   if (categorySlug) {

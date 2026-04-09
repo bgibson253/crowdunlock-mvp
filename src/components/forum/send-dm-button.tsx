@@ -77,7 +77,7 @@ export function SendDmButton({
           <DialogTitle>Message {recipientName}</DialogTitle>
         </DialogHeader>
         {sent ? (
-          <div className="py-4 text-center text-sm text-green-600">Message sent ✓</div>
+          <div className="py-4 text-center text-sm text-emerald-400">Message sent ✓</div>
         ) : (
           <div className="space-y-3">
             <Textarea
@@ -86,7 +86,7 @@ export function SendDmButton({
               placeholder={`Write a message to ${recipientName}…`}
               rows={4}
             />
-            {error && <div className="text-sm text-red-600">{error}</div>}
+            {error && <div className="text-sm text-destructive">{error}</div>}
             <Button onClick={handleSend} disabled={!body.trim() || sending} className="w-full">
               {sending ? "Sending…" : "Send message"}
             </Button>

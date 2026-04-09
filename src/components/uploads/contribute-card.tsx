@@ -131,9 +131,9 @@ export function ContributeCard({
           </Button>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         {success && (
-          <p className="text-sm text-green-600 font-medium">
+          <p className="text-sm text-emerald-400 font-medium">
             Contribution recorded! Thank you.
           </p>
         )}

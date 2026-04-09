@@ -131,7 +131,7 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
         </div>
       ) : null}
 
-      <div className="rounded-md border border-red-600/40 bg-red-600/5 p-3 text-sm text-red-700">
+      <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
         <div className="font-semibold">TEST MODE</div>
         <div>Uploads are free + instant. Payments are disabled.</div>
       </div>
