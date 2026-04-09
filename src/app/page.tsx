@@ -392,7 +392,7 @@ export default async function HomePage() {
             {
               icon: Clock,
               title: "Funding Deadlines",
-              desc: "Set a 30-day to 1-year deadline. If the goal isn't met, every contributor gets a full refund. Zero risk.",
+              desc: "Set a deadline from 30 days to 1 year, or no deadline at all. If a deadline passes without reaching the goal, every contributor gets a full refund. Zero risk.",
               gradient: "from-amber-500/10 to-orange-500/10",
               iconColor: "text-amber-400",
             },
