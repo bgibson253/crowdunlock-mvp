@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DmThread } from "@/components/forum/dm-thread";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Conversation",
+  description: "Private conversation on Unmaskr.",
+};
 
 export default async function ConversationPage({
   params,
