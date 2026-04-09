@@ -44,7 +44,12 @@ export function SendDmButton({
         recipient_id: recipientId,
         body: body.trim(),
       });
-      if (insertErr) throw insertErr;
+      if (insertErr) {
+        if (insertErr.message?.includes("blocked")) {
+          throw new Error("Cannot send messages to or from blocked users");
+        }
+        throw insertErr;
+      }
       setSent(true);
       setBody("");
       setTimeout(() => {

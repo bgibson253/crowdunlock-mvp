@@ -13,6 +13,8 @@ import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
 import { BlockUserButton } from "@/components/forum/block-user-button";
 import { AchievementBadges } from "@/components/engagement/achievement-badges";
 import { StreakIndicator } from "@/components/engagement/streak-indicator";
+import { ActivityFeed } from "@/components/profile/activity-feed";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { relativeTime } from "@/lib/relative-time";
 
 export const dynamic = "force-dynamic";
@@ -26,11 +28,27 @@ export async function generateMetadata({
   const supabase = await supabaseServer();
   const { data } = await supabase
     .from("profiles")
-    .select("display_name,username")
+    .select("display_name,username,bio")
     .eq("id", id)
     .maybeSingle();
   const name = data?.display_name ?? data?.username ?? "User";
-  return { title: `${name}'s Profile` };
+  const description = data?.bio?.slice(0, 160) ?? `${name}'s profile on Unmaskr.`;
+  return {
+    title: `${name}'s Profile`,
+    description,
+    openGraph: {
+      title: `${name} on Unmaskr`,
+      description,
+      type: "profile",
+      siteName: "Unmaskr",
+      url: `https://crowdunlock-mvp.vercel.app/profile/${id}`,
+    },
+    twitter: {
+      card: "summary",
+      title: `${name} on Unmaskr`,
+      description,
+    },
+  };
 }
 
 export default async function ProfilePage({
@@ -250,70 +268,92 @@ export default async function ProfilePage({
           </CardContent>
         </Card>
 
-        {/* Threads Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Threads ({(threads ?? []).length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {(threads ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No threads yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {(threads as any[]).map((t) => (
-                  <div key={t.id} className="flex items-start justify-between gap-2 py-2 border-b last:border-0">
-                    <div className="min-w-0">
-                      <Link href={`/forum/${t.id}`} className="text-sm font-medium hover:underline line-clamp-1">
-                        {t.title}
-                      </Link>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {t.section_id && sectionMap[t.section_id] && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                            {sectionMap[t.section_id]}
-                          </Badge>
-                        )}
+        {/* Tabbed sections: Activity / Threads / Replies */}
+        <Tabs defaultValue="activity" className="w-full">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="threads">Threads ({(threads ?? []).length})</TabsTrigger>
+            <TabsTrigger value="replies">Replies ({(replies ?? []).length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="activity">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ActivityFeed userId={id} isOwnProfile={isOwnProfile} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="threads">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Threads ({(threads ?? []).length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(threads ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No threads yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(threads as any[]).map((t) => (
+                      <div key={t.id} className="flex items-start justify-between gap-2 py-2 border-b last:border-0">
+                        <div className="min-w-0">
+                          <Link href={`/forum/${t.id}`} className="text-sm font-medium hover:underline line-clamp-1">
+                            {t.title}
+                          </Link>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {t.section_id && sectionMap[t.section_id] && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                {sectionMap[t.section_id]}
+                              </Badge>
+                            )}
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(t.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="replies">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Replies ({(replies ?? []).length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(replies ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No replies yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(replies as any[]).map((r) => (
+                      <div key={r.id} className="py-2 border-b last:border-0">
+                        <Link
+                          href={`/forum/${r.thread_id}`}
+                          className="text-xs text-primary hover:underline line-clamp-1"
+                        >
+                          {threadTitleMap[r.thread_id] ?? "Thread"}
+                        </Link>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+                          {r.body}
+                        </p>
                         <span className="text-[10px] text-muted-foreground">
-                          {new Date(t.created_at).toLocaleDateString()}
+                          {new Date(r.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Replies Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Replies ({(replies ?? []).length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {(replies ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No replies yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {(replies as any[]).map((r) => (
-                  <div key={r.id} className="py-2 border-b last:border-0">
-                    <Link
-                      href={`/forum/${r.thread_id}`}
-                      className="text-xs text-primary hover:underline line-clamp-1"
-                    >
-                      {threadTitleMap[r.thread_id] ?? "Thread"}
-                    </Link>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-                      {r.body}
-                    </p>
-                    <span className="text-[10px] text-muted-foreground">
-                      {new Date(r.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </main>
   );

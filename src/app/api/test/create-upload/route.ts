@@ -37,6 +37,7 @@ export async function POST(req: Request) {
   const tagsRaw = String(form.get("tags") ?? "");
   const unlockGoalRaw = String(form.get("unlock_goal") ?? "500");
   const contentType = String(form.get("content_type") ?? "story");
+  const categorySlug = String(form.get("category_slug") ?? "");
   const file = form.get("file");
 
   const unlockGoal = Number.parseInt(unlockGoalRaw, 10);
@@ -71,6 +72,17 @@ export async function POST(req: Request) {
   const { data: { user: authUser } } = await supabaseAuth.auth.getUser();
   const uploaderId: string | null = authUser?.id ?? null;
 
+  // Resolve category_id from slug
+  let categoryId: string | null = null;
+  if (categorySlug) {
+    const { data: catRow } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", categorySlug)
+      .maybeSingle();
+    if (catRow) categoryId = catRow.id;
+  }
+
   const ext = file.name.split(".").pop() || "bin";
   const objectName = `${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`;
   const filePath = `uploads/${objectName}`;
@@ -100,12 +112,19 @@ export async function POST(req: Request) {
       current_funded: 0,
       funding_goal: unlockGoal * 100,
       posting_fee_payment_intent_id: null,
+      category_id: categoryId,
     })
     .select("id")
     .single();
 
   if (insErr) {
     return NextResponse.json({ error: insErr.message }, { status: 400 });
+  }
+
+  // Save tags to upload_tags table
+  if (tags.length > 0 && uploadRow) {
+    const tagRows = tags.map((t) => ({ upload_id: uploadRow.id, tag: t.toLowerCase() }));
+    await supabase.from("upload_tags").insert(tagRows);
   }
 
   // Auto-create forum thread in the appropriate listed_* section.

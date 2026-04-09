@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { fetchCategories } from "@/lib/supabase/browse";
 import { UploadDraftForm } from "@/components/upload/upload-draft-form";
 
 export default async function UploadPage() {
@@ -10,6 +11,8 @@ export default async function UploadPage() {
 
   if (!user) redirect("/auth");
 
+  const categories = await fetchCategories();
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-3xl font-semibold tracking-tight">New upload</h1>
@@ -17,7 +20,7 @@ export default async function UploadPage() {
         Test mode: <span className="font-medium text-foreground">free + instant</span>. No payments.
       </p>
       <div className="mt-8">
-        <UploadDraftForm />
+        <UploadDraftForm categories={categories} />
       </div>
     </main>
   );

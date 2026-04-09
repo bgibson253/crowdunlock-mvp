@@ -23,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -36,6 +38,7 @@ const schema = z.object({
   content_type: z.enum(["story", "video", "data"], {
     message: "Pick a type",
   }),
+  category_slug: z.string().min(1, "Pick a category"),
   file: z
     .custom<File>((v) => v instanceof File, "File is required")
     .refine((f) => f.size <= 100 * 1024 * 1024, "Max 100MB"),
@@ -43,8 +46,17 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>;
 
-export function UploadDraftForm() {
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+};
+
+export function UploadDraftForm({ categories = [] }: { categories?: Category[] }) {
   const [error, setError] = React.useState<string | null>(null);
+  const [tagInput, setTagInput] = React.useState("");
+  const [tagList, setTagList] = React.useState<string[]>([]);
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -54,8 +66,35 @@ export function UploadDraftForm() {
       tags: "",
       unlock_goal: 500,
       content_type: "story",
+      category_slug: "",
     },
   });
+
+  function addTag(raw: string) {
+    const tag = raw.trim().toLowerCase();
+    if (tag && !tagList.includes(tag) && tagList.length < 10) {
+      const newTags = [...tagList, tag];
+      setTagList(newTags);
+      form.setValue("tags", newTags.join(","));
+    }
+    setTagInput("");
+  }
+
+  function removeTag(tag: string) {
+    const newTags = tagList.filter((t) => t !== tag);
+    setTagList(newTags);
+    form.setValue("tags", newTags.join(","));
+  }
+
+  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      addTag(tagInput);
+    }
+    if (e.key === "Backspace" && tagInput === "" && tagList.length > 0) {
+      removeTag(tagList[tagList.length - 1]);
+    }
+  }
 
   async function onSubmit(values: Values) {
     setError(null);
@@ -63,9 +102,10 @@ export function UploadDraftForm() {
     const body = new FormData();
     body.set("title", values.title);
     body.set("why_it_matters", values.why_it_matters);
-    body.set("tags", values.tags ?? "");
+    body.set("tags", tagList.join(","));
     body.set("unlock_goal", String(values.unlock_goal));
     body.set("content_type", values.content_type);
+    body.set("category_slug", values.category_slug);
     body.set("file", values.file);
 
     const res = await fetch("/api/test/create-upload", {
@@ -137,6 +177,31 @@ export function UploadDraftForm() {
 
           <FormField
             control={form.control}
+            name="category_slug"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c.slug} value={c.slug}>
+                        {c.icon} {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="unlock_goal"
             render={({ field }) => (
               <FormItem>
@@ -151,8 +216,7 @@ export function UploadDraftForm() {
                       const raw = e.target.value.replace(/\D/g, "");
                       const normalized = raw.replace(/^0+(?=\d)/, "");
                       field.onChange(normalized === "" ? 0 : Number(normalized));
-                    }
-                    }
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -178,19 +242,38 @@ export function UploadDraftForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="tags"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tags (comma-separated)</FormLabel>
-                <FormControl>
-                  <Input placeholder="biotech, finance, policy" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Tags with pill UI */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Tags</label>
+            <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-border/50 bg-card/50 px-3 py-2 min-h-[2.5rem]">
+              {tagList.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="gap-1 pr-1"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="rounded-full hover:bg-muted p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagKeyDown}
+                onBlur={() => { if (tagInput.trim()) addTag(tagInput); }}
+                placeholder={tagList.length === 0 ? "biotech, finance, policy…" : ""}
+                className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Press Enter or comma to add. Max 10.</p>
+          </div>
 
           <FormField
             control={form.control}

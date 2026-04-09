@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { isTestMode } from "@/lib/env";
@@ -10,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { RatingSection } from "@/components/uploads/rating-section";
 import { TestUnlockButton } from "@/components/uploads/test-unlock-button";
 import { ContributeCard } from "@/components/uploads/contribute-card";
+import { ReportUploadButton } from "@/components/uploads/report-upload-button";
+import { ShareButtons } from "@/components/ui/share-buttons";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +25,40 @@ type UploadRow = {
   current_funded: number | null;
   funding_goal: number | null;
   created_at: string;
+  uploader_id: string | null;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await supabaseServer();
+  const { data } = await supabase
+    .from("uploads")
+    .select("title,ai_teaser")
+    .eq("id", id)
+    .maybeSingle();
+  const title = data?.title ?? "Upload";
+  const description = data?.ai_teaser?.slice(0, 160) ?? "View this upload on Unmaskr.";
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      siteName: "Unmaskr",
+      url: `https://crowdunlock-mvp.vercel.app/uploads/${id}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
 export default async function UploadDetailPage({
   params,
@@ -60,7 +96,7 @@ export default async function UploadDetailPage({
 
   const { data: upload, error } = await supabase
     .from("uploads")
-    .select("id,title,status,ai_teaser,current_funded,funding_goal,created_at")
+    .select("id,title,status,ai_teaser,current_funded,funding_goal,created_at,uploader_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -74,6 +110,9 @@ export default async function UploadDetailPage({
 
   if (error) throw new Error(error.message);
   if (!upload) return notFound();
+
+  // Increment view count (fire-and-forget)
+  supabase.rpc("increment_upload_views", { p_upload_id: id }).then(() => {});
 
   const u = upload as UploadRow;
   const testMode = isTestMode();
@@ -92,7 +131,12 @@ export default async function UploadDetailPage({
               : "Help fund this upload to unlock it for everyone"}
           </p>
         </div>
-        <Badge variant="secondary">{u.status}</Badge>
+        <div className="flex items-center gap-2">
+          {user && u.uploader_id !== user.id && (
+            <ReportUploadButton uploadId={u.id} />
+          )}
+          <Badge variant="secondary">{u.status}</Badge>
+        </div>
       </div>
 
       <div className="mt-8 grid gap-4">
@@ -132,6 +176,10 @@ export default async function UploadDetailPage({
           fundingGoal={u.funding_goal ?? 500}
           unlocked={u.status === "unlocked"}
         />
+
+        <div className="flex items-center gap-2">
+          <ShareButtons url={`/uploads/${u.id}`} title={u.title} description={u.ai_teaser?.slice(0, 160)} />
+        </div>
 
         {u.status === "unlocked" ? (
           <>

@@ -10,6 +10,8 @@ import { Reactions } from "@/components/forum/reactions";
 import { FavoriteButton } from "@/components/forum/favorite-button";
 import { SubscribeButton } from "@/components/forum/subscribe-button";
 import { ShareButton } from "@/components/forum/share-button";
+import { ShareButtons } from "@/components/ui/share-buttons";
+import { getBlockedUserIdsServer } from "@/lib/user-safety";
 
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/forum/breadcrumbs";
@@ -26,11 +28,28 @@ export async function generateMetadata({
   const supabase = await supabaseServer();
   const { data } = await supabase
     .from("forum_threads")
-    .select("title")
+    .select("title,body")
     .eq("id", id)
     .maybeSingle();
+  const title = data?.title ?? "Thread";
+  const description = data?.body
+    ? data.body.replace(/[#*_~`>\[\]()!]/g, "").slice(0, 160)
+    : "Join the discussion on Unmaskr.";
   return {
-    title: data?.title ?? "Thread",
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      siteName: "Unmaskr",
+      url: `https://crowdunlock-mvp.vercel.app/forum/${id}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 
@@ -132,6 +151,14 @@ export default async function ForumThreadPage({
 
   const { data: authData } = await supabase.auth.getUser();
   const userId = authData.user?.id ?? null;
+
+  // Get blocked users to filter replies
+  const blockedIds = userId ? await getBlockedUserIdsServer(supabase, userId) : [];
+
+  // Filter out replies from blocked users
+  const filteredReplies = (replies ?? []).filter(
+    (r: any) => !blockedIds.includes(r.author_id)
+  );
 
   // Check if user is admin
   let isAdmin = false;
@@ -265,6 +292,7 @@ export default async function ForumThreadPage({
                     <FavoriteButton threadId={thread.id} userId={userId} />
                     <SubscribeButton threadId={thread.id} userId={userId} />
                     <ShareButton threadId={thread.id} title={thread.title} />
+                    <ShareButtons url={`/forum/${thread.id}`} title={thread.title} description={thread.body?.slice(0, 160)} />
                   </div>
                 </>
               )}
@@ -274,7 +302,7 @@ export default async function ForumThreadPage({
 
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">
-            {(replies?.filter((r: any) => !r.deleted_at).length ?? 0)} Repl{(replies?.filter((r: any) => !r.deleted_at).length ?? 0) === 1 ? "y" : "ies"}
+            {(filteredReplies.filter((r: any) => !r.deleted_at).length ?? 0)} Repl{(filteredReplies.filter((r: any) => !r.deleted_at).length ?? 0) === 1 ? "y" : "ies"}
           </h3>
         </div>
 
@@ -288,7 +316,7 @@ export default async function ForumThreadPage({
         )}
 
         <ThreadContent
-          replies={(replies ?? []) as any[]}
+          replies={filteredReplies as any[]}
           userId={userId}
           threadId={id}
           authorNames={authorNames}

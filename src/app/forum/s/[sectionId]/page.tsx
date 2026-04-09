@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { supabaseServer } from "@/lib/supabase/server";
+import { getBlockedUserIdsServer } from "@/lib/user-safety";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThreadListItem } from "@/components/forum/thread-list-item";
@@ -22,7 +23,7 @@ export default async function ForumSectionPage({
   const { page: pageStr, sort } = await searchParams;
   const page = Math.max(1, parseInt(pageStr || "1", 10));
   const offset = (page - 1) * PAGE_SIZE;
-  const sortMode = sort === "replied" || sort === "viewed" ? sort : "latest";
+  const sortMode = sort === "replied" || sort === "viewed" || sort === "reactions" || sort === "hot" ? sort : "latest";
 
   const supabase = await supabaseServer();
 
@@ -36,11 +37,20 @@ export default async function ForumSectionPage({
   if (!section) return notFound();
 
   // Fetch threads sorted by pinned first, then by sort mode
+  // Get blocked users for filtering
+  const { data: { user } } = await supabase.auth.getUser();
+  const blockedIds = user ? await getBlockedUserIdsServer(supabase, user.id) : [];
+
   let query = supabase
     .from("forum_threads")
-    .select("id,title,created_at,view_count,locked,pinned,deleted_at,last_activity_at", { count: "exact" })
+    .select("id,title,created_at,view_count,locked,pinned,deleted_at,last_activity_at,author_id", { count: "exact" })
     .eq("section_id", sectionId)
     .order("pinned", { ascending: false });
+
+  // Filter out blocked users' threads
+  if (blockedIds.length > 0) {
+    query = query.not("author_id", "in", `(${blockedIds.join(",")})`);
+  }
 
   if (sortMode === "viewed") {
     query = query.order("view_count", { ascending: false });
@@ -55,6 +65,7 @@ export default async function ForumSectionPage({
   // Fetch reply counts for these threads
   const threadIds = (threads ?? []).map((t: any) => t.id);
   let replyCounts: Record<string, number> = {};
+  let reactionCounts: Record<string, number> = {};
   if (threadIds.length > 0) {
     const { data: replyData } = await supabase
       .from("forum_replies")
@@ -67,21 +78,46 @@ export default async function ForumSectionPage({
         replyCounts[r.thread_id] = (replyCounts[r.thread_id] || 0) + 1;
       }
     }
+
+    // Fetch reaction counts for threads
+    const { data: reactionData } = await supabase
+      .from("forum_reactions")
+      .select("target_id")
+      .eq("target_type", "thread")
+      .in("target_id", threadIds);
+
+    if (reactionData) {
+      for (const r of reactionData as any[]) {
+        reactionCounts[r.target_id] = (reactionCounts[r.target_id] || 0) + 1;
+      }
+    }
   }
 
   const totalCount = count ?? 0;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  // If sorting by most replied, sort client-side
+  // If sorting by most replied/reactions/hot, sort client-side
   let sortedThreads = (threads ?? []) as any[];
   if (sortMode === "replied") {
     sortedThreads = [...sortedThreads].sort((a, b) => {
-      const ca = replyCounts[a.id] ?? 0;
-      const cb = replyCounts[b.id] ?? 0;
-      // Keep pinned at top
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;
-      return cb - ca;
+      return (replyCounts[b.id] ?? 0) - (replyCounts[a.id] ?? 0);
+    });
+  } else if (sortMode === "reactions") {
+    sortedThreads = [...sortedThreads].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return (reactionCounts[b.id] ?? 0) - (reactionCounts[a.id] ?? 0);
+    });
+  } else if (sortMode === "hot") {
+    // Hot = (replies + reactions) weighted toward recency
+    sortedThreads = [...sortedThreads].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      const scoreA = ((replyCounts[a.id] ?? 0) + (reactionCounts[a.id] ?? 0)) / (((Date.now() - new Date(a.created_at).getTime()) / 3600000) + 2);
+      const scoreB = ((replyCounts[b.id] ?? 0) + (reactionCounts[b.id] ?? 0)) / (((Date.now() - new Date(b.created_at).getTime()) / 3600000) + 2);
+      return scoreB - scoreA;
     });
   }
 
@@ -120,8 +156,15 @@ export default async function ForumSectionPage({
 
         {/* Sort pills */}
         <div className="mt-4 flex items-center gap-2">
-          {(["latest", "replied", "viewed"] as const).map((s) => {
-            const label = s === "latest" ? "Latest" : s === "replied" ? "Most replied" : "Most viewed";
+          {(["latest", "replied", "reactions", "hot", "viewed"] as const).map((s) => {
+            const labels: Record<string, string> = {
+              latest: "Latest",
+              replied: "Most Replies",
+              reactions: "Most Reactions",
+              hot: "Hot 🔥",
+              viewed: "Most Viewed",
+            };
+            const label = labels[s];
             const isActive = sortMode === s;
             const href = s === "latest"
               ? `/forum/s/${encodeURIComponent(sectionId)}`
