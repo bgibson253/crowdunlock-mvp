@@ -68,6 +68,7 @@ export function FavoriteButton({
       size="sm"
       onClick={toggle}
       disabled={loading}
+      aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
       className="h-8 gap-1.5 text-xs"
     >
       <Heart

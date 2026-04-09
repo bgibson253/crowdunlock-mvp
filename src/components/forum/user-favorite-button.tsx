@@ -55,6 +55,7 @@ export function UserFavoriteButton({ targetUserId }: { targetUserId: string }) {
       size="sm"
       onClick={toggle}
       disabled={loading}
+      aria-label={isFav ? "Remove user from favorites" : "Add user to favorites"}
       className="h-8 gap-1.5 text-xs"
     >
       <Heart

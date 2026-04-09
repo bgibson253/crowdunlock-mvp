@@ -38,6 +38,7 @@ export async function POST(req: Request) {
   const unlockGoalRaw = String(form.get("unlock_goal") ?? "500");
   const contentType = String(form.get("content_type") ?? "story");
   const categorySlug = String(form.get("category_slug") ?? "");
+  const unlockMode = String(form.get("unlock_mode") ?? "instant");
   const file = form.get("file");
 
   const unlockGoal = Number.parseInt(unlockGoalRaw, 10);
@@ -127,6 +128,7 @@ export async function POST(req: Request) {
       funding_goal: unlockGoal * 100,
       posting_fee_payment_intent_id: null,
       category_id: categoryId,
+      unlock_mode: ["instant","timed_24h","timed_48h","timed_7d","manual"].includes(unlockMode) ? unlockMode : "instant",
     })
     .select("id")
     .single();
@@ -166,6 +168,15 @@ export async function POST(req: Request) {
   // Check achievements for uploader
   if (authUser) {
     supabase.rpc("check_achievements", { p_user_id: authUser.id }).then(() => {});
+  }
+
+  // Auto-generate thumbnail (fire-and-forget)
+  if (uploadRow) {
+    fetch(new URL("/api/uploads/thumbnail", req.url).href, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ upload_id: uploadRow.id }),
+    }).catch(() => {});
   }
 
   return NextResponse.json({ ok: true, uploadId: uploadRow.id });

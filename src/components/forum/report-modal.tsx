@@ -74,11 +74,11 @@ export function ReportModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-label={`Report ${targetType}`}>
       <div className="bg-background border rounded-lg shadow-lg w-full max-w-md mx-4 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Report {targetType}</h3>
-          <button onClick={onClose} className="p-1 hover:bg-muted rounded">
+          <button onClick={onClose} aria-label="Close report dialog" className="p-1 hover:bg-muted rounded">
             <X className="h-4 w-4" />
           </button>
         </div>

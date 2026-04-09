@@ -61,6 +61,7 @@ export function UserSubscribeButton({ targetUserId }: { targetUserId: string }) 
       size="sm"
       onClick={toggle}
       disabled={loading}
+      aria-label={isSubscribed ? "Unsubscribe from user" : "Subscribe to user"}
       className="h-8 gap-1.5 text-xs"
     >
       {isSubscribed ? (

@@ -70,7 +70,7 @@ export function ReportUploadButton({ uploadId }: { uploadId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive">
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive" aria-label="Report upload">
           <Flag className="h-4 w-4" />
           Report
         </Button>

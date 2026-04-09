@@ -79,6 +79,7 @@ export function SubscribeButton({
       size="sm"
       onClick={toggle}
       disabled={loading}
+      aria-label={isSubscribed ? "Unsubscribe from thread" : "Subscribe to thread"}
       className="h-8 gap-1.5 text-xs"
     >
       {isSubscribed ? (

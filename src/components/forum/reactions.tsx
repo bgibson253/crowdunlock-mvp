@@ -135,6 +135,7 @@ export function Reactions({
           key={r.emoji}
           onClick={() => toggleReaction(r.emoji)}
           disabled={!userId}
+          aria-label={`React with ${r.emoji}, ${r.count} reaction${r.count !== 1 ? "s" : ""}${r.reacted ? " (selected)" : ""}`}
           className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition hover:bg-muted/50 ${
             r.reacted
               ? "border-primary/30 bg-primary/5 text-primary"
@@ -150,6 +151,7 @@ export function Reactions({
         <div className="relative">
           <button
             onClick={() => setShowPicker(!showPicker)}
+            aria-label="Add reaction"
             className="inline-flex items-center justify-center rounded-full border border-dashed border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-muted/50 transition"
           >
             +

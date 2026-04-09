@@ -163,7 +163,8 @@ export function MobileSheet({
               <Separator className="my-3 mx-2" />
               <SectionLabel>Admin</SectionLabel>
               <div className="space-y-0.5">
-                <NavLink href="/forum/reports" icon={Flag} label="Reports" onClick={close} variant="warning" />
+                <NavLink href="/admin" icon={BarChart3} label="Admin Dashboard" onClick={close} variant="warning" />
+                <NavLink href="/admin/reports" icon={Flag} label="Reports" onClick={close} variant="warning" />
               </div>
             </>
           )}

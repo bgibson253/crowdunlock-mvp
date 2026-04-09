@@ -48,6 +48,7 @@ export function FollowButton({
       size="sm"
       onClick={handleToggle}
       disabled={isPending}
+      aria-label={isFollowing ? "Unfollow user" : "Follow user"}
       className={isFollowing ? "hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30" : ""}
     >
       {isPending ? (

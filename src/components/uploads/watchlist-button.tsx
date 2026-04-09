@@ -50,6 +50,7 @@ export function WatchlistButton({
         onClick={handleToggle}
         disabled={isPending}
         title={isWatched ? "Remove from watchlist" : "Add to watchlist"}
+        aria-label={isWatched ? "Remove from watchlist" : "Add to watchlist"}
         className={cn(
           "inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors",
           isWatched

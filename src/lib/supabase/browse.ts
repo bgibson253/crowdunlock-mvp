@@ -22,6 +22,8 @@ export type BrowseUpload = {
   uploader_username: string | null;
   uploader_avatar_url: string | null;
   total_count: number;
+  thumbnail_url: string | null;
+  file_path: string | null;
 };
 
 export type Category = {

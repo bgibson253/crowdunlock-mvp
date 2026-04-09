@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're Offline — Unmaskr</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0f;
+      color: #e5e5f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container {
+      text-align: center;
+      max-width: 28rem;
+    }
+    .emoji { font-size: 4rem; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
+    p { color: #9ca3af; line-height: 1.6; margin-bottom: 1.5rem; }
+    .retry {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .retry:hover { background: #4f46e5; }
+    .brand {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="emoji">📡</div>
+    <h1>You're offline</h1>
+    <p>It looks like you've lost your internet connection. Check back when you're connected — the truth will still be here.</p>
+    <a href="/" class="retry" onclick="window.location.reload(); return false;">Try again</a>
+    <div class="brand">Unmaskr</div>
+  </div>
+</body>
+</html>

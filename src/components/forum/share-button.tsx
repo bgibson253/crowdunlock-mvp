@@ -33,6 +33,7 @@ export function ShareButton({ threadId, title }: { threadId: string; title: stri
       variant="outline"
       size="sm"
       onClick={handleShare}
+      aria-label="Share thread"
       className="border-border/50 text-muted-foreground hover:text-foreground text-xs gap-1.5"
     >
       <Share2 className="h-3.5 w-3.5" />

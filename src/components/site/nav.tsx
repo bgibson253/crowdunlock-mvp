@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export async function Nav() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60" role="banner">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <MobileSheet
@@ -46,6 +47,16 @@ export async function Nav() {
         </div>
 
         <div className="flex items-center gap-2">
+          {profile?.is_admin && (
+            <Link
+              href="/admin"
+              className="hidden sm:inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition-colors"
+              aria-label="Admin Dashboard"
+            >
+              <ShieldAlert className="h-3.5 w-3.5" />
+              <span>Admin</span>
+            </Link>
+          )}
           {user && <NotificationBell userId={user.id} />}
           {user ? (
             <form action="/auth/signout" method="post" className="hidden sm:block">

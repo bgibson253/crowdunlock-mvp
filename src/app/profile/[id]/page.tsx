@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 import { supabaseServer } from "@/lib/supabase/server";
@@ -174,9 +175,15 @@ export default async function ProfilePage({
         <Card>
           <CardContent className="p-0">
             {profile.banner_url ? (
-              <div className="h-32 w-full overflow-hidden rounded-t-xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={profile.banner_url} alt="Banner" className="h-full w-full object-cover" />
+              <div className="h-32 w-full overflow-hidden rounded-t-xl relative">
+                <Image
+                  src={profile.banner_url}
+                  alt="Profile banner"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 48rem"
+                  priority
+                />
               </div>
             ) : (
               <div className="h-32 w-full rounded-t-xl bg-gradient-to-r from-indigo-200 via-fuchsia-200 to-amber-100" />

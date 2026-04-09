@@ -149,7 +149,15 @@ export async function ActivityFeed({
 
   if (timeline.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground py-4">No activity yet.</p>
+      <div className="text-center py-6 space-y-3">
+        <div className="text-3xl">📊</div>
+        <p className="text-sm font-medium">No activity yet</p>
+        <p className="text-xs text-muted-foreground">
+          {isOwnProfile
+            ? "Start contributing, posting in the forum, or uploading content!"
+            : "This user hasn't been active yet."}
+        </p>
+      </div>
     );
   }
 

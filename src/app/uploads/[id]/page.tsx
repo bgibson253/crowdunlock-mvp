@@ -14,6 +14,9 @@ import { ContributeCard } from "@/components/uploads/contribute-card";
 import { ReportUploadButton } from "@/components/uploads/report-upload-button";
 import { WatchlistButton } from "@/components/uploads/watchlist-button";
 import { ShareButtons } from "@/components/ui/share-buttons";
+import { UnlockTimingBadge } from "@/components/uploads/unlock-timing-badge";
+import { ManualUnlockButton } from "@/components/uploads/manual-unlock-button";
+import { UploadUpdatesSection } from "@/components/uploads/upload-updates-section";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +30,9 @@ type UploadRow = {
   funding_goal: number | null;
   created_at: string;
   uploader_id: string | null;
+  unlock_mode: string | null;
+  unlock_at: string | null;
+  thumbnail_url: string | null;
 };
 
 export async function generateMetadata({
@@ -97,7 +103,7 @@ export default async function UploadDetailPage({
 
   const { data: upload, error } = await supabase
     .from("uploads")
-    .select("id,title,status,ai_teaser,current_funded,funding_goal,created_at,uploader_id")
+    .select("id,title,status,ai_teaser,current_funded,funding_goal,created_at,uploader_id,unlock_mode,unlock_at,thumbnail_url")
     .eq("id", id)
     .maybeSingle();
 
@@ -130,8 +136,19 @@ export default async function UploadDetailPage({
     isWatched = !!watchRow;
   }
 
+  // Fetch updates for this upload
+  const { data: updates } = await supabase
+    .from("upload_updates")
+    .select("id, title, body, created_at, author_id")
+    .eq("upload_id", id)
+    .order("created_at", { ascending: false });
+
   // Allow anyone to see funding uploads (not just test mode)
   if (u.status !== "unlocked" && u.status !== "funding") return notFound();
+
+  const isUploader = user?.id === u.uploader_id;
+  const isFullyFunded = (u.current_funded ?? 0) >= (u.funding_goal ?? 500);
+  const unlockMode = u.unlock_mode ?? "instant";
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -160,6 +177,29 @@ export default async function UploadDetailPage({
         </div>
       </div>
 
+      {/* Unlock Timing Info */}
+      {u.status !== "unlocked" && (
+        <div className="mt-4">
+          <UnlockTimingBadge
+            unlockMode={unlockMode}
+            unlockAt={u.unlock_at}
+            isFullyFunded={isFullyFunded}
+          />
+        </div>
+      )}
+
+      {/* Thumbnail preview */}
+      {u.thumbnail_url && (
+        <div className="mt-4 rounded-xl overflow-hidden border border-border/50">
+          <img
+            src={u.thumbnail_url}
+            alt={u.title}
+            className="w-full h-auto max-h-80 object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
+
       <div className="mt-8 grid gap-4">
         {testMode && u.status !== "unlocked" ? (
           <Card className="border-red-600/40">
@@ -171,6 +211,21 @@ export default async function UploadDetailPage({
             </CardContent>
           </Card>
         ) : null}
+
+        {/* Manual unlock for uploader */}
+        {isUploader && unlockMode === "manual" && isFullyFunded && u.status !== "unlocked" && (
+          <Card className="border-primary/40 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="text-base">🔓 Ready to Unlock</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Your upload is fully funded! Click below to unlock it for all contributors.
+              </p>
+              <ManualUnlockButton uploadId={u.id} />
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -220,6 +275,14 @@ export default async function UploadDetailPage({
             ) : null}
           </>
         ) : null}
+
+        {/* Backer Updates Section */}
+        <UploadUpdatesSection
+          uploadId={u.id}
+          uploaderId={u.uploader_id}
+          currentUserId={user?.id ?? null}
+          updates={updates ?? []}
+        />
       </div>
     </main>
   );

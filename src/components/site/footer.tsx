@@ -21,7 +21,7 @@ function GradientText({ children, className = "", as: Tag = "span" }: { children
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-border/50 bg-card/50 backdrop-blur-sm">
+    <footer className="relative border-t border-border/50 bg-card/50 backdrop-blur-sm" role="contentinfo">
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-10 sm:grid-cols-3">
           {/* Brand */}

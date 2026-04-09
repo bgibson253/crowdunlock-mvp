@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { fetchCategories, fetchBrowseUploads, searchUploads, type BrowseSort } from "@/lib/supabase/browse";
@@ -12,6 +13,7 @@ import { SortDropdown } from "@/components/uploads/sort-dropdown";
 import { TagSearch } from "@/components/uploads/tag-search";
 import { UploadSearch } from "@/components/uploads/upload-search";
 import { WatchlistButton } from "@/components/uploads/watchlist-button";
+import { UploadThumbnail } from "@/components/uploads/upload-thumbnail";
 import { isTestMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -201,6 +203,15 @@ export default async function BrowsePage({
                     key={u.id}
                     className="card-hover overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm"
                   >
+                    {/* Thumbnail / Image Preview */}
+                    <Link href={`/uploads/${u.id}`}>
+                      <UploadThumbnail
+                        thumbnailUrl={u.thumbnail_url}
+                        filePath={u.file_path}
+                        title={u.title}
+                        className="h-40 w-full"
+                      />
+                    </Link>
                     <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/60 to-primary/30" />
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-2">
@@ -246,7 +257,7 @@ export default async function BrowsePage({
                                 alt={u.uploader_username ?? "User"}
                               />
                             ) : null}
-                            <AvatarFallback>
+                            <AvatarFallback className="text-[10px]">
                               {(u.uploader_username ?? "U").slice(0, 1).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>

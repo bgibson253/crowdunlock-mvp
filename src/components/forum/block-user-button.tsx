@@ -51,6 +51,7 @@ export function BlockUserButton({
       size="sm"
       onClick={handleToggle}
       disabled={loading}
+      aria-label={blocked ? `Unblock ${targetName}` : `Block ${targetName}`}
       className="gap-1.5 text-xs"
     >
       {blocked ? (

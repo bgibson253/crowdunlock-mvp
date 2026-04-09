@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     // Verify upload exists and is in funding status
     const { data: upload, error: uploadErr } = await supabaseAdmin
       .from("uploads")
-      .select("id,status,current_funded,funding_goal")
+      .select("id,status,current_funded,funding_goal,unlock_mode,uploader_id")
       .eq("id", upload_id)
       .maybeSingle();
 
@@ -91,8 +91,29 @@ export async function POST(req: NextRequest) {
     const newFunded = (upload.current_funded ?? 0) + amountCents;
     const updates: Record<string, any> = { current_funded: newFunded };
 
-    if (upload.funding_goal && newFunded >= upload.funding_goal) {
-      updates.status = "unlocked";
+    // Determine unlock behavior based on unlock_mode
+    const justFullyFunded = upload.funding_goal && newFunded >= upload.funding_goal && (upload.current_funded ?? 0) < upload.funding_goal;
+    if (justFullyFunded) {
+      const mode = upload.unlock_mode ?? "instant";
+      const now = new Date();
+      switch (mode) {
+        case "instant":
+          updates.status = "unlocked";
+          updates.unlock_at = now.toISOString();
+          break;
+        case "timed_24h":
+          updates.unlock_at = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case "timed_48h":
+          updates.unlock_at = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
+          break;
+        case "timed_7d":
+          updates.unlock_at = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case "manual":
+          // Don't set unlock_at — uploader manually unlocks
+          break;
+      }
     }
 
     await supabaseAdmin.from("uploads").update(updates).eq("id", upload_id);
@@ -100,15 +121,10 @@ export async function POST(req: NextRequest) {
     // Check achievements for the contributor
     supabaseAdmin.rpc("check_achievements", { p_user_id: user.id }).then(() => {});
 
-    // If upload just got funded, check achievements for the uploader too
-    if (updates.status === "unlocked") {
-      const { data: uploadFull } = await supabaseAdmin
-        .from("uploads")
-        .select("uploader_id")
-        .eq("id", upload_id)
-        .maybeSingle();
-      if (uploadFull?.uploader_id) {
-        supabaseAdmin.rpc("check_achievements", { p_user_id: uploadFull.uploader_id }).then(() => {});
+    // If upload just got funded (any mode), check achievements for uploader
+    if (justFullyFunded) {
+      if (upload.uploader_id) {
+        supabaseAdmin.rpc("check_achievements", { p_user_id: upload.uploader_id }).then(() => {});
       }
     }
 

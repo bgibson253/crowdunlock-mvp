@@ -39,6 +39,7 @@ const schema = z.object({
     message: "Pick a type",
   }),
   category_slug: z.string().min(1, "Pick a category"),
+  unlock_mode: z.enum(["instant", "timed_24h", "timed_48h", "timed_7d", "manual"]),
   file: z
     .custom<File>((v) => v instanceof File, "File is required")
     .refine((f) => f.size <= 100 * 1024 * 1024, "Max 100MB"),
@@ -67,6 +68,7 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
       unlock_goal: 500,
       content_type: "story",
       category_slug: "",
+      unlock_mode: "instant",
     },
   });
 
@@ -106,6 +108,7 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
     body.set("unlock_goal", String(values.unlock_goal));
     body.set("content_type", values.content_type);
     body.set("category_slug", values.category_slug);
+    body.set("unlock_mode", values.unlock_mode);
     body.set("file", values.file);
 
     const res = await fetch("/api/test/create-upload", {
@@ -219,6 +222,31 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
                     }}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="unlock_mode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unlock Timing</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="When should content unlock?" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="instant">Instant (unlocks as soon as fully funded)</SelectItem>
+                    <SelectItem value="timed_24h">24 hours after funded</SelectItem>
+                    <SelectItem value="timed_48h">48 hours after funded</SelectItem>
+                    <SelectItem value="timed_7d">7 days after funded</SelectItem>
+                    <SelectItem value="manual">Manual (you unlock it yourself)</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
