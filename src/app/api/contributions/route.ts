@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     // Verify upload exists and is in funding status
     const { data: upload, error: uploadErr } = await supabaseAdmin
       .from("uploads")
-      .select("id,status,current_funded,funding_goal,unlock_mode,uploader_id")
+      .select("id,status,current_funded,funding_goal,funding_deadline,deadline_at,uploader_id")
       .eq("id", upload_id)
       .maybeSingle();
 
@@ -73,6 +73,11 @@ export async function POST(req: NextRequest) {
 
     if (upload.status !== "funding") {
       return NextResponse.json({ error: "Upload is not accepting contributions" }, { status: 400 });
+    }
+
+    // Check if funding deadline has passed
+    if (upload.deadline_at && new Date(upload.deadline_at) < new Date()) {
+      return NextResponse.json({ error: "Funding deadline has passed — contributions are no longer accepted" }, { status: 400 });
     }
 
     // Insert contribution (amount stored in cents)
@@ -91,29 +96,10 @@ export async function POST(req: NextRequest) {
     const newFunded = (upload.current_funded ?? 0) + amountCents;
     const updates: Record<string, any> = { current_funded: newFunded };
 
-    // Determine unlock behavior based on unlock_mode
+    // Determine unlock behavior — fully funded means instant unlock
     const justFullyFunded = upload.funding_goal && newFunded >= upload.funding_goal && (upload.current_funded ?? 0) < upload.funding_goal;
     if (justFullyFunded) {
-      const mode = upload.unlock_mode ?? "instant";
-      const now = new Date();
-      switch (mode) {
-        case "instant":
-          updates.status = "unlocked";
-          updates.unlock_at = now.toISOString();
-          break;
-        case "timed_24h":
-          updates.unlock_at = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
-          break;
-        case "timed_48h":
-          updates.unlock_at = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
-          break;
-        case "timed_7d":
-          updates.unlock_at = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
-          break;
-        case "manual":
-          // Don't set unlock_at — uploader manually unlocks
-          break;
-      }
+      updates.status = "unlocked";
     }
 
     await supabaseAdmin.from("uploads").update(updates).eq("id", upload_id);

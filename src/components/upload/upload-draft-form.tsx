@@ -39,7 +39,7 @@ const schema = z.object({
     message: "Pick a type",
   }),
   category_slug: z.string().min(1, "Pick a category"),
-  unlock_mode: z.enum(["instant", "timed_24h", "timed_48h", "timed_7d", "manual"]),
+  funding_deadline: z.enum(["30d", "60d", "90d", "180d", "365d", "none"]),
   file: z
     .custom<File>((v) => v instanceof File, "File is required")
     .refine((f) => f.size <= 100 * 1024 * 1024, "Max 100MB"),
@@ -68,7 +68,7 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
       unlock_goal: 500,
       content_type: "story",
       category_slug: "",
-      unlock_mode: "instant",
+      funding_deadline: "90d",
     },
   });
 
@@ -108,7 +108,7 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
     body.set("unlock_goal", String(values.unlock_goal));
     body.set("content_type", values.content_type);
     body.set("category_slug", values.category_slug);
-    body.set("unlock_mode", values.unlock_mode);
+    body.set("funding_deadline", values.funding_deadline);
     body.set("file", values.file);
 
     const res = await fetch("/api/test/create-upload", {
@@ -229,22 +229,26 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
 
           <FormField
             control={form.control}
-            name="unlock_mode"
+            name="funding_deadline"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Unlock Timing</FormLabel>
+                <FormLabel>Funding Deadline</FormLabel>
+                <p className="text-xs text-muted-foreground">
+                  How long do contributors have to fully fund this upload? If the goal isn&apos;t met by the deadline, all contributions are refunded.
+                </p>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="When should content unlock?" />
+                      <SelectValue placeholder="Choose a funding deadline" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="instant">Instant (unlocks as soon as fully funded)</SelectItem>
-                    <SelectItem value="timed_24h">24 hours after funded</SelectItem>
-                    <SelectItem value="timed_48h">48 hours after funded</SelectItem>
-                    <SelectItem value="timed_7d">7 days after funded</SelectItem>
-                    <SelectItem value="manual">Manual (you unlock it yourself)</SelectItem>
+                    <SelectItem value="30d">30 days</SelectItem>
+                    <SelectItem value="60d">60 days</SelectItem>
+                    <SelectItem value="90d">90 days (recommended)</SelectItem>
+                    <SelectItem value="180d">6 months</SelectItem>
+                    <SelectItem value="365d">1 year</SelectItem>
+                    <SelectItem value="none">No deadline (open-ended)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

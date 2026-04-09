@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const unlockGoalRaw = String(form.get("unlock_goal") ?? "500");
   const contentType = String(form.get("content_type") ?? "story");
   const categorySlug = String(form.get("category_slug") ?? "");
-  const unlockMode = String(form.get("unlock_mode") ?? "instant");
+  const fundingDeadline = String(form.get("funding_deadline") ?? "90d");
   const file = form.get("file");
 
   const unlockGoal = Number.parseInt(unlockGoalRaw, 10);
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
       funding_goal: unlockGoal * 100,
       posting_fee_payment_intent_id: null,
       category_id: categoryId,
-      unlock_mode: ["instant","timed_24h","timed_48h","timed_7d","manual"].includes(unlockMode) ? unlockMode : "instant",
+      funding_deadline: ["30d","60d","90d","180d","365d","none"].includes(fundingDeadline) ? fundingDeadline : "90d",
     })
     .select("id")
     .single();

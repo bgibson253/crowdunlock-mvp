@@ -30,8 +30,8 @@ type UploadRow = {
   funding_goal: number | null;
   created_at: string;
   uploader_id: string | null;
-  unlock_mode: string | null;
-  unlock_at: string | null;
+  funding_deadline: string | null;
+  deadline_at: string | null;
   thumbnail_url: string | null;
 };
 
@@ -103,7 +103,7 @@ export default async function UploadDetailPage({
 
   const { data: upload, error } = await supabase
     .from("uploads")
-    .select("id,title,status,ai_teaser,current_funded,funding_goal,created_at,uploader_id,unlock_mode,unlock_at,thumbnail_url")
+    .select("id,title,status,ai_teaser,current_funded,funding_goal,created_at,uploader_id,funding_deadline,deadline_at,thumbnail_url")
     .eq("id", id)
     .maybeSingle();
 
@@ -148,7 +148,7 @@ export default async function UploadDetailPage({
 
   const isUploader = user?.id === u.uploader_id;
   const isFullyFunded = (u.current_funded ?? 0) >= (u.funding_goal ?? 500);
-  const unlockMode = u.unlock_mode ?? "instant";
+  const fundingDeadline = u.funding_deadline ?? "none";
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -177,16 +177,15 @@ export default async function UploadDetailPage({
         </div>
       </div>
 
-      {/* Unlock Timing Info */}
-      {u.status !== "unlocked" && (
-        <div className="mt-4">
-          <UnlockTimingBadge
-            unlockMode={unlockMode}
-            unlockAt={u.unlock_at}
-            isFullyFunded={isFullyFunded}
-          />
-        </div>
-      )}
+      {/* Funding Deadline Info */}
+      <div className="mt-4">
+        <UnlockTimingBadge
+          fundingDeadline={fundingDeadline}
+          deadlineAt={u.deadline_at}
+          isFullyFunded={isFullyFunded}
+          status={u.status}
+        />
+      </div>
 
       {/* Thumbnail preview */}
       {u.thumbnail_url && (
@@ -213,7 +212,7 @@ export default async function UploadDetailPage({
         ) : null}
 
         {/* Manual unlock for uploader */}
-        {isUploader && unlockMode === "manual" && isFullyFunded && u.status !== "unlocked" && (
+        {isUploader && isFullyFunded && u.status !== "unlocked" && (
           <Card className="border-primary/40 bg-primary/5">
             <CardHeader>
               <CardTitle className="text-base">🔓 Ready to Unlock</CardTitle>
