@@ -5,7 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { AdminUserList } from "@/components/admin/admin-user-list";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "User Management — Admin" };
+export const metadata: Metadata = { title: "User Management (Admin)" };
 
 export default async function AdminUsersPage({
   searchParams,

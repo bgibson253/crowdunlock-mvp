@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Unmaskr privacy policy — how we collect, use, store, and protect your personal data.",
+    "Unmaskr privacy policy: how we collect, use, store, and protect your personal data.",
 };
 
 /* ────────────────────────────────────────────────
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
             <li><strong>Profile details:</strong> Display name, avatar image, bio, location, and social-media links you choose to add.</li>
             <li><strong>User-generated content:</strong> Forum threads, replies, reactions, blog posts, uploads, and related metadata.</li>
             <li><strong>Direct messages:</strong> Messages sent via our DM feature are <strong>end-to-end encrypted</strong> (ECDH P-256&nbsp;+&nbsp;AES-256-GCM). We store only the ciphertext; we cannot read your messages.</li>
-            <li><strong>Financial information:</strong> When you make a contribution, payment details are collected and processed directly by our payment processor (Stripe). We receive only a transaction identifier, the amount, and confirmation of success — <em>never</em> your full card number.</li>
+            <li><strong>Financial information:</strong> When you make a contribution, payment details are collected and processed directly by our payment processor (Stripe). We receive only a transaction identifier, the amount, and confirmation of success. We <em>never</em> see your full card number.</li>
             <li><strong>Communications with us:</strong> Content of emails, DMCA notices, or contact-form submissions you send to our team.</li>
           </ul>
 
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
                 <tr className="border-b border-border/30">
                   <td className="py-2 pr-4 font-medium text-foreground">Essential</td>
                   <td className="py-2 pr-4">Authentication, session management, CSRF protection, cookie-consent preference</td>
-                  <td className="py-2">No — required for core functionality</td>
+                  <td className="py-2">No (required for core functionality)</td>
                 </tr>
                 <tr className="border-b border-border/30">
                   <td className="py-2 pr-4 font-medium text-foreground">Functional</td>
@@ -156,7 +156,7 @@ export default function PrivacyPage() {
           <p>Where applicable (e.g., under the GDPR), we rely on the following legal bases:</p>
           <ul className="list-disc list-outside ml-5 space-y-1">
             <li><strong>Contract performance:</strong> Processing necessary to provide you the services you signed up for (account management, content hosting, payments).</li>
-            <li><strong>Legitimate interests:</strong> Security, fraud prevention, product improvement, and enforcing our terms — balanced against your privacy rights.</li>
+            <li><strong>Legitimate interests:</strong> Security, fraud prevention, product improvement, and enforcing our terms, balanced against your privacy rights.</li>
             <li><strong>Consent:</strong> Optional analytics cookies and marketing emails, which you can withdraw at any time.</li>
             <li><strong>Legal obligation:</strong> Compliance with applicable laws, regulations, or valid legal processes.</li>
           </ul>
@@ -184,7 +184,7 @@ export default function PrivacyPage() {
           <ul className="list-disc list-outside ml-5 space-y-1">
             <li><strong>Service providers:</strong> Trusted vendors who process data on our behalf under strict contractual obligations (see Section 7).</li>
             <li><strong>Legal requirements:</strong> When required by law, regulation, subpoena, or court order, or to protect the rights, safety, or property of Unmaskr and its users.</li>
-            <li><strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets — your data would remain subject to the protections in this policy.</li>
+            <li><strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets. Your data would remain subject to the protections in this policy.</li>
             <li><strong>Aggregated data:</strong> We may share anonymized, aggregated statistics that cannot reasonably be used to identify you.</li>
           </ul>
         </Section>

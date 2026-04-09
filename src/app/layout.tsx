@@ -24,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Unmaskr — You Decide What Gets Uncovered",
+    default: "Unmaskr | You Decide What Gets Uncovered",
     template: "%s | Unmaskr",
   },
   description: "Crowdfund and unlock journalism, data, and stories for the public. Join the community.",

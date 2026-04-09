@@ -115,7 +115,7 @@ export function DmThread({
             // Actually for ECDH: sender uses (sender_priv, recipient_pub) → same as recipient uses (recipient_priv, sender_pub)
             // So we always use the OTHER person's public key + our private key
             if (!otherPubKey) {
-              results[m.id] = "[Cannot decrypt — recipient key unavailable]";
+              results[m.id] = "[Cannot decrypt. Recipient key unavailable.]";
               continue;
             }
 
@@ -266,7 +266,7 @@ export function DmThread({
               End-to-end encrypted
             </span>
             <span className="text-muted-foreground">
-              — Messages are encrypted on your device. Only you and {recipientName} can read them.
+              Messages are encrypted on your device. Only you and {recipientName} can read them.
             </span>
           </>
         ) : (
@@ -276,7 +276,7 @@ export function DmThread({
               Not encrypted
             </span>
             <span className="text-muted-foreground">
-              — {recipientName} hasn't set up encryption yet. Messages are stored in plaintext.
+              {recipientName} hasn&apos;t set up encryption yet. Messages are stored in plaintext.
             </span>
           </>
         )}

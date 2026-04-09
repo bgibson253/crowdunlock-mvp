@@ -151,7 +151,7 @@ async function handleDigest(req: NextRequest) {
       const displayName = profile.display_name || profile.username || "there";
       await sendEmail({
         to: authUser.user.email,
-        subject: `Your ${freq} Unmaskr digest — ${notifications.length} new notification${notifications.length > 1 ? "s" : ""}`,
+        subject: `Your ${freq} Unmaskr digest: ${notifications.length} new notification${notifications.length > 1 ? "s" : ""}`,
         html: digestEmailHtml(displayName, groups, notifications.length),
       });
 

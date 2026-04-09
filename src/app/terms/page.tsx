@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Unmaskr terms of service — rules for using the platform.",
+  description: "Unmaskr terms of service: rules for using the platform.",
 };
 
 export default function TermsPage() {
@@ -79,7 +79,7 @@ export default function TermsPage() {
         <h2>9. Direct Messages</h2>
         <p>
           Direct messages are end-to-end encrypted. Unmaskr cannot read your encrypted messages.
-          The same content policies apply to DMs — abuse reported by recipients will be investigated.
+          The same content policies apply to DMs. Abuse reported by recipients will be investigated.
         </p>
 
         <h2>10. Termination</h2>

@@ -22,12 +22,12 @@ const faqs = [
   {
     icon: HelpCircle,
     q: "What is Unmaskr?",
-    a: "Unmaskr is a platform where the community crowdfunds content — investigations, data, documents, stories. Once the funding goal is met, the content is unlocked publicly for everyone.",
+    a: "Unmaskr is a platform where the community crowdfunds content: investigations, data, documents, and stories. Once the funding goal is met, the content is unlocked publicly for everyone.",
   },
   {
     icon: DollarSign,
     q: "How does crowdfunding work?",
-    a: "Content creators set a funding goal. Anyone can contribute. Once the goal is reached, the content unlocks publicly for everyone — not just contributors. If the goal isn't met within the deadline, contributions are refunded.",
+    a: "Content creators set a funding goal. Anyone can contribute. Once the goal is reached, the content unlocks publicly for everyone, not just contributors. If the goal isn't met within the deadline, contributions are refunded.",
   },
   {
     icon: Shield,

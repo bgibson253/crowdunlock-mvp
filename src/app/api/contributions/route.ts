@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     // Check if funding deadline has passed
     if (upload.deadline_at && new Date(upload.deadline_at) < new Date()) {
-      return NextResponse.json({ error: "Funding deadline has passed — contributions are no longer accepted" }, { status: 400 });
+      return NextResponse.json({ error: "Funding deadline has passed. Contributions are no longer accepted." }, { status: 400 });
     }
 
     // Insert contribution (amount stored in cents)

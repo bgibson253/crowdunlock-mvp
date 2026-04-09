@@ -6,7 +6,7 @@ export function ForumEmptyState() {
       <CardContent className="py-10">
         <div className="text-sm font-medium">No threads yet</div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Be the first—request content, ask a question, or share what you want
+          Be the first! Request content, ask a question, or share what you want
           unlocked next.
         </p>
         <div className="mt-6 grid gap-3">

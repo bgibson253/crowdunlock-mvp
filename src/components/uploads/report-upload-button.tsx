@@ -56,7 +56,7 @@ export function ReportUploadButton({ uploadId }: { uploadId: string }) {
         }
         return;
       }
-      toast.success("Report submitted — thank you");
+      toast.success("Report submitted. Thank you!");
       setOpen(false);
       setReason("");
       setDetails("");

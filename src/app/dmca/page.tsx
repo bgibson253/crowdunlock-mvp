@@ -23,7 +23,7 @@ export default function DmcaPage() {
         <div className="prose prose-sm dark:prose-invert mb-8">
           <h2 className="text-lg font-semibold">Before You File</h2>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>Ensure the content actually infringes your copyright — fair use, commentary, and criticism are protected</li>
+            <li>Ensure the content actually infringes your copyright. Fair use, commentary, and criticism are protected.</li>
             <li>Filing a false DMCA claim is perjury under federal law (17 U.S.C. § 512(f))</li>
             <li>Consider reaching out to the uploader directly first</li>
           </ul>

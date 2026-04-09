@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Community Guidelines",
-  description: "Unmaskr community guidelines — rules for participation.",
+  description: "Unmaskr community guidelines: rules for participation.",
 };
 
 export default function GuidelinesPage() {
@@ -20,11 +20,11 @@ export default function GuidelinesPage() {
 
         <h2>🟢 What We Encourage</h2>
         <ul>
-          <li><strong>Substantive discussion</strong> — back up claims with sources</li>
-          <li><strong>Constructive disagreement</strong> — challenge ideas, not people</li>
-          <li><strong>Original research and investigation</strong> — the core of what Unmaskr is about</li>
-          <li><strong>Helping new members</strong> — everyone starts somewhere</li>
-          <li><strong>Responsible disclosure</strong> — consider the impact of what you share</li>
+          <li><strong>Substantive discussion:</strong> back up claims with sources</li>
+          <li><strong>Constructive disagreement:</strong> challenge ideas, not people</li>
+          <li><strong>Original research and investigation:</strong> the core of what Unmaskr is about</li>
+          <li><strong>Helping new members:</strong> everyone starts somewhere</li>
+          <li><strong>Responsible disclosure:</strong> consider the impact of what you share</li>
         </ul>
 
         <h2>🔴 What&apos;s Not Allowed</h2>
@@ -32,7 +32,7 @@ export default function GuidelinesPage() {
         <h3>Harassment &amp; Abuse</h3>
         <p>
           No targeted abuse, threats, bullying, or doxxing. Disagreement is fine; personal attacks are not.
-          This includes DMs — abuse reported by recipients will be investigated.
+          This includes DMs. Abuse reported by recipients will be investigated.
         </p>
 
         <h3>Hate Speech</h3>
@@ -50,7 +50,7 @@ export default function GuidelinesPage() {
         <h3>Misinformation</h3>
         <p>
           Presenting demonstrably false claims as established fact is not allowed. Speculation and
-          opinion are fine — just be clear about what&apos;s verified and what&apos;s not.
+          opinion are fine, but be clear about what&apos;s verified and what&apos;s not.
         </p>
 
         <h3>NSFW Content</h3>
@@ -113,11 +113,11 @@ export default function GuidelinesPage() {
 
         <h2>🚨 Account Penalties</h2>
         <ul>
-          <li><strong>Warning:</strong> First minor offense — content removed, written warning issued</li>
-          <li><strong>Temporary mute:</strong> Repeated minor violations — posting restricted for 24–72 hours</li>
-          <li><strong>Temporary suspension:</strong> Continued violations — account access restricted for 7–30 days</li>
-          <li><strong>Trust level reduction:</strong> Violations may reduce your trust level and remove earned privileges</li>
-          <li><strong>Permanent ban:</strong> Severe violations (threats, doxxing, illegal content, CSAM) — immediate and permanent</li>
+          <li><strong>Warning:</strong> First minor offense. Content removed, written warning issued.</li>
+          <li><strong>Temporary mute:</strong> Repeated minor violations. Posting restricted for 24 to 72 hours.</li>
+          <li><strong>Temporary suspension:</strong> Continued violations. Account access restricted for 7 to 30 days.</li>
+          <li><strong>Trust level reduction:</strong> Violations may reduce your trust level and remove earned privileges.</li>
+          <li><strong>Permanent ban:</strong> Severe violations (threats, doxxing, illegal content, CSAM). Immediate and permanent.</li>
         </ul>
         <p>
           All moderation actions can be appealed via{" "}

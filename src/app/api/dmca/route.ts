@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     // Send confirmation email
     await sendEmail({
       to: claimant_email,
-      subject: "DMCA Takedown Notice Received — Unmaskr",
+      subject: "DMCA Takedown Notice Received: Unmaskr",
       html: dmcaConfirmationHtml(claimant_name),
     });
 

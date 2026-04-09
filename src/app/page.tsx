@@ -22,11 +22,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Unmaskr — Crowdfunded Truth, AI-Verified",
+  title: "Unmaskr: Crowdfunded Truth, AI-Verified",
   description:
     "The crowdfunding platform where communities fund the stories, data, and documents that matter. AI-powered moderation keeps it real. End-to-end encryption keeps it private.",
   openGraph: {
-    title: "Unmaskr — Crowdfunded Truth, AI-Verified",
+    title: "Unmaskr: Crowdfunded Truth, AI-Verified",
     description:
       "Communities fund the stories that matter. AI moderation. E2E encrypted DMs. Transparent trust levels.",
     type: "website",
@@ -191,7 +191,7 @@ export default async function HomePage() {
               step: "01",
               icon: FileSearch,
               title: "Upload or Request",
-              desc: "Someone uploads a document, story, or dataset — or the community requests one. Set a funding goal and deadline.",
+              desc: "Someone uploads a document, story, or dataset (or the community requests one). Set a funding goal and deadline.",
               color: "text-blue-400",
             },
             {
@@ -205,7 +205,7 @@ export default async function HomePage() {
               step: "03",
               icon: Brain,
               title: "AI Verifies",
-              desc: "Our AI moderation system reviews content for quality, flags issues, and builds trust scores — transparently.",
+              desc: "Our AI moderation system reviews content for quality, flags issues, and builds trust scores. Fully transparent.",
               color: "text-purple-400",
             },
             {
@@ -257,7 +257,7 @@ export default async function HomePage() {
             </h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
               Most platforms use AI to suppress. Unmaskr uses it to protect. Our AI moderation system
-              is transparent, auditable, and disputable — designed to keep the forum clean without
+              is transparent, auditable, and disputable. It's designed to keep the forum clean without
               censoring truth.
             </p>
 
@@ -280,7 +280,7 @@ export default async function HomePage() {
                 },
                 {
                   title: "Trust Levels",
-                  desc: "AI + community behavior builds your trust score. Higher trust unlocks more features — image uploads, video embeds, advanced formatting.",
+                  desc: "AI + community behavior builds your trust score. Higher trust unlocks more features: image uploads, video embeds, and advanced formatting.",
                   icon: TrendingUp,
                 },
               ].map((item) => (
@@ -322,7 +322,7 @@ export default async function HomePage() {
                   },
                   {
                     action: "approved",
-                    content: "Upload: Leaked internal memo — verified format",
+                    content: "Upload: Leaked internal memo (verified format)",
                     confidence: "95%",
                     color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
                   },
@@ -407,14 +407,14 @@ export default async function HomePage() {
             {
               icon: Shield,
               title: "Trust Levels",
-              desc: "Earn trust through participation — from Newbie to Leader. Higher levels unlock images, video embeds, and moderation privileges.",
+              desc: "Earn trust through participation, from Newbie to Leader. Higher levels unlock images, video embeds, and moderation privileges.",
               gradient: "from-purple-500/10 to-violet-500/10",
               iconColor: "text-purple-400",
             },
             {
               icon: Zap,
               title: "Instant Unlock",
-              desc: "The moment funding hits 100%, content goes public for everyone — not just contributors. No delays, no gatekeepers.",
+              desc: "The moment funding hits 100%, content goes public for everyone, not just contributors. No delays, no gatekeepers.",
               gradient: "from-yellow-500/10 to-amber-500/10",
               iconColor: "text-yellow-400",
             },
@@ -465,7 +465,7 @@ export default async function HomePage() {
                 "End-to-end encryption on all private messages.",
                 "Full refunds if funding deadlines aren't met.",
                 "No third-party tracking pixels or ad networks.",
-                "Open trust system — your level is earned, never bought.",
+                "Open trust system. Your level is earned, never bought.",
                 "DMCA process for legitimate takedowns.",
                 "You can delete your account and data anytime.",
               ].map((commitment) => (
@@ -537,7 +537,7 @@ export default async function HomePage() {
             </h2>
             <p className="mt-4 text-muted-foreground max-w-lg mx-auto leading-relaxed">
               Join a community that puts its money where its curiosity is. Whether you&rsquo;re
-              uploading evidence, requesting documents, or funding the next big revelation — this
+              uploading evidence, requesting documents, or funding the next big revelation. This
               is where it starts.
             </p>
 

@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         const html = updateEmailHtml(upload.title, title, uploadUrl);
         await sendEmail({
           to: authUser.user.email,
-          subject: `New update on "${upload.title}" — ${title}`,
+          subject: `New update on "${upload.title}": ${title}`,
           html,
         });
         sentCount++;

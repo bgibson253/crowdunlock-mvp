@@ -81,7 +81,7 @@ export function UnlockTimingBadge({
       <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-4 py-3">
         <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
         <span className="text-sm font-medium text-red-400">
-          Funding deadline reached — contributions will be refunded
+          Funding deadline reached. Contributions will be refunded.
         </span>
       </div>
     );
@@ -102,7 +102,7 @@ export function UnlockTimingBadge({
         </span>
         {isUrgent && (
           <span className="text-xs text-amber-400/70 ml-1">
-            — unfunded contributions will be refunded
+            (unfunded contributions will be refunded)
           </span>
         )}
       </div>
