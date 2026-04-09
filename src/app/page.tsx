@@ -22,13 +22,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Unmaskr: Crowdfunded Truth, AI-Verified",
+  title: "Unmaskr: Crowdfunded Content, AI-Verified",
   description:
-    "The crowdfunding platform where communities fund the stories, data, and documents that matter. AI-powered moderation keeps it real. End-to-end encryption keeps it private.",
+    "The crowdfunding platform where communities fund the stories, data, and content that matter. AI-powered moderation keeps it fair. End-to-end encryption keeps it private.",
   openGraph: {
-    title: "Unmaskr: Crowdfunded Truth, AI-Verified",
+    title: "Unmaskr: Crowdfunded Content, AI-Verified",
     description:
-      "Communities fund the stories that matter. AI moderation. E2E encrypted DMs. Transparent trust levels.",
+      "Communities fund the content that matters. AI moderation. E2E encrypted DMs. Transparent trust levels.",
     type: "website",
     siteName: "Unmaskr",
   },
@@ -98,9 +98,8 @@ export default async function HomePage() {
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-center text-lg text-muted-foreground leading-relaxed sm:text-xl">
-          Unmaskr is where communities pool funds to unlock stories, data, documents, and videos that
-          powerful people don&rsquo;t want you to see. AI guards the gates. Encryption protects your
-          identity.
+          Unmaskr is where communities pool funds to unlock the stories, data, documents, and videos
+          they want to see. Creators set a goal, the crowd funds it, and AI keeps the platform fair.
         </p>
 
         {/* CTAs */}
@@ -211,8 +210,8 @@ export default async function HomePage() {
             {
               step: "04",
               icon: Eye,
-              title: "Truth Unlocked",
-              desc: "Once fully funded, the content unlocks instantly and goes public for everyone. The community decides what matters.",
+              title: "Content Unlocked",
+              desc: "Once fully funded, the content unlocks instantly and goes public for everyone. The community decides what gets made.",
               color: "text-amber-400",
             },
           ].map((item) => (
@@ -374,10 +373,10 @@ export default async function HomePage() {
       <section className="relative mx-auto max-w-6xl px-4 py-20">
         <div className="text-center mb-14">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Built for People Who Give a Damn
+            Built for Creators, Researchers, and Curious People
           </h2>
           <p className="mt-3 text-muted-foreground max-w-lg mx-auto">
-            Every feature exists to make crowdfunded transparency safer, faster, and fairer.
+            Every feature exists to make crowdfunded content safer, faster, and fairer.
           </p>
         </div>
 
@@ -386,7 +385,7 @@ export default async function HomePage() {
             {
               icon: Lock,
               title: "E2E Encrypted DMs",
-              desc: "Sources and contributors communicate privately with ECDH + AES-256-GCM encryption. Even we can't read your messages.",
+              desc: "Creators and users communicate privately with ECDH + AES-256-GCM encryption. Even we can't read your messages.",
               gradient: "from-cyan-500/10 to-blue-500/10",
               iconColor: "text-cyan-400",
             },
@@ -400,7 +399,7 @@ export default async function HomePage() {
             {
               icon: MessageSquare,
               title: "Threaded Forum",
-              desc: "Request investigations, discuss uploads, react with emoji, mark solutions. Full-text search, @mentions, and nested replies.",
+              desc: "Request content, discuss uploads, react with emoji, mark solutions. Full-text search, @mentions, and nested replies.",
               gradient: "from-emerald-500/10 to-green-500/10",
               iconColor: "text-emerald-400",
             },
@@ -490,19 +489,19 @@ export default async function HomePage() {
         <div className="grid gap-6 sm:grid-cols-3">
           {[
             {
-              emoji: "🕵️",
-              title: "Whistleblowers & Sources",
-              desc: "Upload documents, data, and evidence anonymously. E2E encrypted messaging protects your identity. Set a funding goal and let the community decide its value.",
+              emoji: "🎬",
+              title: "Creators & Uploaders",
+              desc: "Upload your work, set a funding goal, and let the community back what they want to see. Documentaries, datasets, investigative pieces, tutorials, and more.",
             },
             {
               emoji: "📰",
               title: "Journalists & Researchers",
-              desc: "Request specific data, FOIAs, and insider documents. The forum lets you coordinate investigations with the community before committing resources.",
+              desc: "Request specific data, documents, or expert analysis. The forum lets you coordinate with the community and find collaborators before committing resources.",
             },
             {
               emoji: "💰",
-              title: "Citizens & Contributors",
-              desc: "Fund the investigations you care about. Read AI-generated teasers to decide what's worth backing. Once funded, the content goes public for everyone.",
+              title: "Supporters & Contributors",
+              desc: "Fund the content you care about. Read AI-generated teasers to decide what's worth backing. Once funded, the content goes public for everyone.",
             },
           ].map((persona) => (
             <Card
@@ -533,12 +532,12 @@ export default async function HomePage() {
 
           <div className="px-8 py-14 sm:px-12 sm:py-16 text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              The Truth Won&rsquo;t Unlock Itself
+              The Truth Won&rsquo;t Fund Itself
             </h2>
             <p className="mt-4 text-muted-foreground max-w-lg mx-auto leading-relaxed">
               Join a community that puts its money where its curiosity is. Whether you&rsquo;re
-              uploading evidence, requesting documents, or funding the next big revelation. This
-              is where it starts.
+              a creator sharing your work, a researcher seeking data, or someone who wants to
+              fund great content, this is where it starts.
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
