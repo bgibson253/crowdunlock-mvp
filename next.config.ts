@@ -3,6 +3,9 @@ import { NextConfig } from "next";
 const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
+  experimental: {
+    optimizeCss: true, // inline critical CSS to reduce render-blocking
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
