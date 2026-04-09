@@ -37,9 +37,14 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">My uploads</h1>
           <p className="mt-2 text-sm text-muted-foreground">Your uploads and funding progress.</p>
         </div>
-        <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
-          <Link href="/upload">New upload</Link>
-        </Button>
+        <div className="flex items-center gap-3">
+            <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+              <Link href="/upload">New upload</Link>
+            </Button>
+            <Button asChild variant="outline" className="border-border/50">
+              <Link href="/dashboard/analytics">📊 Analytics</Link>
+            </Button>
+          </div>
       </div>
 
       {error ? (

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 type Prefs = {
@@ -15,6 +16,7 @@ type Prefs = {
   email_dms: boolean;
   email_unlocks: boolean;
   push_enabled: boolean;
+  email_digest_frequency: string;
 };
 
 const defaults: Prefs = {
@@ -24,6 +26,7 @@ const defaults: Prefs = {
   email_dms: true,
   email_unlocks: true,
   push_enabled: true,
+  email_digest_frequency: "instant",
 };
 
 export function NotificationPreferences({ userId }: { userId: string }) {
@@ -47,6 +50,7 @@ export function NotificationPreferences({ userId }: { userId: string }) {
           email_dms: data.email_dms ?? true,
           email_unlocks: data.email_unlocks ?? true,
           push_enabled: data.push_enabled ?? true,
+          email_digest_frequency: data.email_digest_frequency ?? "instant",
         });
       }
 
@@ -66,6 +70,7 @@ export function NotificationPreferences({ userId }: { userId: string }) {
   }, [userId]);
 
   async function toggle(key: keyof Prefs) {
+    if (key === "email_digest_frequency") return; // handled separately
     const newVal = !prefs[key];
     setPrefs((p) => ({ ...p, [key]: newVal }));
     const supabase = supabaseBrowser();
@@ -75,6 +80,21 @@ export function NotificationPreferences({ userId }: { userId: string }) {
     if (error) {
       toast.error("Failed to save preference");
       setPrefs((p) => ({ ...p, [key]: !newVal }));
+    }
+  }
+
+  async function setDigestFrequency(value: string) {
+    const prev = prefs.email_digest_frequency;
+    setPrefs((p) => ({ ...p, email_digest_frequency: value }));
+    const supabase = supabaseBrowser();
+    const { error } = await supabase
+      .from("notification_preferences")
+      .upsert({ user_id: userId, email_digest_frequency: value }, { onConflict: "user_id" });
+    if (error) {
+      toast.error("Failed to save digest preference");
+      setPrefs((p) => ({ ...p, email_digest_frequency: prev }));
+    } else {
+      toast.success("Digest preference saved");
     }
   }
 
@@ -129,11 +149,36 @@ export function NotificationPreferences({ userId }: { userId: string }) {
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                   <Switch
-                    checked={prefs[item.key]}
+                    checked={prefs[item.key] as boolean}
                     onCheckedChange={() => toggle(item.key)}
                   />
                 </div>
               ))}
+
+              <Separator />
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold">Email digest frequency</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Bundle notifications into a single digest email instead of getting each one instantly
+                  </p>
+                </div>
+                <Select
+                  value={prefs.email_digest_frequency}
+                  onValueChange={setDigestFrequency}
+                >
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="instant">Instant</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="off">Off</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </>
         )}

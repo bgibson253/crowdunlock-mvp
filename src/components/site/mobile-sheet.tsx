@@ -17,6 +17,11 @@ import {
   Settings,
   LogOut,
   LogIn,
+  Rss,
+  Bookmark,
+  UserPlus,
+  BarChart3,
+  BookOpen,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -130,7 +135,8 @@ export function MobileSheet({
             <NavLink href="/" icon={Home} label="Home" onClick={close} />
             <NavLink href="/forum" icon={MessageSquare} label="Forum" onClick={close} />
             <NavLink href="/browse" icon={Compass} label="Browse Uploads" onClick={close} />
-            <NavLink href="/leaderboard" icon={Trophy} label="Leaderboard" onClick={close} />
+            <NavLink href="/leaderboards" icon={Trophy} label="Leaderboards" onClick={close} />
+            <NavLink href="/blog" icon={BookOpen} label="Blog" onClick={close} />
             <NavLink href="/forum/perks" icon={Trophy} label="Unlock Perks" onClick={close} />
           </div>
 
@@ -139,10 +145,14 @@ export function MobileSheet({
               <Separator className="my-3 mx-2" />
               <SectionLabel>Your Stuff</SectionLabel>
               <div className="space-y-0.5">
+                <NavLink href="/feed" icon={Rss} label="Feed" onClick={close} />
                 <NavLink href="/forum/notifications" icon={Bell} label="Notifications" onClick={close} />
                 <NavLink href="/messages" icon={Mail} label="Messages" badge={unreadDmCount} onClick={close} />
                 <NavLink href="/forum/favorites" icon={Heart} label="Favorites" onClick={close} />
+                <NavLink href="/watchlist" icon={Bookmark} label="Watchlist" onClick={close} />
                 <NavLink href="/dashboard" icon={Upload} label="My Uploads" onClick={close} />
+                <NavLink href="/dashboard/analytics" icon={BarChart3} label="Analytics" onClick={close} />
+                <NavLink href="/invite" icon={UserPlus} label="Invite Friends" onClick={close} />
                 <NavLink href="/upload" icon={Plus} label="New Upload" onClick={close} />
               </div>
             </>

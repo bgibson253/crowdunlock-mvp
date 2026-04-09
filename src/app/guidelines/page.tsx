@@ -65,6 +65,19 @@ export default function GuidelinesPage() {
         <h3>Self-Harm</h3>
         <p>Content encouraging or glorifying self-harm or suicide is not allowed.</p>
 
+        <h2>📜 Copyright &amp; DMCA</h2>
+        <p>
+          Unmaskr respects intellectual property rights. If you believe content on the platform
+          infringes your copyright, you can file a{" "}
+          <a href="/dmca" className="text-primary hover:underline">DMCA takedown notice</a>.
+        </p>
+        <ul>
+          <li>We respond to valid DMCA notices promptly and will remove or disable access to infringing content</li>
+          <li>Repeat infringers will have their accounts terminated</li>
+          <li>Counter-notices are available if you believe your content was removed in error</li>
+          <li>Fraudulent DMCA claims may result in legal liability and platform penalties</li>
+        </ul>
+
         <h2>⚖️ How Moderation Works</h2>
         <ol>
           <li>
@@ -98,12 +111,19 @@ export default function GuidelinesPage() {
           on any post or reply. Reports are reviewed by admins.
         </p>
 
-        <h2>Consequences</h2>
+        <h2>🚨 Account Penalties</h2>
         <ul>
-          <li><strong>First offense (minor):</strong> Content removed, warning issued</li>
-          <li><strong>Repeated violations:</strong> Temporary suspension</li>
-          <li><strong>Severe violations:</strong> Immediate permanent ban (threats, doxxing, illegal content)</li>
+          <li><strong>Warning:</strong> First minor offense — content removed, written warning issued</li>
+          <li><strong>Temporary mute:</strong> Repeated minor violations — posting restricted for 24–72 hours</li>
+          <li><strong>Temporary suspension:</strong> Continued violations — account access restricted for 7–30 days</li>
+          <li><strong>Trust level reduction:</strong> Violations may reduce your trust level and remove earned privileges</li>
+          <li><strong>Permanent ban:</strong> Severe violations (threats, doxxing, illegal content, CSAM) — immediate and permanent</li>
         </ul>
+        <p>
+          All moderation actions can be appealed via{" "}
+          <a href="/contact" className="text-primary hover:underline">our contact form</a>.
+          Appeals are reviewed within 48 hours.
+        </p>
 
         <h2>Questions?</h2>
         <p>

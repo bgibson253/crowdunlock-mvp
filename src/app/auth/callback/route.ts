@@ -26,6 +26,18 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
+  // Check if user has a referral code in their metadata and convert
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const refCode = user.user_metadata?.referral_code;
+    if (refCode) {
+      await supabase.rpc("convert_referral", {
+        p_code: refCode,
+        p_new_user_id: user.id,
+      });
+    }
+  }
+
   // Redirect back to where the user came from (only allow relative paths for safety)
   const safeDest = redirectTo.startsWith("/") ? redirectTo : "/browse";
   return NextResponse.redirect(new URL(safeDest, request.url));

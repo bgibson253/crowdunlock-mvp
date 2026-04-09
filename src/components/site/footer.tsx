@@ -62,6 +62,7 @@ export function Footer() {
               <Link href="/guidelines" className="block text-muted-foreground hover:text-foreground transition-colors">Community Guidelines</Link>
               <Link href="/privacy" className="block text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
               <Link href="/terms" className="block text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link>
+              <Link href="/dmca" className="block text-muted-foreground hover:text-foreground transition-colors">DMCA</Link>
               <Link href="/contact" className="block text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
             </div>
           </div>

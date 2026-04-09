@@ -42,7 +42,7 @@ const signUpSchema = z
 
 type SignUpValues = z.infer<typeof signUpSchema>;
 
-export function AuthForm({ requireUsername, redirectTo }: { requireUsername?: boolean; redirectTo?: string } = {}) {
+export function AuthForm({ requireUsername, redirectTo, refCode }: { requireUsername?: boolean; redirectTo?: string; refCode?: string } = {}) {
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
 
@@ -87,6 +87,7 @@ export function AuthForm({ requireUsername, redirectTo }: { requireUsername?: bo
       options: {
         data: {
           name: values.username?.trim() || undefined,
+          referral_code: refCode || undefined,
         },
         emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`,
       },

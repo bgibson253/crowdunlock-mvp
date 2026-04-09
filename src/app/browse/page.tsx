@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 import { supabaseServer } from "@/lib/supabase/server";
-import { fetchCategories, fetchBrowseUploads, type BrowseSort } from "@/lib/supabase/browse";
+import { fetchCategories, fetchBrowseUploads, searchUploads, type BrowseSort } from "@/lib/supabase/browse";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +10,8 @@ import { BrowseEmptyState } from "@/components/uploads/browse-empty-state";
 import { CategoryFilter } from "@/components/uploads/category-filter";
 import { SortDropdown } from "@/components/uploads/sort-dropdown";
 import { TagSearch } from "@/components/uploads/tag-search";
+import { UploadSearch } from "@/components/uploads/upload-search";
+import { WatchlistButton } from "@/components/uploads/watchlist-button";
 import { isTestMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,7 @@ export default async function BrowsePage({
     sort?: string;
     tag?: string;
     page?: string;
+    q?: string;
   }>;
 }) {
   const testMode = isTestMode();
@@ -63,20 +66,44 @@ export default async function BrowsePage({
   const categorySlug = sp.category || null;
   const sort = (sp.sort as BrowseSort) || "newest";
   const tag = sp.tag || null;
+  const query = sp.q || null;
   const page = Math.max(1, parseInt(sp.page || "1", 10));
   const offset = (page - 1) * PAGE_SIZE;
 
-  const [categories, { uploads, totalCount }] = await Promise.all([
+  const [categories, result] = await Promise.all([
     fetchCategories(),
-    fetchBrowseUploads({
-      categorySlug,
-      tag,
-      sort,
-      limit: PAGE_SIZE,
-      offset,
-      callerId: user.id,
-    }),
+    query
+      ? searchUploads({
+          query,
+          categorySlug,
+          sort: sort === "newest" ? "relevance" : sort,
+          limit: PAGE_SIZE,
+          offset,
+          callerId: user.id,
+        })
+      : fetchBrowseUploads({
+          categorySlug,
+          tag,
+          sort,
+          limit: PAGE_SIZE,
+          offset,
+          callerId: user.id,
+        }),
   ]);
+
+  const { uploads, totalCount } = result;
+
+  // Fetch user's watchlist for these uploads
+  const uploadIds = uploads.map((u) => u.id);
+  let watchedSet = new Set<string>();
+  if (uploadIds.length > 0) {
+    const { data: watched } = await supabaseAuth
+      .from("upload_watchlist")
+      .select("upload_id")
+      .eq("user_id", user.id)
+      .in("upload_id", uploadIds);
+    watchedSet = new Set((watched ?? []).map((w: any) => w.upload_id));
+  }
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -85,6 +112,7 @@ export default async function BrowsePage({
     if (categorySlug) params.set("category", categorySlug);
     if (sort !== "newest") params.set("sort", sort);
     if (tag) params.set("tag", tag);
+    if (query) params.set("q", query);
     if (p > 1) params.set("page", String(p));
     const qs = params.toString();
     return qs ? `/browse?${qs}` : "/browse";
@@ -117,8 +145,15 @@ export default async function BrowsePage({
           </div>
         </div>
 
+        {/* Search bar */}
+        <div className="mt-6">
+          <Suspense>
+            <UploadSearch />
+          </Suspense>
+        </div>
+
         {/* Filters bar */}
-        <div className="mt-6 space-y-3">
+        <div className="mt-4 space-y-3">
           <Suspense>
             <CategoryFilter categories={categories} activeSlug={categorySlug} />
           </Suspense>
@@ -170,11 +205,18 @@ export default async function BrowsePage({
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="line-clamp-2 text-base font-semibold">{u.title}</h3>
-                        {u.category_icon && (
-                          <span className="shrink-0 text-lg" title={u.category_name ?? undefined}>
-                            {u.category_icon}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {u.category_icon && (
+                            <span className="text-lg" title={u.category_name ?? undefined}>
+                              {u.category_icon}
+                            </span>
+                          )}
+                          <WatchlistButton
+                            uploadId={u.id}
+                            currentUserId={user.id}
+                            isWatched={watchedSet.has(u.id)}
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="px-5 pb-5 space-y-3">

@@ -114,6 +114,8 @@ export function NewThreadForm({
           p_reason: "thread_created",
           p_ref_id: data.id,
         });
+        // Check achievements
+        supabase.rpc("check_achievements", { p_user_id: auth.user.id }).then(() => {});
       } catch {}
 
       router.push(`/forum/${data.id}`);

@@ -77,3 +77,42 @@ export async function fetchBrowseUploads({
 
   return { uploads: rows, totalCount };
 }
+
+export type SearchUpload = BrowseUpload & {
+  rank: number;
+};
+
+export async function searchUploads({
+  query,
+  categorySlug,
+  sort,
+  limit,
+  offset,
+  callerId,
+}: {
+  query: string;
+  categorySlug?: string | null;
+  sort?: string;
+  limit?: number;
+  offset?: number;
+  callerId?: string | null;
+}): Promise<{ uploads: SearchUpload[]; totalCount: number }> {
+  const env = envClient();
+  const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  const { data, error } = await supabase.rpc("search_uploads", {
+    p_query: query,
+    p_category_slug: categorySlug ?? null,
+    p_sort: sort ?? "relevance",
+    p_limit: limit ?? 12,
+    p_offset: offset ?? 0,
+    p_caller_id: callerId ?? null,
+  });
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as SearchUpload[];
+  const totalCount = rows.length > 0 ? Number(rows[0].total_count) : 0;
+
+  return { uploads: rows, totalCount };
+}

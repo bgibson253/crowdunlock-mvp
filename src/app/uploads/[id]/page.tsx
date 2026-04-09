@@ -12,6 +12,7 @@ import { RatingSection } from "@/components/uploads/rating-section";
 import { TestUnlockButton } from "@/components/uploads/test-unlock-button";
 import { ContributeCard } from "@/components/uploads/contribute-card";
 import { ReportUploadButton } from "@/components/uploads/report-upload-button";
+import { WatchlistButton } from "@/components/uploads/watchlist-button";
 import { ShareButtons } from "@/components/ui/share-buttons";
 import Link from "next/link";
 
@@ -117,6 +118,18 @@ export default async function UploadDetailPage({
   const u = upload as UploadRow;
   const testMode = isTestMode();
 
+  // Check watchlist status
+  let isWatched = false;
+  if (user) {
+    const { data: watchRow } = await supabase
+      .from("upload_watchlist")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("upload_id", id)
+      .maybeSingle();
+    isWatched = !!watchRow;
+  }
+
   // Allow anyone to see funding uploads (not just test mode)
   if (u.status !== "unlocked" && u.status !== "funding") return notFound();
 
@@ -132,6 +145,14 @@ export default async function UploadDetailPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {user && (
+            <WatchlistButton
+              uploadId={u.id}
+              currentUserId={user.id}
+              isWatched={isWatched}
+              variant="button"
+            />
+          )}
           {user && u.uploader_id !== user.id && (
             <ReportUploadButton uploadId={u.id} />
           )}

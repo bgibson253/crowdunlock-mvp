@@ -25,6 +25,32 @@ export async function middleware(request: NextRequest) {
 
   // Update last_seen_at (throttled to every 5 minutes via cookie)
   if (user) {
+    // Check if user needs onboarding (throttled by cookie)
+    const pathname = request.nextUrl.pathname;
+    const skipOnboarding = pathname.startsWith("/onboarding") || pathname.startsWith("/auth") || pathname.startsWith("/api") || pathname.startsWith("/_next");
+    if (!skipOnboarding) {
+      const onboardingChecked = request.cookies.get("onboarding_checked")?.value;
+      if (!onboardingChecked) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("has_onboarded")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profile && profile.has_onboarded === false) {
+          return NextResponse.redirect(new URL("/onboarding", request.url));
+        }
+
+        // Cache the check for 1 hour
+        response.cookies.set("onboarding_checked", "1", {
+          maxAge: 3600,
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+        });
+      }
+    }
+
     const lastUpdate = request.cookies.get("last_seen_update")?.value;
     if (!lastUpdate) {
       await supabase

@@ -14,6 +14,7 @@ import { BlockUserButton } from "@/components/forum/block-user-button";
 import { AchievementBadges } from "@/components/engagement/achievement-badges";
 import { StreakIndicator } from "@/components/engagement/streak-indicator";
 import { ActivityFeed } from "@/components/profile/activity-feed";
+import { FollowButton } from "@/components/social/follow-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { relativeTime } from "@/lib/relative-time";
 
@@ -64,7 +65,7 @@ export default async function ProfilePage({
   if (!user) redirect(`/auth?redirect=${encodeURIComponent(`/profile/${id}`)}`);
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id,username,display_name,bio,twitter,instagram,tiktok,reddit,banner_url,avatar_url,post_count,total_points,current_streak,created_at,last_seen_at")
+    .select("id,username,display_name,bio,twitter,instagram,tiktok,reddit,banner_url,avatar_url,post_count,total_points,current_streak,created_at,last_seen_at,follower_count,following_count")
     .eq("id", id)
     .maybeSingle();
 
@@ -72,6 +73,18 @@ export default async function ProfilePage({
   if (!profile) return notFound();
 
   const name = profile.display_name ?? profile.username ?? "User";
+
+  // Check if current user follows this profile
+  let isFollowing = false;
+  if (user && user.id !== id) {
+    const { data: followRow } = await supabase
+      .from("user_follows")
+      .select("id")
+      .eq("follower_id", user.id)
+      .eq("following_id", id)
+      .maybeSingle();
+    isFollowing = !!followRow;
+  }
 
   // Fetch user's threads
   const { data: threads } = await supabase
@@ -185,6 +198,11 @@ export default async function ProfilePage({
                     </div>
                     {user && !isOwnProfile && (
                       <div className="flex items-center gap-1">
+                        <FollowButton
+                          targetUserId={id}
+                          currentUserId={user.id}
+                          isFollowing={isFollowing}
+                        />
                         <SendDmButton recipientId={id} recipientName={name} />
                       </div>
                     )}
@@ -225,6 +243,8 @@ export default async function ProfilePage({
                   )}
                 </span>
                 <span>{profile.post_count ?? 0} posts</span>
+                <span>{profile.follower_count ?? 0} followers</span>
+                <span>{profile.following_count ?? 0} following</span>
                 <span>⭐ {(profile.total_points ?? 0).toLocaleString()} points</span>
                 <span>❤️ {totalReactionsReceived} reactions</span>
                 <StreakIndicator userId={id} />

@@ -97,6 +97,21 @@ export async function POST(req: NextRequest) {
 
     await supabaseAdmin.from("uploads").update(updates).eq("id", upload_id);
 
+    // Check achievements for the contributor
+    supabaseAdmin.rpc("check_achievements", { p_user_id: user.id }).then(() => {});
+
+    // If upload just got funded, check achievements for the uploader too
+    if (updates.status === "unlocked") {
+      const { data: uploadFull } = await supabaseAdmin
+        .from("uploads")
+        .select("uploader_id")
+        .eq("id", upload_id)
+        .maybeSingle();
+      if (uploadFull?.uploader_id) {
+        supabaseAdmin.rpc("check_achievements", { p_user_id: uploadFull.uploader_id }).then(() => {});
+      }
+    }
+
     return NextResponse.json({
       ok: true,
       current_funded: newFunded,

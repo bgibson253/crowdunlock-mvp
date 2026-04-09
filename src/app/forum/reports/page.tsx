@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "@/components/forum/breadcrumbs";
 import { ReportActions } from "@/components/forum/report-actions";
 import { UploadReportActions } from "@/components/uploads/upload-report-actions";
+import { DmcaClaimActions } from "@/components/dmca/dmca-claim-actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,12 @@ export default async function ReportsPage() {
   // Fetch upload reports
   const { data: uploadReports } = await supabase
     .from("upload_reports")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  // Fetch DMCA claims
+  const { data: dmcaClaims } = await supabase
+    .from("dmca_claims")
     .select("*")
     .order("created_at", { ascending: false });
 
@@ -69,6 +76,7 @@ export default async function ReportsPage() {
 
   const openForumCount = (forumReports ?? []).filter((r: any) => r.status === "open").length;
   const openUploadCount = (uploadReports ?? []).filter((r: any) => r.status === "pending").length;
+  const pendingDmcaCount = (dmcaClaims ?? []).filter((r: any) => r.status === "pending").length;
 
   return (
     <div className="relative isolate">
@@ -78,7 +86,7 @@ export default async function ReportsPage() {
 
         <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
         <p className="text-sm text-muted-foreground">
-          {openForumCount + openUploadCount} open report(s)
+          {openForumCount + openUploadCount + pendingDmcaCount} open report(s)
         </p>
 
         <Tabs defaultValue="forum" className="w-full">
@@ -88,6 +96,9 @@ export default async function ReportsPage() {
             </TabsTrigger>
             <TabsTrigger value="uploads">
               Upload Reports {openUploadCount > 0 && <Badge variant="destructive" className="ml-1.5 text-[10px] px-1.5 py-0">{openUploadCount}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="dmca">
+              DMCA Claims {pendingDmcaCount > 0 && <Badge variant="destructive" className="ml-1.5 text-[10px] px-1.5 py-0">{pendingDmcaCount}</Badge>}
             </TabsTrigger>
           </TabsList>
 
@@ -195,6 +206,53 @@ export default async function ReportsPage() {
                         <UploadReportActions reportId={report.id} />
                       )}
                     </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="dmca" className="space-y-2 mt-4">
+            {(dmcaClaims ?? []).length === 0 ? (
+              <Card>
+                <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                  No DMCA claims yet.
+                </CardContent>
+              </Card>
+            ) : (
+              (dmcaClaims as any[]).map((claim) => (
+                <Card key={claim.id}>
+                  <CardContent className="py-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className={statusColor[claim.status] || statusColor.pending}>
+                          {claim.status}
+                        </Badge>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(claim.created_at).toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="text-sm space-y-1">
+                      <div>
+                        <span className="text-muted-foreground">Claimant: </span>
+                        <span className="font-medium">{claim.claimant_name}</span>
+                        <span className="text-muted-foreground"> ({claim.claimant_email})</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Copyrighted work: </span>
+                        <span>{claim.copyrighted_work}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Infringing URL: </span>
+                        <a href={claim.infringing_url} className="text-primary hover:underline text-xs break-all" target="_blank" rel="noopener noreferrer">
+                          {claim.infringing_url}
+                        </a>
+                      </div>
+                    </div>
+
+                    <DmcaClaimActions claimId={claim.id} status={claim.status} />
                   </CardContent>
                 </Card>
               ))
