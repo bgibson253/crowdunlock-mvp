@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UNLOCK_TIERS as TIERS } from "@/lib/unlock-tiers";
 
-export const dynamic = "force-dynamic";
+// Static page — no DB calls, pure UI
 
 export default function ForumPerksPage() {
   return (

@@ -55,6 +55,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <meta name="theme-color" content="#6366f1" />
+        <link rel="dns-prefetch" href="https://xdkegpiirkdgzjhycqcc.supabase.co" />
+        <link rel="preconnect" href="https://xdkegpiirkdgzjhycqcc.supabase.co" crossOrigin="anonymous" />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <TestModeBanner />

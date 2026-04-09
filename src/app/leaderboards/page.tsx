@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Crown, Medal, Trophy, DollarSign, Users, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120; // ISR: refresh every 2 minutes
 export const metadata: Metadata = {
   title: "Leaderboards",
   description: "See the top contributors, creators, and most active members on Unmaskr.",
