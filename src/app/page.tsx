@@ -93,7 +93,7 @@ export default async function HomePage() {
 
         {/* Headline */}
         <h1 className="mx-auto max-w-4xl text-center text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-          The Truth Costs Money.{" "}
+          The Truth Has a Cost.{" "}
           <span className="gradient-text">Let&rsquo;s Crowdfund It.</span>
         </h1>
 
