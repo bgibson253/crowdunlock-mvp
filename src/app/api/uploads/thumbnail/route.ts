@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { envClient } from "@/lib/env";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/uploads/thumbnail
@@ -10,6 +11,16 @@ import { envClient } from "@/lib/env";
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit by IP — 10 thumbnail generations per minute
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = rateLimit(`thumbnail:${ip}`, { maxRequests: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Too many requests. Try again in ${rl.retryAfter}s.` },
+        { status: 429 }
+      );
+    }
+
     const { upload_id } = await req.json();
     if (!upload_id) {
       return NextResponse.json({ error: "upload_id required" }, { status: 400 });

@@ -11,7 +11,14 @@ export async function supabaseServer() {
       getAll: () => cookieStore.getAll(),
       setAll: (cookiesToSet) => {
         try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, {
+              ...options,
+              httpOnly: true,
+              secure: true,
+              sameSite: "lax",
+            })
+          );
         } catch {
           // no-op in Server Components
         }

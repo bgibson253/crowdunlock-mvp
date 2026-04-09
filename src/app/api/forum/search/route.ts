@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,15 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Sign in to search." }, { status: 401 });
+  }
+
+  // Rate limit — 30 searches per minute per user
+  const rl = rateLimit(`forum-search:${user.id}`, { maxRequests: 30, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `Too many searches. Try again in ${rl.retryAfter}s.` },
+      { status: 429 }
+    );
   }
 
   // Build tsquery - handle special characters

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 function dmcaConfirmationHtml(claimantName: string): string {
   return `
@@ -39,11 +40,26 @@ function dmcaConfirmationHtml(claimantName: string): string {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit by IP — 3 DMCA submissions per hour
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = rateLimit(`dmca:${ip}`, { maxRequests: 3, windowMs: 3600_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Too many submissions. Try again in ${rl.retryAfter}s.` },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { claimant_name, claimant_email, copyrighted_work, infringing_url, statement, signature } = body;
 
     if (!claimant_name || !claimant_email || !copyrighted_work || !infringing_url || !statement || !signature) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    }
+
+    // Length limits to prevent abuse
+    if (claimant_name.length > 200 || claimant_email.length > 254 || copyrighted_work.length > 5000 || infringing_url.length > 2000 || statement.length > 10000 || signature.length > 200) {
+      return NextResponse.json({ error: "Field too long" }, { status: 400 });
     }
 
     // Validate email format

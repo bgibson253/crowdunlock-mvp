@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseServer } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,16 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
+
+    // Rate limit — 5 admin toggles per minute
+    const rl = rateLimit(`admin-toggle:${user.id}`, { maxRequests: 5, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Too many requests. Try again in ${rl.retryAfter}s.` },
+        { status: 429 }
+      );
+    }
+
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("is_admin")

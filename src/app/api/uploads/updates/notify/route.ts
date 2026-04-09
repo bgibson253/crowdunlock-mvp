@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { envClient } from "@/lib/env";
 import { supabaseServer } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/uploads/updates/notify
@@ -16,6 +17,15 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    // Rate limit — 5 update notifications per hour per user
+    const rl = rateLimit(`upload-notify:${user.id}`, { maxRequests: 5, windowMs: 3600_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Too many notifications. Try again in ${rl.retryAfter}s.` },
+        { status: 429 }
+      );
     }
 
     const { upload_id, title } = await req.json();
