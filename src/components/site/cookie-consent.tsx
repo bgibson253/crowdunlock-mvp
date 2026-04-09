@@ -54,7 +54,7 @@ export function CookieConsent() {
             onClick={decline}
             className="text-xs text-muted-foreground"
           >
-            Decline
+            Decline non-essential
           </Button>
           <Button
             size="sm"
