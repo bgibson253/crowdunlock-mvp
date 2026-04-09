@@ -5,20 +5,21 @@ import "./globals.css";
 
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
-import { BackToTop } from "@/components/site/back-to-top";
-import { KeyboardShortcuts } from "@/components/site/keyboard-shortcuts";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
-import { CookieConsent } from "@/components/site/cookie-consent";
-import { Toaster } from "sonner";
+import { ClientShell } from "@/components/site/client-shell";
 
 const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false, // secondary font — don't block render
 });
 
 export const metadata: Metadata = {
@@ -68,26 +69,12 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
-        <BackToTop />
-        <KeyboardShortcuts />
-        <Toaster
-          richColors
-          position="top-center"
-          duration={4000}
-          toastOptions={{
-            style: {
-              background: "oklch(0.16 0.02 260)",
-              border: "1px solid oklch(1 0 0 / 10%)",
-              color: "oklch(0.93 0.005 260)",
-            },
-          }}
-        />
+        <ClientShell />
         <script
           dangerouslySetInnerHTML={{
             __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}`
           }}
         />
-        <CookieConsent />
       </body>
     </html>
   );
