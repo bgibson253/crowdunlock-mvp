@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { LiveRoom } from "@/components/live/live-room";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -14,24 +13,9 @@ export default async function LiveByUsernamePage({
   const { username } = await params;
   const supabase = await supabaseServer();
 
-  // Must be signed in to view live (keeps abuse down & matches rest of app gating).
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign in to watch live</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Live streams are available to signed-in users.
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const { data: host } = await supabase
     .from("profiles")
@@ -48,7 +32,22 @@ export default async function LiveByUsernamePage({
     .eq("status", "live")
     .maybeSingle();
 
-  if (!room) {
+  const isHost = !!user && user.id === host.id;
+
+  if (!user && room) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <div className="rounded-xl border bg-card p-5">
+          <div className="text-lg font-semibold">Sign in to watch live</div>
+          <div className="mt-1 text-sm text-muted-foreground">
+            Live streams are available to signed-in users.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!room && !isHost) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 space-y-4">
         <div>
@@ -61,14 +60,13 @@ export default async function LiveByUsernamePage({
     );
   }
 
+  const roomId = room?.id ?? `host-${host.id}`;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 space-y-4">
-      {process.env.TEST_MODE === "true" ? (
-        <div className="text-[10px] text-muted-foreground">build: 3f48fe7</div>
-      ) : null}
       <div>
         <h1 className="text-xl font-bold tracking-tight">
-          {room.title || `${host.display_name || host.username} is live`}
+          {room?.title || `${host.display_name || host.username} is live`}
         </h1>
         <p className="text-sm text-muted-foreground">
           Live host: {host.display_name || host.username}
@@ -76,17 +74,13 @@ export default async function LiveByUsernamePage({
       </div>
 
       <LiveRoom
-        roomId={room.id}
+        roomId={roomId}
         hostUserId={host.id}
         hostName={host.display_name || host.username || "Host"}
         hostAvatarUrl={host.avatar_url}
         hostUsername={host.username}
-        currentUserId={user.id}
+        currentUserId={user!.id}
       />
-
-      <div className="text-xs text-muted-foreground">
-        Tip + paid questions UI coming next.
-      </div>
     </div>
   );
 }
