@@ -16,6 +16,11 @@ const serverSchema = z.object({
   INTERNAL_API_SECRET: z.string().min(1).optional(),
   TEST_MODE: z.enum(["true", "false"]).optional(),
   TEST_USER_EMAIL: z.string().email().optional(),
+
+  LIVE_SFU_USE1_HTTP: z.string().url().optional(),
+  LIVE_SFU_USE1_WS: z.string().url().optional(),
+  LIVE_SFU_USW2_HTTP: z.string().url().optional(),
+  LIVE_SFU_USW2_WS: z.string().url().optional(),
 });
 
 export function isTestMode() {
@@ -43,5 +48,10 @@ export function envServer() {
     INTERNAL_API_SECRET: process.env.INTERNAL_API_SECRET,
     TEST_MODE: process.env.TEST_MODE,
     TEST_USER_EMAIL: process.env.TEST_USER_EMAIL,
+
+    LIVE_SFU_USE1_HTTP: process.env.LIVE_SFU_USE1_HTTP,
+    LIVE_SFU_USE1_WS: process.env.LIVE_SFU_USE1_WS,
+    LIVE_SFU_USW2_HTTP: process.env.LIVE_SFU_USW2_HTTP,
+    LIVE_SFU_USW2_WS: process.env.LIVE_SFU_USW2_WS,
   });
 }
