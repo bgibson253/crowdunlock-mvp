@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       last_heartbeat_at: now,
       updated_at: now,
     })
-    .select("id,room_name,title,status,started_at")
+    .select("id,host_user_id,room_name,title,status,started_at")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

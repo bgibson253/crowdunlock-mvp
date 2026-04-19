@@ -6,13 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-export function LiveHostPanel({ username }: { username: string }) {
+export function LiveHostPanel() {
   const [title, setTitle] = useState("");
-  const [active, setActive] = useState<{ id: string } | null>(null);
+  const [active, setActive] = useState<{ id: string; host_user_id: string } | null>(
+    null
+  );
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    // best-effort: if host opens /live while already live, we can detect later.
+    // TODO: fetch active room for host (optional)
   }, []);
 
   async function goLive() {
@@ -22,7 +24,6 @@ export function LiveHostPanel({ username }: { username: string }) {
         video: true,
         audio: true,
       });
-      // Stop immediately; LiveKitRoom will request again when it connects.
       stream.getTracks().forEach((t) => t.stop());
     } catch (e: any) {
       const name = e?.name ? String(e.name) : "PermissionError";
@@ -36,16 +37,23 @@ export function LiveHostPanel({ username }: { username: string }) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ title: title.trim() || null }),
     });
+
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
       toast.error(json?.error ?? "Failed to start live");
       return;
     }
-    setActive({ id: json.room?.id });
+
+    const room = json.room;
+    setActive({ id: room?.id, host_user_id: room?.host_user_id });
     toast.success("You are live");
 
-    // Auto-open the live page (viewer UI) immediately
-    window.location.href = `/live/${encodeURIComponent(username)}`;
+    // Auto-open the canonical viewer/host URL (NOT username)
+    if (room?.host_user_id) {
+      window.location.href = `/live/u/${encodeURIComponent(room.host_user_id)}`;
+    } else {
+      window.location.href = "/live";
+    }
   }
 
   async function endLive() {
@@ -66,7 +74,8 @@ export function LiveHostPanel({ username }: { username: string }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm text-muted-foreground">
-          Tap <span className="font-medium text-foreground">Go live</span> and you’ll see your own preview.
+          Tap <span className="font-medium text-foreground">Go live</span> and
+          you’ll see your own preview.
         </div>
 
         <div className="flex gap-2">
@@ -92,7 +101,9 @@ export function LiveHostPanel({ username }: { username: string }) {
                 variant="outline"
                 disabled={pending}
                 onClick={() => {
-                  window.location.href = `/live/${encodeURIComponent(username)}`;
+                  if (active.host_user_id) {
+                    window.location.href = `/live/u/${encodeURIComponent(active.host_user_id)}`;
+                  }
                 }}
               >
                 Open stream
@@ -106,7 +117,7 @@ export function LiveHostPanel({ username }: { username: string }) {
         </div>
 
         <div className="text-xs text-muted-foreground">
-          Note: currently uses your browser camera/mic. Add permissions when prompted.
+          No username is required for live hosting.
         </div>
       </CardContent>
     </Card>

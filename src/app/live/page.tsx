@@ -4,7 +4,6 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LiveHostPanel } from "@/components/live/live-host-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +15,6 @@ export default async function LiveHomePage() {
 
   if (!user) redirect("/auth?redirect=/live");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id,username,display_name")
-    .eq("id", user.id)
-    .maybeSingle();
-
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 space-y-4">
       <div>
@@ -31,27 +24,24 @@ export default async function LiveHomePage() {
         </p>
       </div>
 
-      {process.env.TEST_MODE === "true" ? (
-        <div className="text-[10px] text-muted-foreground">build: 3f48fe7</div>
-      ) : null}
+      <Card>
+        <CardHeader>
+          <CardTitle>Host</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-sm text-muted-foreground">
+            Go live instantly. Username is optional.
+          </div>
+          <Button asChild>
+            <Link href="/live/host">Go live</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
-      {!profile?.username ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Choose a username first</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            You need a username before you can go live.
-            <div className="mt-3">
-              <Button asChild>
-                <Link href="/profile/settings">Set username</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <LiveHostPanel username={profile.username} />
-      )}
+      <div className="text-xs text-muted-foreground">
+        View links look like <span className="font-mono">/live/u/&lt;userId&gt;</span>
+        . Vanity usernames will redirect later.
+      </div>
     </div>
   );
 }
