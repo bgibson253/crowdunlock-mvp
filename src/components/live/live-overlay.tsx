@@ -123,7 +123,7 @@ export function LiveOverlay({
     <div className="pointer-events-none absolute inset-0">
       {/* Top-left host avatar chip */}
       <div className="pointer-events-auto absolute top-3 left-3 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur px-2 py-1 border border-white/10">
-        <a href={hostUsername ? `/live/${hostUsername}` : `#`} className="flex items-center gap-2">
+        <a href={`/profile/${hostUserId}`} className="flex items-center gap-2">
           <Avatar className="h-8 w-8 ring-2 ring-red-500/70">
             {hostAvatarUrl ? <AvatarImage src={hostAvatarUrl} alt={hostName} /> : null}
             <AvatarFallback className="text-xs">{hostName.slice(0, 2).toUpperCase()}</AvatarFallback>
