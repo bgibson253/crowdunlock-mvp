@@ -53,6 +53,7 @@ export function LiveRoomManual({
   const remoteVideoElRef = useRef<HTMLVideoElement | null>(null);
 
   const [startNeeded, setStartNeeded] = useState(true);
+  const [pubInFlight, setPubInFlight] = useState(false);
 
   // Fetch token/url
   useEffect(() => {
@@ -140,6 +141,8 @@ export function LiveRoomManual({
   }, [join]);
 
   const connectAndPublish = async () => {
+    if (pubInFlight) return;
+    setPubInFlight(true);
     const room = roomRef.current;
     if (!room) {
       toast.error("Room not ready");
@@ -207,6 +210,8 @@ export function LiveRoomManual({
       const msg = e?.message ? String(e.message) : String(e);
       setStatus((s) => ({ ...s, pub: "failed", err: msg }));
       toast.error(`Publish failed: ${msg}`);
+    } finally {
+      setPubInFlight(false);
     }
   };
 
@@ -228,7 +233,8 @@ export function LiveRoomManual({
       className="relative overflow-hidden bg-black sm:rounded-xl sm:border sm:border-border/50"
       onClickCapture={() => {
         // If the Go Live button becomes unclickable on iOS Safari, any tap will start.
-        if (startNeeded) void connectAndPublish();
+        // IMPORTANT: only start for host; viewers should never publish/capture.
+        if (startNeeded && join?.isHost) void connectAndPublish();
       }}
     >
       {/* Video surface */}
@@ -270,10 +276,11 @@ export function LiveRoomManual({
           <div className="w-full max-w-sm space-y-3">
             <button
               type="button"
-              className="w-full rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow active:scale-[0.99]"
+              className="w-full rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow active:scale-[0.99] disabled:opacity-60"
               onClick={startPublishing}
+              disabled={pubInFlight}
             >
-              {join.isHost ? "Go Live" : "Watch live"}
+              {pubInFlight ? "Starting…" : join.isHost ? "Go Live" : "Watch live"}
             </button>
 
             {/* Emergency escape hatch if iOS pointer events get weird. */}
