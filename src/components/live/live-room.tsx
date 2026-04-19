@@ -3,10 +3,39 @@
 import "@livekit/components-styles";
 
 import { useEffect, useMemo, useState } from "react";
-import { LiveKitRoom, FocusLayout, ParticipantTile, ControlBar } from "@livekit/components-react";
+import {
+  LiveKitRoom,
+  GridLayout,
+  FocusLayout,
+  ParticipantTile,
+  ControlBar,
+  useTracks,
+} from "@livekit/components-react";
+import { Track } from "livekit-client";
 import { toast } from "sonner";
 
 import { LiveOverlay } from "@/components/live/live-overlay";
+
+function HostStage() {
+  const tracks = useTracks([
+    { source: Track.Source.Camera, withPlaceholder: true },
+    { source: Track.Source.Microphone, withPlaceholder: false },
+  ]);
+
+  return (
+    <GridLayout tracks={tracks} style={{ height: "calc(70vh - 92px)" }}>
+      <ParticipantTile />
+    </GridLayout>
+  );
+}
+
+function ViewerStage() {
+  return (
+    <FocusLayout style={{ height: "calc(70vh - 92px)" }}>
+      <ParticipantTile />
+    </FocusLayout>
+  );
+}
 
 export function LiveRoom({
   roomId,
@@ -81,9 +110,7 @@ export function LiveRoom({
           <div className="text-xs font-medium text-red-400">LIVE</div>
         </div>
 
-        <FocusLayout style={{ height: "calc(70vh - 92px)" }}>
-          <ParticipantTile />
-        </FocusLayout>
+        {isHost ? <HostStage /> : <ViewerStage />}
 
         <LiveOverlay
           hostUserId={hostUserId}
