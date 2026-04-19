@@ -25,17 +25,22 @@ export async function POST(req: Request) {
     | "use1"
     | "usw2";
 
+  // Web clients must use wss://. Until domain+TLS is provisioned, we route
+  // websocket traffic through our own origin and return a same-origin endpoint.
+  const origin = req.headers.get("origin") || "";
+  const wsThroughOrigin = origin ? `${origin.replace(/^http/, "ws")}/api/live/ws` : null;
+
   const sfu =
     region === "usw2"
       ? {
           region,
           httpBase: env.LIVE_SFU_USW2_HTTP ?? "http://35.89.193.133:8080",
-          wsUrl: env.LIVE_SFU_USW2_WS ?? "ws://35.89.193.133:8080/ws",
+          wsUrl: wsThroughOrigin ?? (env.LIVE_SFU_USW2_WS ?? "ws://35.89.193.133:8080/ws"),
         }
       : {
           region,
           httpBase: env.LIVE_SFU_USE1_HTTP ?? "http://44.201.31.59:8080",
-          wsUrl: env.LIVE_SFU_USE1_WS ?? "ws://44.201.31.59:8080/ws",
+          wsUrl: wsThroughOrigin ?? (env.LIVE_SFU_USE1_WS ?? "ws://44.201.31.59:8080/ws"),
         };
 
   const turnSecret = process.env.LIVE_TURN_STATIC_AUTH_SECRET;
