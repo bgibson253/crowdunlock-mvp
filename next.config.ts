@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-DNS-Prefetch-Control", value: "on" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" },
           {
             key: "Content-Security-Policy",
             value: [
@@ -64,7 +64,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co wss://sfu-use1.unmaskr.org wss://sfu-usw2.unmaskr.org",
               "frame-src 'self' https://www.youtube.com https://player.vimeo.com https://rumble.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
