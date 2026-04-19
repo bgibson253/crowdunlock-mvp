@@ -10,7 +10,6 @@ export function LiveRoom(props: {
   hostUsername: string | null;
   currentUserId: string | null;
 }) {
-  void props;
   // SFU only. No LiveKit fallback.
   return <LiveRoomSfu roomId={props.roomId} />;
 }
