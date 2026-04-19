@@ -5,6 +5,8 @@ const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_APP_URL: z.string().transform((v) => v.trim()).pipe(z.string().url()),
+
+  NEXT_PUBLIC_LIVE_BACKEND: z.enum(["livekit", "sfu"]).optional(),
 });
 
 const serverSchema = z.object({
@@ -35,6 +37,8 @@ export function envClient() {
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_APP_URL:
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+
+    NEXT_PUBLIC_LIVE_BACKEND: process.env.NEXT_PUBLIC_LIVE_BACKEND,
   });
 }
 
