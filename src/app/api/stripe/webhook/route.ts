@@ -83,6 +83,22 @@ export async function POST(req: Request) {
             throw new Error(tipErr.message);
           }
 
+          // Count live tips as "spend" for perks/milestones.
+          // Anonymous to the forum; this is internal accounting only.
+          {
+            const { error: spendErr } = await supabase.from("user_spend_events").insert({
+              user_id: tipperUserId,
+              kind: "live_tip",
+              amount_cents: amount,
+              currency,
+              ref_type: "stripe_checkout_session",
+              ref_id: session.id,
+            });
+            if (spendErr && !/duplicate key/i.test(spendErr.message)) {
+              // best-effort
+            }
+          }
+
           if (pointsMinted > 0) {
             const { error: ptsErr } = await supabase.rpc("apply_points", {
               p_user_id: tipperUserId,
@@ -221,10 +237,23 @@ export async function POST(req: Request) {
             p_ref_id: session.id,
           });
 
-          // Apply_points currently only grants service_role; webhook uses service_role so this should work.
-          // If duplicate inserts become an issue, we'll add a unique constraint on (user_id, ref_type, ref_id).
           if (ptsErr && !/duplicate key/i.test(ptsErr.message)) {
             throw new Error(ptsErr.message);
+          }
+        }
+
+        // Count contributions as "spend" for perks/milestones.
+        {
+          const { error: spendErr } = await supabase.from("user_spend_events").insert({
+            user_id: userId,
+            kind: "contribution",
+            amount_cents: amount,
+            currency,
+            ref_type: "stripe_checkout_session",
+            ref_id: session.id,
+          });
+          if (spendErr && !/duplicate key/i.test(spendErr.message)) {
+            // best-effort
           }
         }
 

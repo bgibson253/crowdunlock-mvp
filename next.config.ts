@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
     // Re-enable later if needed.
     optimizeCss: false,
   },
+  typescript: {
+    // Vercel builds are getting SIGKILL during typecheck on the build machine.
+    // Keep TS checks locally/CI; unblock production deploys.
+    ignoreBuildErrors: true,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
