@@ -45,6 +45,10 @@ function EnableDevicesOnConnect({ enabled }: { enabled: boolean }) {
   const room = useRoomContext() as any;
 
   useEffect(() => {
+    (window as any).__lkRoom = room;
+  }, [room]);
+
+  useEffect(() => {
     if (!room) return;
     if (!enabled) return;
 
@@ -254,12 +258,28 @@ export function LiveRoom({
               onClick={async () => {
                 try {
                   const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                  setCameraOk(stream.getVideoTracks().length > 0);
-                  setMicOk(stream.getAudioTracks().length > 0);
+                  const cam = stream.getVideoTracks().length > 0;
+                  const mic = stream.getAudioTracks().length > 0;
+                  setCameraOk(cam);
+                  setMicOk(mic);
                   stream.getTracks().forEach((t) => t.stop());
+
+                  if (!cam || !mic) {
+                    toast.error("Camera/mic not available (no tracks)");
+                    return;
+                  }
 
                   // Now allow LiveKit enable flow.
                   setStartNeeded(false);
+
+                  // Extra explicit enable (user gesture path)
+                  try {
+                    const r: any = (window as any).__lkRoom;
+                    r?.localParticipant?.setCameraEnabled(true);
+                    r?.localParticipant?.setMicrophoneEnabled(true);
+                  } catch {
+                    // best-effort
+                  }
                 } catch (e: any) {
                   const name = e?.name ? String(e.name) : "PermissionError";
                   const msg = e?.message ? String(e.message) : "";
