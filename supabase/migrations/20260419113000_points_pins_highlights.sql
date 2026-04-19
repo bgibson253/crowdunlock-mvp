@@ -19,20 +19,24 @@ create table if not exists public.points_ledger (
 alter table public.points_ledger enable row level security;
 
 -- Users can see their own ledger
-create policy if not exists "points_ledger_select_own"
+drop policy if exists "points_ledger_select_own" on public.points_ledger;
+create policy "points_ledger_select_own"
 on public.points_ledger
 for select
 to authenticated
 using (user_id = auth.uid());
 
 -- Users cannot arbitrarily insert; all mints/spends happen via security definer functions
-create policy if not exists "points_ledger_no_insert"
+drop policy if exists "points_ledger_no_insert" on public.points_ledger;
+create policy "points_ledger_no_insert"
 on public.points_ledger
 for insert
 to authenticated
 with check (false);
 
-create policy if not exists "points_ledger_select_service_role"
+-- allow service role to select (debug/admin tooling)
+drop policy if exists "points_ledger_select_service_role" on public.points_ledger;
+create policy "points_ledger_select_service_role"
 on public.points_ledger
 for select
 to service_role
@@ -75,7 +79,8 @@ create table if not exists public.thread_pins (
 
 alter table public.thread_pins enable row level security;
 
-create policy if not exists "thread_pins_select_public"
+drop policy if exists "thread_pins_select_public" on public.thread_pins;
+create policy "thread_pins_select_public"
 on public.thread_pins
 for select
 to public
@@ -92,7 +97,8 @@ create table if not exists public.reply_highlights (
 
 alter table public.reply_highlights enable row level security;
 
-create policy if not exists "reply_highlights_select_public"
+drop policy if exists "reply_highlights_select_public" on public.reply_highlights;
+create policy "reply_highlights_select_public"
 on public.reply_highlights
 for select
 to public
