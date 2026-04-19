@@ -8,9 +8,9 @@ function required(name: string): string {
 
 export function livekitConfig() {
   const env = envClient();
-  const url = required("LIVEKIT_URL");
-  const apiKey = required("LIVEKIT_API_KEY");
-  const apiSecret = required("LIVEKIT_API_SECRET");
+  const url = required("LIVEKIT_URL").trim();
+  const apiKey = required("LIVEKIT_API_KEY").trim();
+  const apiSecret = required("LIVEKIT_API_SECRET").trim();
 
   return {
     url,
