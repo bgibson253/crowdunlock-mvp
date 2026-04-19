@@ -80,7 +80,8 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     const regionRes = await fetch("/api/live/region", { cache: "no-store" });
     const regionJson = await regionRes.json().catch(() => ({}));
     const region =
-      regionRes.ok && (regionJson?.region === "usw2" || regionJson?.region === "use1")
+      regionRes.ok &&
+      (regionJson?.region === "usw2" || regionJson?.region === "use1")
         ? regionJson.region
         : "use1";
 
@@ -101,8 +102,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     });
     pcRef.current = pc;
 
-    // IMPORTANT: we must be ready to RECEIVE before we send the offer,
-    // otherwise the server-viewer relay doesn't include stream IDs.
     pc.addTransceiver("video", { direction: "recvonly" });
     pc.addTransceiver("audio", { direction: "recvonly" });
 
@@ -121,37 +120,49 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       setUi("live");
     };
 
-    const ws = new WebSocket(cfg.sfu.wsUrl);
+    const wsUrl = String(cfg?.sfu?.wsUrl ?? "");
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     const send = (m: any) => ws.send(JSON.stringify(m));
 
     ws.onopen = async () => {
       if (asRole === "host") {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: true,
-        });
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+          });
 
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-          localVideoRef.current.muted = true;
-          localVideoRef.current.playsInline = true;
-          localVideoRef.current.autoplay = true;
-          try {
-            await localVideoRef.current.play();
-          } catch {
-            // ignore
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+            localVideoRef.current.muted = true;
+            localVideoRef.current.playsInline = true;
+            localVideoRef.current.autoplay = true;
+            try {
+              await localVideoRef.current.play();
+            } catch {
+              // ignore
+            }
           }
+
+          for (const track of stream.getTracks()) pc.addTrack(track, stream);
+
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          send({ t: "webrtc.offer", roomId, sdp: offer.sdp, type: offer.type });
+
+          setUi("live");
+        } catch (e: any) {
+          setLastErr(
+            e?.name === "NotAllowedError"
+              ? "Camera/mic permission blocked. Enable it and retry."
+              : e?.message
+                ? String(e.message)
+                : "Unable to access camera/mic"
+          );
+          setUi("error");
         }
-
-        for (const track of stream.getTracks()) pc.addTrack(track, stream);
-
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        send({ t: "webrtc.offer", roomId, sdp: offer.sdp, type: offer.type });
-
-        setUi("live");
       } else {
         send({ t: "viewer.ready", roomId });
       }
@@ -169,7 +180,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         await pc.setRemoteDescription({ type: "offer", sdp: msg.sdp });
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        send({ t: "webrtc.answer", roomId, sdp: answer.sdp, type: answer.type });
+        send({ t: "webrtc.answer", roomId, sdp: msg.sdp ? answer.sdp : answer.sdp, type: answer.type });
 
         setUi("live");
 
@@ -203,7 +214,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     };
 
     ws.onerror = () => {
-      setLastErr("Connection problem. Retrying…");
+      setLastErr(`Connection problem. Retrying…`);
       scheduleRetry(1200);
     };
 
