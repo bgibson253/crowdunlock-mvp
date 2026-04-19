@@ -91,6 +91,7 @@ export function LiveRoom({
           hostAvatarUrl={hostAvatarUrl}
           hostUsername={hostUsername}
           currentUserId={currentUserId}
+          liveRoomId={roomId}
         />
 
         <div className="border-t border-border/50">

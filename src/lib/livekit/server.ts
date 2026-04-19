@@ -19,3 +19,9 @@ export function livekitConfig() {
     appUrl: env.NEXT_PUBLIC_APP_URL,
   };
 }
+
+export async function livekitServerClient() {
+  const { RoomServiceClient } = await import("livekit-server-sdk");
+  const cfg = livekitConfig();
+  return new RoomServiceClient(cfg.url, cfg.apiKey, cfg.apiSecret);
+}

@@ -34,12 +34,14 @@ export function LiveOverlay({
   hostAvatarUrl,
   hostUsername,
   currentUserId,
+  liveRoomId,
 }: {
   hostUserId: string;
   hostName: string;
   hostAvatarUrl: string | null;
   hostUsername: string | null;
   currentUserId: string | null;
+  liveRoomId: string;
 }) {
   const room = useRoomContext() as Room;
   const [hidden, setHidden] = useState(false);
@@ -66,15 +68,25 @@ export function LiveOverlay({
 
     function onData(payload: Uint8Array) {
       const obj = parseJson(payload);
-      if (!obj || obj?.t !== "chat") return;
-      const next: ChatMsg = {
-        id: crypto.randomUUID(),
-        at: Date.now(),
-        fromName: String(obj?.fromName ?? "Someone"),
-        fromUserId: typeof obj?.fromUserId === "string" ? obj.fromUserId : undefined,
-        text: String(obj?.text ?? "").slice(0, 300),
-      };
-      setMsgs((prev) => [...prev.slice(-49), next]);
+      if (!obj) return;
+
+      if (obj?.t === "chat") {
+        const next: ChatMsg = {
+          id: crypto.randomUUID(),
+          at: Date.now(),
+          fromName: String(obj?.fromName ?? "Someone"),
+          fromUserId: typeof obj?.fromUserId === "string" ? obj.fromUserId : undefined,
+          text: String(obj?.text ?? "").slice(0, 300),
+        };
+        setMsgs((prev) => [...prev.slice(-49), next]);
+        return;
+      }
+
+      if (obj?.t === "tip") {
+        const dollars = typeof obj?.amountCents === "number" ? (obj.amountCents / 100).toFixed(2) : "";
+        toast.success(`Tip received: $${dollars}`);
+        return;
+      }
     }
 
     room.on("dataReceived", onData);
@@ -197,10 +209,36 @@ export function LiveOverlay({
         </div>
       )}
 
-      {/* Tip button placeholder (wired next) */}
-      <div className="pointer-events-auto absolute bottom-3 right-3">
-        <Button size="sm" className="h-10 rounded-full shadow-lg" disabled title="Tips coming next">
-          Tip
+      {/* Tip button */}
+      <div className="pointer-events-auto absolute bottom-3 right-3 flex items-center gap-2">
+        <Button
+          size="sm"
+          className="h-10 rounded-full shadow-lg"
+          onClick={async () => {
+            if (!currentUserId || !hostUsername) {
+              toast.error("Sign in to tip");
+              return;
+            }
+            const amount = 5;
+            const res = await fetch("/api/stripe/checkout/live-tip", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                host_user_id: hostUserId,
+                host_username: hostUsername,
+                live_room_id: liveRoomId,
+                amount,
+              }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json?.url) {
+              toast.error(json?.error ?? "Failed to start tip checkout");
+              return;
+            }
+            window.location.href = json.url;
+          }}
+        >
+          Tip $5
         </Button>
       </div>
     </div>

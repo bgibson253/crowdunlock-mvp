@@ -43,8 +43,86 @@ export async function POST(req: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        // Our checkout sessions will include metadata: kind=contribution, upload_id, user_id, tip_cents, fee_bps
         const kind = session.metadata?.kind;
+
+        // =====================================
+        // Live tips
+        // =====================================
+        if (kind === "live_tip") {
+          const hostUserId = session.metadata?.host_user_id;
+          const liveRoomId = session.metadata?.live_room_id;
+          const tipperUserId = session.metadata?.tipper_user_id;
+          const amountCentsRaw = session.metadata?.amount_cents;
+          const feeBpsRaw = session.metadata?.fee_bps ?? "500";
+
+          if (!hostUserId || !liveRoomId || !tipperUserId || !amountCentsRaw) {
+            throw new Error("Missing metadata on live_tip checkout session");
+          }
+
+          const amount = Number(amountCentsRaw);
+          const feeBps = Number(feeBpsRaw);
+          const platformFeeAmount = Math.round((amount * feeBps) / 10_000);
+          const pointsMinted = platformFeeAmount * 100;
+
+          const currency = (session.currency ?? "usd").toLowerCase();
+          const paymentIntentId =
+            typeof session.payment_intent === "string" ? session.payment_intent : null;
+
+          const { error: tipErr } = await supabase.from("live_tips").insert({
+            live_room_id: liveRoomId,
+            host_user_id: hostUserId,
+            tipper_user_id: tipperUserId,
+            amount_cents: amount,
+            currency,
+            platform_fee_amount: platformFeeAmount,
+            stripe_checkout_session_id: session.id,
+            stripe_payment_intent_id: paymentIntentId,
+          });
+
+          if (tipErr && !/duplicate key/i.test(tipErr.message)) {
+            throw new Error(tipErr.message);
+          }
+
+          if (pointsMinted > 0) {
+            const { error: ptsErr } = await supabase.rpc("apply_points", {
+              p_user_id: tipperUserId,
+              p_delta: pointsMinted,
+              p_reason: "mint_platform_fee",
+              p_ref_type: "stripe_checkout_session",
+              p_ref_id: session.id,
+            });
+            if (ptsErr && !/duplicate key/i.test(ptsErr.message)) {
+              throw new Error(ptsErr.message);
+            }
+          }
+
+          // Best-effort: broadcast the tip event into the room via LiveKit data message
+          try {
+            const { livekitServerClient } = await import("@/lib/livekit/server");
+            const lk = await livekitServerClient();
+            const payload = JSON.stringify({
+              t: "tip",
+              hostUserId,
+              tipperUserId,
+              amountCents: amount,
+              currency,
+            });
+            // Send to everyone (broadcast) — using server API.
+            const { DataPacket_Kind } = await import("livekit-server-sdk");
+            await (lk as any).sendData(liveRoomId, new TextEncoder().encode(payload), {
+              kind: DataPacket_Kind.RELIABLE,
+            });
+          } catch {
+            // ignore
+          }
+
+          break;
+        }
+
+        // =====================================
+        // Contributions
+        // =====================================
+        // Our checkout sessions will include metadata: kind=contribution, upload_id, user_id, tip_cents, fee_bps
         if (kind !== "contribution") break;
 
         const uploadId = session.metadata?.upload_id;
