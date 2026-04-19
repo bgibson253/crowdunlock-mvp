@@ -154,6 +154,14 @@ export function LiveRoom({
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
   const [micOk, setMicOk] = useState<boolean | null>(null);
   const [startNeeded, setStartNeeded] = useState(true);
+  const [diag, setDiag] = useState<
+    | {
+        gum?: { ok: boolean; name?: string; message?: string; videoTracks?: number; audioTracks?: number };
+        clt?: { ok: boolean; name?: string; message?: string; count?: number; kinds?: string[] };
+        pub?: { ok: boolean; name?: string; message?: string };
+      }
+    | null
+  >(null);
   const [url, setUrl] = useState<string | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
@@ -251,51 +259,86 @@ export function LiveRoom({
         </div>
 
         {startNeeded ? (
-          <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <button
-              type="button"
-              className="rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow"
-              onClick={async () => {
-                try {
-                  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                  const cam = stream.getVideoTracks().length > 0;
-                  const mic = stream.getAudioTracks().length > 0;
-                  setCameraOk(cam);
-                  setMicOk(mic);
-                  stream.getTracks().forEach((t) => t.stop());
+          <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="w-full max-w-sm space-y-3">
+              <button
+                type="button"
+                className="w-full rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow"
+                onClick={async () => {
+                  const next: any = { gum: { ok: false }, clt: { ok: false }, pub: { ok: false } };
+                  setDiag(null);
 
-                  if (!cam || !mic) {
-                    toast.error("Camera/mic not available (no tracks)");
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    const camTracks = stream.getVideoTracks();
+                    const micTracks = stream.getAudioTracks();
+                    const cam = camTracks.length > 0;
+                    const mic = micTracks.length > 0;
+                    setCameraOk(cam);
+                    setMicOk(mic);
+                    next.gum = {
+                      ok: true,
+                      videoTracks: camTracks.length,
+                      audioTracks: micTracks.length,
+                    };
+                    stream.getTracks().forEach((t) => t.stop());
+
+                    if (!cam || !mic) {
+                      next.pub = { ok: false, name: "NoTracks", message: "Camera/mic not available (no tracks)" };
+                      setDiag(next);
+                      return;
+                    }
+                  } catch (e: any) {
+                    next.gum = {
+                      ok: false,
+                      name: e?.name ? String(e.name) : "PermissionError",
+                      message: e?.message ? String(e.message) : "",
+                    };
+                    setDiag(next);
                     return;
                   }
 
                   // Now allow LiveKit enable flow.
                   setStartNeeded(false);
 
-                  // Force-publish local tracks explicitly (bypasses component toggles on iOS).
-                  try {
-                    const r: any = (window as any).__lkRoom;
-                    if (r) {
-                      const tracks = await createLocalTracks({ video: true, audio: true });
-                      for (const t of tracks) {
-                        await r.localParticipant.publishTrack(t);
-                      }
-                    }
-                  } catch (e) {
-                    console.error("publishTrack failed", e);
-                    toast.error("Failed to publish camera/mic")
+                  const r: any = (window as any).__lkRoom;
+                  if (!r) {
+                    next.pub = { ok: false, name: "NoRoom", message: "LiveKit room not ready" };
+                    setDiag(next);
+                    return;
                   }
-                } catch (e: any) {
-                  const name = e?.name ? String(e.name) : "PermissionError";
-                  const msg = e?.message ? String(e.message) : "";
-                  toast.error(`Camera/mic blocked (${name})${msg ? `: ${msg}` : ""}`);
-                }
-              }}
-            >
-              Start camera
-            </button>
-            <div className="absolute bottom-6 left-6 right-6 text-xs text-white/80">
-              iOS Safari requires a tap to start realtime audio/video.
+
+                  try {
+                    const tracks = await createLocalTracks({ video: true, audio: true });
+                    next.clt = { ok: true, count: tracks.length, kinds: tracks.map((t) => t.kind) };
+                    for (const t of tracks) {
+                      await r.localParticipant.publishTrack(t);
+                    }
+                    next.pub = { ok: true };
+                    setDiag(next);
+                  } catch (e: any) {
+                    next.pub = {
+                      ok: false,
+                      name: e?.name ? String(e.name) : "PublishError",
+                      message: e?.message ? String(e.message) : String(e),
+                    };
+                    setDiag(next);
+                    toast.error("Failed to publish camera/mic");
+                  }
+                }}
+              >
+                Start camera
+              </button>
+
+              <div className="text-xs text-white/80">
+                iOS Safari requires a tap to start realtime audio/video.
+              </div>
+
+              {diag ? (
+                <pre className="text-[11px] leading-snug whitespace-pre-wrap rounded-xl bg-black/50 border border-white/10 p-3 text-white/90">
+{JSON.stringify(diag, null, 2)}
+                </pre>
+              ) : null}
             </div>
           </div>
         ) : null}
