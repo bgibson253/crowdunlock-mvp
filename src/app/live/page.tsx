@@ -34,7 +34,7 @@ export default async function LiveHomePage() {
       {!profile?.username ? (
         <Card>
           <CardHeader>
-            <CardTitle>Pick a username first</CardTitle>
+            <CardTitle>Choose a username first</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             You need a username before you can go live.

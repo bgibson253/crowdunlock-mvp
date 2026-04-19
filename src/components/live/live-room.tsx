@@ -66,9 +66,26 @@ export function LiveRoom({
   currentUserId: string | null;
 }) {
   const [token, setToken] = useState<string | null>(null);
+  const [cameraOk, setCameraOk] = useState<boolean | null>(null);
+  const [micOk, setMicOk] = useState<boolean | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
+
+  useEffect(() => {
+    // quick permission sanity check (especially on iOS Safari)
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setCameraOk(stream.getVideoTracks().length > 0);
+        setMicOk(stream.getAudioTracks().length > 0);
+        stream.getTracks().forEach((t) => t.stop());
+      } catch {
+        setCameraOk(false);
+        setMicOk(false);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     let canceled = false;
@@ -99,8 +116,13 @@ export function LiveRoom({
 
   if (!token || !url || !roomName) {
     return (
-      <div className="rounded-xl border border-border/50 bg-card/50 p-4 text-sm text-muted-foreground">
-        Joining live…
+      <div className="rounded-xl border border-border/50 bg-card/50 p-4 text-sm text-muted-foreground space-y-2">
+        <div>Joining live…</div>
+        {cameraOk === false || micOk === false ? (
+          <div className="text-xs text-destructive">
+            Camera/mic blocked in this browser. iOS: Settings → Safari → Camera/Microphone → Allow.
+          </div>
+        ) : null}
       </div>
     );
   }

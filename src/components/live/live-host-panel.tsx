@@ -24,8 +24,10 @@ export function LiveHostPanel({ username }: { username: string }) {
       });
       // Stop immediately; LiveKitRoom will request again when it connects.
       stream.getTracks().forEach((t) => t.stop());
-    } catch {
-      toast.error("Camera/microphone permission is required to go live");
+    } catch (e: any) {
+      const name = e?.name ? String(e.name) : "PermissionError";
+      const msg = e?.message ? String(e.message) : "";
+      toast.error(`Camera/mic blocked (${name})${msg ? `: ${msg}` : ""}`);
       return;
     }
 
@@ -71,7 +73,7 @@ export function LiveHostPanel({ username }: { username: string }) {
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title (optional)"
+            placeholder="Stream title (optional)"
             className="h-9"
           />
         </div>
