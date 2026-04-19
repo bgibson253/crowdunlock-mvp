@@ -41,11 +41,12 @@ function HostStage() {
   );
 }
 
-function EnableDevicesOnConnect() {
+function EnableDevicesOnConnect({ enabled }: { enabled: boolean }) {
   const room = useRoomContext() as any;
 
   useEffect(() => {
     if (!room) return;
+    if (!enabled) return;
 
     // Attempt to enable devices once connected.
     let did = false;
@@ -61,13 +62,12 @@ function EnableDevicesOnConnect() {
     };
 
     room.on?.("connected", handler);
-    // Also fire immediately if already connected.
     handler();
 
     return () => {
       room.off?.("connected", handler);
     };
-  }, [room]);
+  }, [room, enabled]);
 
   return null;
 }
@@ -149,6 +149,7 @@ export function LiveRoom({
   const [token, setToken] = useState<string | null>(null);
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
   const [micOk, setMicOk] = useState<boolean | null>(null);
+  const [startNeeded, setStartNeeded] = useState(true);
   const [url, setUrl] = useState<string | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
@@ -245,7 +246,36 @@ export function LiveRoom({
           {isHost ? <HostStage /> : <ViewerStage />}
         </div>
 
-        <EnableDevicesOnConnect />
+        {startNeeded ? (
+          <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <button
+              type="button"
+              className="rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow"
+              onClick={async () => {
+                try {
+                  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                  setCameraOk(stream.getVideoTracks().length > 0);
+                  setMicOk(stream.getAudioTracks().length > 0);
+                  stream.getTracks().forEach((t) => t.stop());
+
+                  // Now allow LiveKit enable flow.
+                  setStartNeeded(false);
+                } catch (e: any) {
+                  const name = e?.name ? String(e.name) : "PermissionError";
+                  const msg = e?.message ? String(e.message) : "";
+                  toast.error(`Camera/mic blocked (${name})${msg ? `: ${msg}` : ""}`);
+                }
+              }}
+            >
+              Start camera
+            </button>
+            <div className="absolute bottom-6 left-6 right-6 text-xs text-white/80">
+              iOS Safari requires a tap to start realtime audio/video.
+            </div>
+          </div>
+        ) : null}
+
+        <EnableDevicesOnConnect enabled={!startNeeded} />
         <DebugPublishBadge />
 
         {/* iOS/Safari requires a user gesture to start audio playback.
