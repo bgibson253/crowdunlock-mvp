@@ -38,7 +38,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     mode === "viewer" ? "connecting" : "idle"
   );
   const [attempt, setAttempt] = useState(0);
-
   const [lastErr, setLastErr] = useState<string | null>(null);
 
   const cleanup = () => {
@@ -102,15 +101,14 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     });
     pcRef.current = pc;
 
+    // IMPORTANT: we must be ready to RECEIVE before we send the offer,
+    // otherwise the server-viewer relay doesn't include stream IDs.
+    pc.addTransceiver("video", { direction: "recvonly" });
+    pc.addTransceiver("audio", { direction: "recvonly" });
+
     pc.oniceconnectionstatechange = () => {
       const st = pc.iceConnectionState;
-      if (st === "connected" || st === "completed") {
-        // don't force live here; we set live on track/host start
-        return;
-      }
-      if (st === "failed" || st === "disconnected") {
-        scheduleRetry(1200);
-      }
+      if (st === "failed" || st === "disconnected") scheduleRetry(1200);
     };
 
     pc.ontrack = (ev) => {
@@ -130,7 +128,10 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
     ws.onopen = async () => {
       if (asRole === "host") {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true,
+        });
 
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
@@ -172,10 +173,8 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
         setUi("live");
 
-        // iOS: remote video might play muted until user gesture; we keep UI clean.
         if (isIOS) {
           try {
-            // Best-effort attempt to start playback.
             await remoteVideoRef.current?.play?.();
           } catch {
             // ignore
@@ -209,7 +208,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     };
 
     ws.onclose = () => {
-      // If host ends tab, viewers should retry for a bit then show ended.
       if (asRole === "viewer") {
         setUi((prev) => (prev === "live" ? "reconnecting" : prev));
         scheduleRetry(1500);
@@ -217,7 +215,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     };
   };
 
-  // Autoconnect for viewers; host waits for tap.
   useEffect(() => {
     if (mode !== "viewer") return;
     void connect("viewer").catch((e: any) => {
@@ -236,7 +233,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     }
   };
 
-  // Polished overlays
   const overlay = (() => {
     if (mode === "host" && ui === "idle") {
       return (
@@ -297,7 +293,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
   return (
     <div className="relative overflow-hidden bg-black sm:rounded-xl sm:border sm:border-border/50">
-      {/* Viewer video fills the surface */}
       <video
         ref={remoteVideoRef}
         className="absolute inset-0 h-full w-full object-cover"
@@ -305,7 +300,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         autoPlay
       />
 
-      {/* Host preview fills the surface */}
       {mode === "host" ? (
         <video
           ref={localVideoRef}
