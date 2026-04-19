@@ -34,10 +34,16 @@ export function LiveRoomSfu({ roomId }: { roomId: string }) {
     setRole(asRole);
     setStatus("loading");
 
+    const regionRes = await fetch("/api/live/region", { cache: "no-store" });
+    const regionJson = await regionRes.json().catch(() => ({}));
+    const region = regionRes.ok && (regionJson?.region === "usw2" || regionJson?.region === "use1")
+      ? regionJson.region
+      : "use1";
+
     const cfgRes = await fetch("/api/live/sfu", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ roomId }),
+      body: JSON.stringify({ roomId, region }),
     });
     const cfg = await cfgRes.json().catch(() => ({}));
     if (!cfgRes.ok) throw new Error(cfg?.error ?? "Failed to fetch SFU config");
