@@ -272,6 +272,7 @@ export function LiveRoomManual({
 
       {/* TikTok overlay */}
       <LiveOverlay
+        roomRef={roomRef}
         hostUserId={hostUserId}
         hostName={hostName}
         hostAvatarUrl={hostAvatarUrl}

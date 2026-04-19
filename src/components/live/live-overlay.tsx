@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRoomContext } from "@livekit/components-react";
-import type { Room, RemoteParticipant } from "livekit-client";
+import type { Room } from "livekit-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +28,7 @@ function parseJson(data: Uint8Array): any {
 }
 
 export function LiveOverlay({
+  roomRef,
   hostUserId,
   hostName,
   hostAvatarUrl,
@@ -36,6 +36,7 @@ export function LiveOverlay({
   currentUserId,
   liveRoomId,
 }: {
+  roomRef: React.RefObject<Room | null>;
   hostUserId: string;
   hostName: string;
   hostAvatarUrl: string | null;
@@ -43,7 +44,7 @@ export function LiveOverlay({
   currentUserId: string | null;
   liveRoomId: string;
 }) {
-  const room = useRoomContext() as Room;
+  const room = roomRef.current;
   const [hidden, setHidden] = useState(false);
   const [chromeHidden, setChromeHidden] = useState(false);
   const [profileTapAt, setProfileTapAt] = useState<number | null>(null);
@@ -58,17 +59,7 @@ export function LiveOverlay({
 
   const canChat = !!currentUserId;
 
-  const hostIdentity = useMemo(() => {
-    // We encode hostUserId in token identity (api/live/token route) in our impl.
-    // So this should match participant.identity when host is connected.
-    return hostUserId;
-  }, [hostUserId]);
 
-  const hostParticipant: RemoteParticipant | undefined = useMemo(() => {
-    if (!room) return undefined;
-    const rp = room.remoteParticipants.get(hostIdentity) as any;
-    return rp ?? undefined;
-  }, [room, hostIdentity, msgs.length]);
 
   useEffect(() => {
     if (!room) return;
