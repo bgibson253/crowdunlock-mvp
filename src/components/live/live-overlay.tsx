@@ -45,6 +45,7 @@ export function LiveOverlay({
 }) {
   const room = useRoomContext() as Room;
   const [hidden, setHidden] = useState(false);
+  const [profileTapAt, setProfileTapAt] = useState<number | null>(null);
   const [text, setText] = useState("");
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -135,7 +136,23 @@ export function LiveOverlay({
     <div className="pointer-events-none absolute inset-0">
       {/* Top-left host avatar chip */}
       <div className="pointer-events-auto absolute top-3 left-3 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur px-2 py-1 border border-white/10">
-        <a href={`/profile/${hostUserId}`} className="flex items-center gap-2">
+        <button
+          type="button"
+          className="flex items-center gap-2"
+          onClick={() => {
+            // Don’t navigate on accidental taps.
+            // Double-tap within 1.2s to open host profile.
+            const now = Date.now();
+            setProfileTapAt((prev) => {
+              if (prev && now - prev < 1200) {
+                window.location.href = `/profile/${hostUserId}`;
+                return null;
+              }
+              toast.message("Tap again to view profile");
+              return now;
+            });
+          }}
+        >
           <Avatar className="h-8 w-8 ring-2 ring-red-500/70">
             {hostAvatarUrl ? <AvatarImage src={hostAvatarUrl} alt={hostName} /> : null}
             <AvatarFallback className="text-xs">{hostName.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -144,7 +161,7 @@ export function LiveOverlay({
             <div className="text-xs font-semibold text-white">{hostName}</div>
             <div className="text-[10px] text-white/70">LIVE</div>
           </div>
-        </a>
+        </button>
 
         {/* Follow / Friend quick actions */}
         {currentUserId && currentUserId !== hostUserId && (

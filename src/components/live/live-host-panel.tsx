@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -65,8 +64,7 @@ export function LiveHostPanel({ username }: { username: string }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm text-muted-foreground">
-          You’ll go live immediately. Your watch URL will be: {" "}
-          <Link className="underline" href={`/live/${username}`}>{`/live/${username}`}</Link>
+          Tap <span className="font-medium text-foreground">Go live</span> and you’ll see your own preview.
         </div>
 
         <div className="flex gap-2">
@@ -88,8 +86,14 @@ export function LiveHostPanel({ username }: { username: string }) {
               >
                 End live
               </Button>
-              <Button asChild variant="outline" disabled={pending}>
-                <Link href={`/live/${username}`}>Open stream</Link>
+              <Button
+                variant="outline"
+                disabled={pending}
+                onClick={() => {
+                  window.location.href = `/live/${encodeURIComponent(username)}`;
+                }}
+              >
+                Open stream
               </Button>
             </>
           ) : (

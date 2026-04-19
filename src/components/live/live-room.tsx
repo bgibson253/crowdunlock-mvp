@@ -18,8 +18,14 @@ import { LiveOverlay } from "@/components/live/live-overlay";
 
 function HostStage() {
   const tracks = useTracks([
-    { source: Track.Source.Camera, withPlaceholder: true },
-    { source: Track.Source.Microphone, withPlaceholder: false },
+    {
+      source: Track.Source.Camera,
+      withPlaceholder: true,
+      // Ensure we include the local camera track explicitly.
+      // (Host must always see themselves.)
+      participant: "local",
+    },
+    { source: Track.Source.Microphone, withPlaceholder: false, participant: "local" },
   ]);
 
   return (
