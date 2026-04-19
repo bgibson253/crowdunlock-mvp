@@ -15,9 +15,11 @@ type Status =
 export function FriendButton({
   targetUserId,
   currentUserId,
+  compact,
 }: {
   targetUserId: string;
   currentUserId: string | null;
+  compact?: boolean;
 }) {
   const [status, setStatus] = useState<Status>({ kind: "none" });
   const [isPending, startTransition] = useTransition();
@@ -122,9 +124,15 @@ export function FriendButton({
 
   if (status.kind === "friends") {
     return (
-      <Button variant="outline" size="sm" disabled className="gap-1">
+      <Button
+        variant="outline"
+        size={compact ? "icon" : "sm"}
+        disabled
+        className={compact ? "h-8 w-8 rounded-full" : "gap-1"}
+        title={compact ? "Friends" : undefined}
+      >
         <UserCheck className="h-4 w-4" />
-        Friends
+        {compact ? null : "Friends"}
       </Button>
     );
   }
@@ -158,23 +166,29 @@ export function FriendButton({
   if (status.kind === "outgoing") {
     return (
       <Button
-        size="sm"
+        size={compact ? "icon" : "sm"}
         variant="outline"
         disabled={disabled}
         onClick={() => cancelOutgoing(status.requestId)}
-        className="gap-1"
-        title="Cancel friend request"
+        className={compact ? "h-8 w-8 rounded-full" : "gap-1"}
+        title={compact ? "Requested (click to cancel)" : "Cancel friend request"}
       >
         {disabled ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="h-4 w-4" />}
-        Requested
+        {compact ? null : "Requested"}
       </Button>
     );
   }
 
   return (
-    <Button size="sm" disabled={disabled} onClick={sendRequest} className="gap-1">
+    <Button
+      size={compact ? "icon" : "sm"}
+      disabled={disabled}
+      onClick={sendRequest}
+      className={compact ? "h-8 w-8 rounded-full" : "gap-1"}
+      title={compact ? "Add friend" : undefined}
+    >
       {disabled ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-      Add friend
+      {compact ? null : "Add friend"}
     </Button>
   );
 }

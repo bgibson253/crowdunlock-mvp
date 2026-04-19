@@ -6,7 +6,23 @@ import { useEffect, useMemo, useState } from "react";
 import { LiveKitRoom, FocusLayout, ParticipantTile, ControlBar } from "@livekit/components-react";
 import { toast } from "sonner";
 
-export function LiveRoom({ roomId }: { roomId: string }) {
+import { LiveOverlay } from "@/components/live/live-overlay";
+
+export function LiveRoom({
+  roomId,
+  hostUserId,
+  hostName,
+  hostAvatarUrl,
+  hostUsername,
+  currentUserId,
+}: {
+  roomId: string;
+  hostUserId: string;
+  hostName: string;
+  hostAvatarUrl: string | null;
+  hostUsername: string | null;
+  currentUserId: string | null;
+}) {
   const [token, setToken] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
@@ -48,7 +64,7 @@ export function LiveRoom({ roomId }: { roomId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card/50 overflow-hidden">
+    <div className="rounded-xl border border-border/50 bg-card/50 overflow-hidden relative">
       <LiveKitRoom
         serverUrl={url}
         token={token}
@@ -68,6 +84,14 @@ export function LiveRoom({ roomId }: { roomId: string }) {
         <FocusLayout style={{ height: "calc(70vh - 92px)" }}>
           <ParticipantTile />
         </FocusLayout>
+
+        <LiveOverlay
+          hostUserId={hostUserId}
+          hostName={hostName}
+          hostAvatarUrl={hostAvatarUrl}
+          hostUsername={hostUsername}
+          currentUserId={currentUserId}
+        />
 
         <div className="border-t border-border/50">
           <ControlBar />

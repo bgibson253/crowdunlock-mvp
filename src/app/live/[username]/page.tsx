@@ -35,7 +35,7 @@ export default async function LiveByUsernamePage({
 
   const { data: host } = await supabase
     .from("profiles")
-    .select("id,username,display_name")
+    .select("id,username,display_name,avatar_url")
     .eq("username", username)
     .maybeSingle();
 
@@ -72,7 +72,14 @@ export default async function LiveByUsernamePage({
         </p>
       </div>
 
-      <LiveRoom roomId={room.id} />
+      <LiveRoom
+        roomId={room.id}
+        hostUserId={host.id}
+        hostName={host.display_name || host.username || "Host"}
+        hostAvatarUrl={host.avatar_url}
+        hostUsername={host.username}
+        currentUserId={user.id}
+      />
 
       <div className="text-xs text-muted-foreground">
         Tip + paid questions UI coming next.

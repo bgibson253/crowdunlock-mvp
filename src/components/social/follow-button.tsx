@@ -10,10 +10,12 @@ export function FollowButton({
   targetUserId,
   currentUserId,
   isFollowing: initialIsFollowing,
+  compact,
 }: {
   targetUserId: string;
   currentUserId: string | null;
   isFollowing: boolean;
+  compact?: boolean;
 }) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isPending, startTransition] = useTransition();
@@ -45,19 +47,32 @@ export function FollowButton({
   return (
     <Button
       variant={isFollowing ? "outline" : "default"}
-      size="sm"
+      size={compact ? "icon" : "sm"}
       onClick={handleToggle}
       disabled={isPending}
       aria-label={isFollowing ? "Unfollow user" : "Follow user"}
-      className={isFollowing ? "hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30" : ""}
+      className={
+        compact
+          ? "h-8 w-8 rounded-full"
+          : isFollowing
+            ? "hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+            : ""
+      }
+      title={compact ? (isFollowing ? "Unfollow" : "Follow") : undefined}
     >
       {isPending ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : isFollowing ? (
-        <>
-          <UserMinus className="h-4 w-4 mr-1" />
-          Unfollow
-        </>
+        compact ? (
+          <UserMinus className="h-4 w-4" />
+        ) : (
+          <>
+            <UserMinus className="h-4 w-4 mr-1" />
+            Unfollow
+          </>
+        )
+      ) : compact ? (
+        <UserPlus className="h-4 w-4" />
       ) : (
         <>
           <UserPlus className="h-4 w-4 mr-1" />
