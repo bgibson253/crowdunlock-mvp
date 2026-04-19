@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchBar } from "@/components/forum/search-bar";
 import { TrendingSidebar } from "@/components/engagement/trending-sidebar";
-import { MessageSquare, Users, Zap } from "lucide-react";
+import { MessageSquare, Users, Zap, Radio } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +85,10 @@ function CategoryHeader({
 
 export default async function ForumIndexPage() {
   const supabase = await supabaseServer();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: sectionsRaw, error: sectionsErr } = await supabase
     .from("forum_sections")
@@ -182,6 +186,14 @@ export default async function ForumIndexPage() {
           </div>
           <div className="flex items-center gap-2">
             <SearchBar />
+            {user && (
+              <Button asChild variant="outline" className="text-sm font-medium">
+                <Link href="/live" className="flex items-center gap-1.5">
+                  <Radio className="h-4 w-4 text-red-400" />
+                  Go live
+                </Link>
+              </Button>
+            )}
             <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-sm font-medium">
               <Link href="/forum/new">New thread</Link>
             </Button>
