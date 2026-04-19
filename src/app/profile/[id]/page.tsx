@@ -16,6 +16,7 @@ import { AchievementBadges } from "@/components/engagement/achievement-badges";
 import { StreakIndicator } from "@/components/engagement/streak-indicator";
 import { ActivityFeed } from "@/components/profile/activity-feed";
 import { FollowButton } from "@/components/social/follow-button";
+import { FriendButton } from "@/components/social/friend-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { relativeTime } from "@/lib/relative-time";
 
@@ -204,12 +205,13 @@ export default async function ProfilePage({
                       )}
                     </div>
                     {user && !isOwnProfile && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-wrap justify-end">
                         <FollowButton
                           targetUserId={id}
                           currentUserId={user.id}
                           isFollowing={isFollowing}
                         />
+                        <FriendButton targetUserId={id} currentUserId={user.id} />
                         <SendDmButton recipientId={id} recipientName={name} />
                       </div>
                     )}
