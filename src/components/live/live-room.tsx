@@ -40,6 +40,37 @@ function HostStage() {
   );
 }
 
+function EnableDevicesOnConnect() {
+  const room = useRoomContext() as any;
+
+  useEffect(() => {
+    if (!room) return;
+
+    // Attempt to enable devices once connected.
+    let did = false;
+    const handler = () => {
+      if (did) return;
+      did = true;
+      try {
+        room?.localParticipant?.setCameraEnabled(true);
+        room?.localParticipant?.setMicrophoneEnabled(true);
+      } catch {
+        // best-effort
+      }
+    };
+
+    room.on?.("connected", handler);
+    // Also fire immediately if already connected.
+    handler();
+
+    return () => {
+      room.off?.("connected", handler);
+    };
+  }, [room]);
+
+  return null;
+}
+
 function ViewerStage() {
   return (
     <FocusLayout
@@ -146,6 +177,18 @@ export function LiveRoom({
         setUrl(json.url);
         setRoomName(json.roomName);
         setIsHost(!!json.isHost);
+
+        // Try to verify we can access devices right now (gives clearer iOS failures).
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          setCameraOk(stream.getVideoTracks().length > 0);
+          setMicOk(stream.getAudioTracks().length > 0);
+          stream.getTracks().forEach((t) => t.stop());
+        } catch (e: any) {
+          setCameraOk(false);
+          setMicOk(false);
+          console.error("getUserMedia failed", e);
+        }
       } catch (e: any) {
         toast.error(e?.message ?? "Failed to join live");
       }
@@ -176,8 +219,9 @@ export function LiveRoom({
         serverUrl={url}
         token={token}
         connectOptions={connectOptions}
-        video
-        audio
+        // Don’t auto-toggle devices on mount; we explicitly enable below.
+        video={false}
+        audio={false}
         data-lk-theme="default"
         className="h-[100dvh] w-[100vw] sm:h-auto sm:w-auto"
         style={{ height: "100dvh" }}
@@ -194,6 +238,7 @@ export function LiveRoom({
           {isHost ? <HostStage /> : <ViewerStage />}
         </div>
 
+        <EnableDevicesOnConnect />
         <DebugPublishBadge />
 
         <LiveOverlay
