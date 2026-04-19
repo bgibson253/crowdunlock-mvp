@@ -77,7 +77,9 @@ export function LiveRoomManual({
     };
   }, [roomId]);
 
-  // Create room + connect (no publish)
+  // Create room (do not auto-connect). iOS Safari is extremely picky about
+  // user-gesture timing; connecting on load can lead to "engine not connected"
+  // races when we later try to publish.
   useEffect(() => {
     if (!join) return;
 
@@ -100,7 +102,6 @@ export function LiveRoomManual({
       const remoteEl = remoteVideoElRef.current;
       if (!remoteEl) return;
 
-      // Pick the "best" remote video track (first subscribed)
       for (const [, p] of room.remoteParticipants) {
         const pubs = Array.from(p.videoTrackPublications.values());
         for (const pub of pubs) {
@@ -125,15 +126,7 @@ export function LiveRoomManual({
     room.on(RoomEvent.ParticipantConnected, attachRemote);
     room.on(RoomEvent.ParticipantDisconnected, attachRemote);
 
-    (async () => {
-      try {
-        setStatus((s) => ({ ...s, conn: "connecting" }));
-        await room.connect(join.url, join.token);
-        setStatus((s) => ({ ...s, conn: "connected" }));
-      } catch (e: any) {
-        setStatus((s) => ({ ...s, conn: "failed", err: e?.message ? String(e.message) : String(e) }));
-      }
-    })();
+    setStatus((s) => ({ ...s, conn: "ready" }));
 
     return () => {
       try {
@@ -154,7 +147,16 @@ export function LiveRoomManual({
     }
 
     try {
-      setStatus((s) => ({ ...s, pub: "requesting" }));
+      setStatus((s) => ({ ...s, pub: "requesting", err: undefined }));
+
+      // If we aren't connected yet, connect first (on iOS this still counts as the
+      // same user gesture since this function is called from a tap).
+      if ((room as any).state !== "connected") {
+        if (!join) throw new Error("Join info missing");
+        setStatus((s) => ({ ...s, conn: "connecting" }));
+        await room.connect(join.url, join.token);
+        setStatus((s) => ({ ...s, conn: "connected" }));
+      }
 
       // Must be called from a user gesture on iOS.
       const localTracks = await createLocalTracks({
@@ -166,16 +168,13 @@ export function LiveRoomManual({
       });
 
       const localVideo = localTracks.find((t) => t.kind === Track.Kind.Video);
-      const localAudio = localTracks.find((t) => t.kind === Track.Kind.Audio);
 
-      // Attach local preview to *prove* we have a track.
-      // (This is not "fake" streaming; it validates device capture immediately.)
+      // Attach local preview immediately.
       if (localVideoElRef.current && localVideo) {
         localVideo.detach();
         localVideo.attach(localVideoElRef.current);
         localVideoElRef.current.muted = true;
         localVideoElRef.current.playsInline = true;
-        // iOS sometimes needs explicit play
         try {
           await localVideoElRef.current.play();
         } catch {
@@ -188,10 +187,9 @@ export function LiveRoomManual({
         await room.localParticipant.publishTrack(t);
       }
 
-      // Attempt to unmute audio outputs for viewers; for hosts they are muted anyway.
+      // Viewer audio unlock (best-effort)
       if (!join?.isHost && isIOS) {
         try {
-          // Best-effort: user gesture already happened.
           await (room as any).startAudio?.();
         } catch {
           // ignore
