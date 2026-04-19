@@ -10,6 +10,8 @@ export function LiveRoom(props: {
   hostUsername: string | null;
   currentUserId: string | null;
 }) {
-  // SFU only. No LiveKit fallback.
-  return <LiveRoomSfu roomId={props.roomId} />;
+  // SFU only.
+  // Host should auto-start (with a single user gesture) when viewing their own room.
+  const isHost = !!props.currentUserId && props.currentUserId === props.hostUserId;
+  return <LiveRoomSfu roomId={props.roomId} mode={isHost ? "host" : "viewer"} />;
 }
