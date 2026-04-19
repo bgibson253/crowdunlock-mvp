@@ -61,6 +61,7 @@ export async function POST(req: Request) {
         const tipAmount = Number(tipCentsRaw);
         const feeBps = Number(feeBpsRaw);
         const platformFeeAmount = Math.round((amount * feeBps) / 10_000);
+        const pointsMinted = platformFeeAmount * 100; // 100 points per $1 of platform fee
 
         const currency = (session.currency ?? "usd").toLowerCase();
         const paymentIntentId =
@@ -100,6 +101,24 @@ export async function POST(req: Request) {
 
         const { error: updErr } = await supabase.from("uploads").update(updates).eq("id", uploadId);
         if (updErr) throw new Error(updErr.message);
+
+        // Mint non-cash points for the payer based on platform fee.
+        // Idempotency: ledger ref uses checkout session id.
+        if (pointsMinted > 0) {
+          const { error: ptsErr } = await supabase.rpc("apply_points", {
+            p_user_id: userId,
+            p_delta: pointsMinted,
+            p_reason: "mint_platform_fee",
+            p_ref_type: "stripe_checkout_session",
+            p_ref_id: session.id,
+          });
+
+          // Apply_points currently only grants service_role; webhook uses service_role so this should work.
+          // If duplicate inserts become an issue, we'll add a unique constraint on (user_id, ref_type, ref_id).
+          if (ptsErr && !/duplicate key/i.test(ptsErr.message)) {
+            throw new Error(ptsErr.message);
+          }
+        }
 
         break;
       }

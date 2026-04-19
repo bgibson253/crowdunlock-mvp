@@ -15,7 +15,7 @@ export async function Nav() {
   const { data: profile } = user
     ? await supabase
         .from("profiles")
-        .select("id,username,avatar_url,is_admin")
+        .select("id,username,avatar_url,is_admin,points_balance")
         .eq("id", user.id)
         .maybeSingle()
     : { data: null };
@@ -47,6 +47,17 @@ export async function Nav() {
         </div>
 
         <div className="flex items-center gap-2">
+          {user && (
+            <Link
+              href="/forum"
+              className="hidden sm:inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-300 hover:bg-indigo-500/10 transition-colors"
+              aria-label="Points balance"
+              title="Points (non-cash)"
+            >
+              <span className="opacity-80">Pts</span>
+              <span className="font-semibold">{(profile as any)?.points_balance ?? 0}</span>
+            </Link>
+          )}
           {profile?.is_admin && (
             <Link
               href="/admin"

@@ -12,6 +12,7 @@ import {
   Quote as QuoteIcon,
   ArrowUpDown,
   CheckCircle2,
+  Highlighter,
 } from "lucide-react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -100,6 +101,23 @@ function ReplyCard({
   const [editBody, setEditBody] = useState(reply.body);
   const [editSaving, setEditSaving] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [highlighting, setHighlighting] = useState(false);
+
+  async function buyHighlight() {
+    if (!userId || highlighting) return;
+    setHighlighting(true);
+    try {
+      const res = await fetch(`/api/forum/replies/${reply.id}/highlight`, { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error ?? "Failed to highlight");
+      toast.success("Highlighted for 7 days (stackable)");
+      onReplyPosted();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to highlight");
+    } finally {
+      setHighlighting(false);
+    }
+  }
 
   const indent = Math.min(depth, 3);
   const isAuthor = userId === reply.author_id;
@@ -347,6 +365,17 @@ function ReplyCard({
                       <Reactions targetType="reply" targetId={reply.id} userId={userId} authorId={reply.author_id} />
 
                       <div className="mt-1 flex items-center gap-2 flex-wrap">
+            {userId && (
+              <button
+                onClick={buyHighlight}
+                disabled={highlighting}
+                className="inline-flex items-center gap-1 text-[11px] text-indigo-300 hover:text-indigo-200 transition disabled:opacity-50"
+                title="Costs 100 points and lasts 7 days"
+              >
+                <Highlighter className="h-3 w-3" />
+                Highlight (100 pts)
+              </button>
+            )}
                         {userId && !isLocked && (
                           <>
                             <button

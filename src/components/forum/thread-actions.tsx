@@ -70,13 +70,16 @@ export function ThreadActions({
     router.refresh();
   }
 
-  async function togglePin() {
-    const supabase = supabaseBrowser();
-    await supabase
-      .from("forum_threads")
-      .update({ pinned: !isPinned })
-      .eq("id", threadId);
-    router.refresh();
+  async function buyPin() {
+    try {
+      const res = await fetch(`/api/forum/threads/${threadId}/pin`, { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error ?? "Failed to pin");
+      toast.success("Pinned for 7 days (stackable)");
+      router.refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to pin");
+    }
   }
 
   if (!userId) return null;
@@ -118,6 +121,12 @@ export function ThreadActions({
               <DropdownMenuSeparator />
             </>
           )}
+          <DropdownMenuItem onClick={buyPin}>
+            <Pin className="h-3.5 w-3.5 mr-2" />
+            Pin thread (500 pts / 7 days)
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+
           {isAdmin && (
             <>
               <DropdownMenuItem onClick={toggleLock}>
@@ -133,18 +142,9 @@ export function ThreadActions({
                   </>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={togglePin}>
-                {isPinned ? (
-                  <>
-                    <PinOff className="h-3.5 w-3.5 mr-2" />
-                    Unpin Thread
-                  </>
-                ) : (
-                  <>
-                    <Pin className="h-3.5 w-3.5 mr-2" />
-                    Pin Thread
-                  </>
-                )}
+              <DropdownMenuItem disabled>
+                <PinOff className="h-3.5 w-3.5 mr-2" />
+                Admin pin toggle disabled (use points pin)
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
