@@ -29,7 +29,11 @@ function HostStage() {
   ]);
 
   return (
-    <GridLayout tracks={tracks} style={{ height: "calc(70vh - 92px)" }}>
+    <GridLayout
+      tracks={tracks}
+      className="h-[100dvh] w-[100vw] sm:h-[calc(70vh-92px)] sm:w-auto"
+      style={{ height: "100dvh" }}
+    >
       <ParticipantTile />
     </GridLayout>
   );
@@ -37,7 +41,10 @@ function HostStage() {
 
 function ViewerStage() {
   return (
-    <FocusLayout style={{ height: "calc(70vh - 92px)" }}>
+    <FocusLayout
+      className="h-[100dvh] w-[100vw] sm:h-[calc(70vh-92px)] sm:w-auto"
+      style={{ height: "100dvh" }}
+    >
       <ParticipantTile />
     </FocusLayout>
   );
@@ -99,7 +106,7 @@ export function LiveRoom({
   }
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card/50 overflow-hidden relative">
+    <div className="relative overflow-hidden bg-black sm:rounded-xl sm:border sm:border-border/50 sm:bg-card/50">
       <LiveKitRoom
         serverUrl={url}
         token={token}
@@ -107,16 +114,20 @@ export function LiveRoom({
         video
         audio
         data-lk-theme="default"
-        style={{ height: "70vh" }}
+        className="h-[100dvh] w-[100vw] sm:h-auto sm:w-auto"
+        style={{ height: "100dvh" }}
       >
-        <div className="p-2 border-b border-border/50 flex items-center justify-between">
+        {/* Hide the header on mobile (TikTok-style). Keep on desktop. */}
+        <div className="hidden sm:flex p-2 border-b border-border/50 items-center justify-between">
           <div className="text-xs text-muted-foreground">
             {isHost ? "You are live" : "Watching live"}
           </div>
           <div className="text-xs font-medium text-red-400">LIVE</div>
         </div>
 
-        {isHost ? <HostStage /> : <ViewerStage />}
+        <div className="fixed inset-0 sm:static sm:inset-auto">
+          {isHost ? <HostStage /> : <ViewerStage />}
+        </div>
 
         <LiveOverlay
           hostUserId={hostUserId}
