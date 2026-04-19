@@ -6,7 +6,7 @@ import type { Room, RemoteParticipant } from "livekit-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { EyeOff, Send } from "lucide-react";
+import { EyeOff, Send, X } from "lucide-react";
 import { FriendButton } from "@/components/social/friend-button";
 import { FollowButton } from "@/components/social/follow-button";
 import { toast } from "sonner";
@@ -45,6 +45,7 @@ export function LiveOverlay({
 }) {
   const room = useRoomContext() as Room;
   const [hidden, setHidden] = useState(false);
+  const [chromeHidden, setChromeHidden] = useState(false);
   const [profileTapAt, setProfileTapAt] = useState<number | null>(null);
   const [text, setText] = useState("");
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
@@ -134,8 +135,20 @@ export function LiveOverlay({
 
   return (
     <div className="pointer-events-none absolute inset-0">
-      {/* Top-left host avatar chip */}
-      <div className="pointer-events-auto absolute top-3 left-3 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur px-2 py-1 border border-white/10">
+      {/* Tap anywhere to toggle chrome (TikTok-style). */}
+      <button
+        type="button"
+        aria-label="Toggle overlay"
+        className="pointer-events-auto absolute inset-0"
+        onClick={() => setChromeHidden((v) => !v)}
+      />
+      {/* Top-left host header (TikTok-ish) */}
+      <div
+        className={`pointer-events-auto absolute top-3 left-3 right-3 flex items-center justify-between transition-opacity duration-200 ${
+          chromeHidden ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <div className="flex items-center gap-2 rounded-full bg-black/40 backdrop-blur px-2 py-1 border border-white/10">
         <button
           type="button"
           className="flex items-center gap-2"
@@ -170,24 +183,44 @@ export function LiveOverlay({
             <FriendButton targetUserId={hostUserId} currentUserId={currentUserId} compact />
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Hide comments toggle */}
-      <div className="pointer-events-auto absolute top-3 right-3">
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 bg-black/40 text-white border-white/10 hover:bg-black/55"
-          onClick={() => setHidden((v) => !v)}
-        >
-          <EyeOff className="h-4 w-4 mr-1" />
-          {hidden ? "Show" : "Hide"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="rounded-full bg-red-500/90 text-white text-[11px] font-semibold px-2 py-1">LIVE</div>
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-8 w-8 bg-black/40 text-white border-white/10 hover:bg-black/55"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.history.back();
+            }}
+            aria-label="Close live"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 bg-black/40 text-white border-white/10 hover:bg-black/55"
+            onClick={(e) => {
+              e.stopPropagation();
+              setHidden((v) => !v);
+            }}
+          >
+            <EyeOff className="h-4 w-4 mr-1" />
+            {hidden ? "Show" : "Hide"}
+          </Button>
+        </div>
       </div>
 
       {/* Bottom overlay: comments */}
       {!hidden && (
-        <div className="pointer-events-auto absolute bottom-14 left-3 right-3 sm:right-auto sm:w-[420px]">
+        <div
+          className={`pointer-events-auto absolute bottom-16 left-3 right-24 sm:right-auto sm:w-[420px] transition-opacity duration-200 ${
+            chromeHidden ? "opacity-0" : "opacity-100"
+          }`}
+        >
           <div className="rounded-2xl bg-black/35 backdrop-blur border border-white/10 overflow-hidden">
             <div ref={listRef} className="max-h-[34vh] overflow-y-auto px-3 py-2 space-y-1">
               {msgs.length === 0 ? (
@@ -226,33 +259,40 @@ export function LiveOverlay({
         </div>
       )}
 
-      {/* Tip button */}
-      <div className="pointer-events-auto absolute bottom-3 right-3 flex items-center gap-2">
+      {/* Right rail actions (TikTok-ish) */}
+      <div
+        className={`pointer-events-auto absolute bottom-3 right-3 flex flex-col items-end gap-2 transition-opacity duration-200 ${
+          chromeHidden ? "opacity-0" : "opacity-100"
+        }`}
+      >
         <Button
           size="sm"
           className="h-10 rounded-full shadow-lg"
-          onClick={async () => {
-            if (!currentUserId || !hostUsername) {
-              toast.error("Sign in to tip");
-              return;
-            }
-            const amount = 5;
-            const res = await fetch("/api/stripe/checkout/live-tip", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({
-                host_user_id: hostUserId,
-                host_username: hostUsername,
-                live_room_id: liveRoomId,
-                amount,
-              }),
-            });
-            const json = await res.json().catch(() => ({}));
-            if (!res.ok || !json?.url) {
-              toast.error(json?.error ?? "Failed to start tip checkout");
-              return;
-            }
-            window.location.href = json.url;
+          onClick={(e) => {
+            e.stopPropagation();
+            (async () => {
+              if (!currentUserId || !hostUsername) {
+                toast.error("Sign in to tip");
+                return;
+              }
+              const amount = 5;
+              const res = await fetch("/api/stripe/checkout/live-tip", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                  host_user_id: hostUserId,
+                  host_username: hostUsername,
+                  live_room_id: liveRoomId,
+                  amount,
+                }),
+              });
+              const json = await res.json().catch(() => ({}));
+              if (!res.ok || !json?.url) {
+                toast.error(json?.error ?? "Failed to start tip checkout");
+                return;
+              }
+              window.location.href = json.url;
+            })();
           }}
         >
           Tip $5
