@@ -48,6 +48,7 @@ export function LiveOverlay({
   const [chromeHidden, setChromeHidden] = useState(false);
   const [profileTapAt, setProfileTapAt] = useState<number | null>(null);
   const [text, setText] = useState("");
+  const [textTip, setTextTip] = useState("5");
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -285,7 +286,7 @@ export function LiveOverlay({
       {/* Bottom overlay: comments */}
       {!hidden && (
         <div
-          className={`pointer-events-auto absolute bottom-16 left-3 right-24 sm:right-auto sm:w-[420px] transition-opacity duration-200 ${
+          className={`pointer-events-auto absolute bottom-16 left-3 right-3 sm:right-auto sm:w-[420px] transition-opacity duration-200 ${
             chromeHidden ? "opacity-0" : "opacity-100"
           }`}
         >
@@ -333,38 +334,52 @@ export function LiveOverlay({
           chromeHidden ? "opacity-0" : "opacity-100"
         }`}
       >
-        <Button
-          size="sm"
-          className="h-10 rounded-full shadow-lg"
-          onClick={(e) => {
-            e.stopPropagation();
-            (async () => {
-              if (!currentUserId || !hostUsername) {
-                toast.error("Sign in to tip");
-                return;
-              }
-              const amount = 5;
-              const res = await fetch("/api/stripe/checkout/live-tip", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({
-                  host_user_id: hostUserId,
-                  host_username: hostUsername,
-                  live_room_id: liveRoomId,
-                  amount,
-                }),
-              });
-              const json = await res.json().catch(() => ({}));
-              if (!res.ok || !json?.url) {
-                toast.error(json?.error ?? "Failed to start tip checkout");
-                return;
-              }
-              window.location.href = json.url;
-            })();
-          }}
-        >
-          Tip $5
-        </Button>
+        <div className="rounded-2xl bg-black/35 backdrop-blur border border-white/10 p-2 flex items-center gap-2">
+          <Input
+            value={textTip}
+            onChange={(e) => {
+              const v = e.target.value.replace(/[^0-9.]/g, "");
+              setTextTip(v);
+            }}
+            inputMode="decimal"
+            placeholder="$5"
+            className="h-9 w-[88px] bg-black/25 border-white/10 text-white placeholder:text-white/50"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <Button
+            size="sm"
+            className="h-9 rounded-full shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              (async () => {
+                if (!currentUserId || !hostUsername) {
+                  toast.error("Sign in to tip");
+                  return;
+                }
+                const raw = parseFloat(textTip || "5");
+                const amount = Number.isFinite(raw) && raw > 0 ? raw : 5;
+                const res = await fetch("/api/stripe/checkout/live-tip", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({
+                    host_user_id: hostUserId,
+                    host_username: hostUsername,
+                    live_room_id: liveRoomId,
+                    amount,
+                  }),
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || !json?.url) {
+                  toast.error(json?.error ?? "Failed to start tip checkout");
+                  return;
+                }
+                window.location.href = json.url;
+              })();
+            }}
+          >
+            Tip
+          </Button>
+        </div>
       </div>
     </div>
   );
