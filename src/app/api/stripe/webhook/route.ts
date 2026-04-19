@@ -120,6 +120,36 @@ export async function POST(req: Request) {
         }
 
         // =====================================
+        // Coin packs (money -> coins)
+        // =====================================
+        if (kind === "coin_pack") {
+          const userId = session.metadata?.user_id;
+          const packId = session.metadata?.pack_id;
+          const coinsRaw = session.metadata?.coins;
+
+          if (!userId || !packId || !coinsRaw) {
+            throw new Error("Missing metadata on coin_pack checkout session");
+          }
+
+          const coins = Number(coinsRaw);
+          if (!Number.isFinite(coins) || coins <= 0) throw new Error("Invalid coins amount");
+
+          const { error: coinErr } = await supabase.rpc("apply_coins", {
+            p_user_id: userId,
+            p_delta: coins,
+            p_reason: "coin_pack_purchase",
+            p_ref_type: "stripe_checkout_session",
+            p_ref_id: session.id,
+          });
+
+          if (coinErr && !/duplicate key/i.test(coinErr.message)) {
+            throw new Error(coinErr.message);
+          }
+
+          break;
+        }
+
+        // =====================================
         // Contributions
         // =====================================
         // Our checkout sessions will include metadata: kind=contribution, upload_id, user_id, tip_cents, fee_bps
