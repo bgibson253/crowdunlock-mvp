@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   at.addGrant({
     room: room.room_name,
     roomJoin: true,
-    canPublish: true,
+    canPublish: isHost,
     canSubscribe: true,
     canPublishData: true,
   });

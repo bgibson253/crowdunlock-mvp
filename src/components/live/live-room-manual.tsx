@@ -158,46 +158,51 @@ export function LiveRoomManual({
         setStatus((s) => ({ ...s, conn: "connected" }));
       }
 
-      // Must be called from a user gesture on iOS.
-      const localTracks = await createLocalTracks({
-        audio: true,
-        video: {
-          facingMode: "user",
-          resolution: { width: 720, height: 1280 },
-        },
-      });
+      if (join?.isHost) {
+        // Must be called from a user gesture on iOS.
+        const localTracks = await createLocalTracks({
+          audio: true,
+          video: {
+            facingMode: "user",
+            resolution: { width: 720, height: 1280 },
+          },
+        });
 
-      const localVideo = localTracks.find((t) => t.kind === Track.Kind.Video);
+        const localVideo = localTracks.find((t) => t.kind === Track.Kind.Video);
 
-      // Attach local preview immediately.
-      if (localVideoElRef.current && localVideo) {
-        localVideo.detach();
-        localVideo.attach(localVideoElRef.current);
-        localVideoElRef.current.muted = true;
-        localVideoElRef.current.playsInline = true;
-        try {
-          await localVideoElRef.current.play();
-        } catch {
-          // ignore
+        // Attach local preview immediately.
+        if (localVideoElRef.current && localVideo) {
+          localVideo.detach();
+          localVideo.attach(localVideoElRef.current);
+          localVideoElRef.current.muted = true;
+          localVideoElRef.current.playsInline = true;
+          try {
+            await localVideoElRef.current.play();
+          } catch {
+            // ignore
+          }
         }
-      }
 
-      setStatus((s) => ({ ...s, pub: "publishing" }));
-      for (const t of localTracks) {
-        await room.localParticipant.publishTrack(t);
-      }
-
-      // Viewer audio unlock (best-effort)
-      if (!join?.isHost && isIOS) {
-        try {
-          await (room as any).startAudio?.();
-        } catch {
-          // ignore
+        setStatus((s) => ({ ...s, pub: "publishing" }));
+        for (const t of localTracks) {
+          await room.localParticipant.publishTrack(t);
         }
-      }
 
-      setStartNeeded(false);
-      setStatus((s) => ({ ...s, pub: "published" }));
+        setStartNeeded(false);
+        setStatus((s) => ({ ...s, pub: "published" }));
+      } else {
+        // Viewer: don't try to capture camera/mic. Just unlock audio playback on iOS.
+        setStatus((s) => ({ ...s, pub: "starting-audio" }));
+        if (isIOS) {
+          try {
+            await (room as any).startAudio?.();
+          } catch {
+            // ignore
+          }
+        }
+        setStartNeeded(false);
+        setStatus((s) => ({ ...s, pub: "watching" }));
+      }
     } catch (e: any) {
       const msg = e?.message ? String(e.message) : String(e);
       setStatus((s) => ({ ...s, pub: "failed", err: msg }));
@@ -268,7 +273,7 @@ export function LiveRoomManual({
               className="w-full rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow active:scale-[0.99]"
               onClick={startPublishing}
             >
-              {join.isHost ? "Go Live" : "Start audio"}
+              {join.isHost ? "Go Live" : "Watch live"}
             </button>
 
             {/* Emergency escape hatch if iOS pointer events get weird. */}
