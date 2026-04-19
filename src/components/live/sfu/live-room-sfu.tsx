@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 
 function useIsIOS() {
   return useMemo(() => {
@@ -16,32 +15,68 @@ type Props = {
   mode: "host" | "viewer";
 };
 
+type UiState =
+  | "idle"
+  | "connecting"
+  | "live"
+  | "waiting"
+  | "reconnecting"
+  | "ended"
+  | "error";
+
 export function LiveRoomSfu({ roomId, mode }: Props) {
   const isIOS = useIsIOS();
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const retryTimerRef = useRef<number | null>(null);
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const [status, setStatus] = useState<{ step: string; err?: string }>(() => ({
-    step: "ready",
-  }));
+  const [ui, setUi] = useState<UiState>(() =>
+    mode === "viewer" ? "connecting" : "idle"
+  );
+  const [attempt, setAttempt] = useState(0);
+
+  const [lastErr, setLastErr] = useState<string | null>(null);
+
+  const cleanup = () => {
+    if (retryTimerRef.current) {
+      window.clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    try {
+      wsRef.current?.close();
+    } catch {
+      // ignore
+    }
+    wsRef.current = null;
+
+    try {
+      pcRef.current?.close();
+    } catch {
+      // ignore
+    }
+    pcRef.current = null;
+  };
 
   useEffect(() => {
-    return () => {
-      try {
-        wsRef.current?.close();
-      } catch {}
-      try {
-        pcRef.current?.close();
-      } catch {}
-    };
+    return () => cleanup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const connect = async () => {
-    setStatus({ step: "loading" });
+  const scheduleRetry = (ms: number) => {
+    if (retryTimerRef.current) return;
+    retryTimerRef.current = window.setTimeout(() => {
+      retryTimerRef.current = null;
+      setAttempt((a) => a + 1);
+    }, ms);
+  };
+
+  const connect = async (asRole: "host" | "viewer") => {
+    setLastErr(null);
+    setUi((prev) => (prev === "live" ? "reconnecting" : "connecting"));
 
     const regionRes = await fetch("/api/live/region", { cache: "no-store" });
     const regionJson = await regionRes.json().catch(() => ({}));
@@ -56,7 +91,9 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       body: JSON.stringify({ roomId, region }),
     });
     const cfg = await cfgRes.json().catch(() => ({}));
-    if (!cfgRes.ok) throw new Error(cfg?.error ?? "Failed to fetch SFU config");
+    if (!cfgRes.ok) throw new Error(cfg?.error ?? "Unable to start stream");
+
+    cleanup();
 
     const pc = new RTCPeerConnection({
       iceServers: cfg.turn?.length
@@ -66,7 +103,14 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     pcRef.current = pc;
 
     pc.oniceconnectionstatechange = () => {
-      setStatus((s) => ({ ...s, step: `ice:${pc.iceConnectionState}` }));
+      const st = pc.iceConnectionState;
+      if (st === "connected" || st === "completed") {
+        // don't force live here; we set live on track/host start
+        return;
+      }
+      if (st === "failed" || st === "disconnected") {
+        scheduleRetry(1200);
+      }
     };
 
     pc.ontrack = (ev) => {
@@ -76,6 +120,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         remoteVideoRef.current.playsInline = true;
         remoteVideoRef.current.autoplay = true;
       }
+      setUi("live");
     };
 
     const ws = new WebSocket(cfg.sfu.wsUrl);
@@ -84,9 +129,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     const send = (m: any) => ws.send(JSON.stringify(m));
 
     ws.onopen = async () => {
-      setStatus({ step: "ws:open" });
-
-      if (mode === "host") {
+      if (asRole === "host") {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
 
         if (localVideoRef.current) {
@@ -96,7 +139,9 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
           localVideoRef.current.autoplay = true;
           try {
             await localVideoRef.current.play();
-          } catch {}
+          } catch {
+            // ignore
+          }
         }
 
         for (const track of stream.getTracks()) pc.addTrack(track, stream);
@@ -104,8 +149,9 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         send({ t: "webrtc.offer", roomId, sdp: offer.sdp, type: offer.type });
+
+        setUi("live");
       } else {
-        // Viewer
         send({ t: "viewer.ready", roomId });
       }
     };
@@ -119,16 +165,21 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       }
 
       if (msg.t === "webrtc.offer" && msg.sdp) {
-        // viewer receiving offer
         await pc.setRemoteDescription({ type: "offer", sdp: msg.sdp });
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         send({ t: "webrtc.answer", roomId, sdp: answer.sdp, type: answer.type });
 
+        setUi("live");
+
+        // iOS: remote video might play muted until user gesture; we keep UI clean.
         if (isIOS) {
-          // iOS Safari often needs an explicit user gesture to start audio. We'll
-          // surface a tap-to-unmute overlay if autoplay fails.
-          setStatus((s) => ({ ...s, step: "watching" }));
+          try {
+            // Best-effort attempt to start playback.
+            await remoteVideoRef.current?.play?.();
+          } catch {
+            // ignore
+          }
         }
         return;
       }
@@ -136,11 +187,13 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       if (msg.t === "webrtc.ice" && msg.candidate) {
         try {
           await pc.addIceCandidate(msg.candidate);
-        } catch {}
+        } catch {
+          // ignore
+        }
       }
 
       if (msg.t === "webrtc.offer.missing") {
-        setStatus({ step: "waiting_for_host" });
+        setUi("waiting");
       }
     };
 
@@ -151,28 +204,100 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     };
 
     ws.onerror = () => {
-      toast.error("Streaming connection error");
-      setStatus({ step: "ws:error" });
+      setLastErr("Connection problem. Retrying…");
+      scheduleRetry(1200);
     };
 
     ws.onclose = () => {
-      setStatus({ step: "ws:closed" });
+      // If host ends tab, viewers should retry for a bit then show ended.
+      if (asRole === "viewer") {
+        setUi((prev) => (prev === "live" ? "reconnecting" : prev));
+        scheduleRetry(1500);
+      }
     };
   };
 
-  const start = async () => {
+  // Autoconnect for viewers; host waits for tap.
+  useEffect(() => {
+    if (mode !== "viewer") return;
+    void connect("viewer").catch((e: any) => {
+      setLastErr(e?.message ? String(e.message) : "Connection error");
+      setUi("error");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, attempt]);
+
+  const onHostStart = async () => {
     try {
-      await connect();
+      await connect("host");
     } catch (e: any) {
-      const msg = e?.message ? String(e.message) : String(e);
-      setStatus({ step: "error", err: msg });
-      toast.error(msg);
+      setLastErr(e?.message ? String(e.message) : "Unable to start stream");
+      setUi("error");
     }
   };
 
+  // Polished overlays
+  const overlay = (() => {
+    if (mode === "host" && ui === "idle") {
+      return (
+        <button
+          onClick={onHostStart}
+          className="absolute inset-0 flex items-center justify-center bg-black/40 text-white"
+        >
+          <span className="rounded-full bg-white/10 px-5 py-3 text-sm font-semibold backdrop-blur">
+            Go Live
+          </span>
+        </button>
+      );
+    }
+
+    if (ui === "connecting") {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/35 text-white">
+          <div className="rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
+            Connecting…
+          </div>
+        </div>
+      );
+    }
+
+    if (ui === "waiting") {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/35 text-white">
+          <div className="rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
+            Host is starting…
+          </div>
+        </div>
+      );
+    }
+
+    if (ui === "reconnecting") {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/35 text-white">
+          <div className="rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
+            Reconnecting…
+          </div>
+        </div>
+      );
+    }
+
+    if (ui === "error") {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/55 text-white">
+          <div className="max-w-sm rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
+            <div className="font-semibold">Stream unavailable</div>
+            <div className="mt-1 text-white/80">Please try again.</div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  })();
+
   return (
     <div className="relative overflow-hidden bg-black sm:rounded-xl sm:border sm:border-border/50">
-      {/* Remote video (viewer) */}
+      {/* Viewer video fills the surface */}
       <video
         ref={remoteVideoRef}
         className="absolute inset-0 h-full w-full object-cover"
@@ -180,7 +305,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         autoPlay
       />
 
-      {/* Host local preview */}
+      {/* Host preview fills the surface */}
       {mode === "host" ? (
         <video
           ref={localVideoRef}
@@ -191,39 +316,11 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         />
       ) : null}
 
-      {/* UX overlays */}
-      {mode === "host" && status.step === "ready" ? (
-        <button
-          onClick={start}
-          className="absolute inset-0 flex items-center justify-center bg-black/40 text-white"
-        >
-          <span className="rounded-full bg-white/10 px-5 py-3 text-sm font-semibold backdrop-blur">
-            Start stream
-          </span>
-        </button>
-      ) : null}
+      {overlay}
 
-      {mode === "viewer" && status.step === "waiting_for_host" ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white">
-          <div className="rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
-            Waiting for host to go live…
-          </div>
-        </div>
-      ) : null}
-
-      {status.step === "error" ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-white">
-          <div className="max-w-sm rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
-            <div className="font-semibold">Stream error</div>
-            <div className="mt-1 text-white/80">{status.err}</div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Tiny debug (test mode only) */}
-      {process.env.NEXT_PUBLIC_APP_URL && process.env.TEST_MODE === "true" ? (
-        <div className="absolute left-2 top-2 rounded bg-black/60 px-2 py-1 text-[10px] text-white/80">
-          {mode} · {status.step}
+      {lastErr ? (
+        <div className="absolute left-2 top-2 rounded bg-black/55 px-2 py-1 text-[11px] text-white/80">
+          {lastErr}
         </div>
       ) : null}
 
