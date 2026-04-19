@@ -4,7 +4,9 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   experimental: {
-    optimizeCss: true, // inline critical CSS to reduce render-blocking
+    // Disabled to keep Vercel builds stable (we saw SIGKILL during `next build`).
+    // Re-enable later if needed.
+    optimizeCss: false,
   },
   images: {
     formats: ["image/avif", "image/webp"],
