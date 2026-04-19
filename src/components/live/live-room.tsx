@@ -13,7 +13,7 @@ import {
   useTracks,
   useRoomContext,
 } from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { Track, createLocalTracks } from "livekit-client";
 import { toast } from "sonner";
 
 import { LiveOverlay } from "@/components/live/live-overlay";
@@ -272,13 +272,18 @@ export function LiveRoom({
                   // Now allow LiveKit enable flow.
                   setStartNeeded(false);
 
-                  // Extra explicit enable (user gesture path)
+                  // Force-publish local tracks explicitly (bypasses component toggles on iOS).
                   try {
                     const r: any = (window as any).__lkRoom;
-                    r?.localParticipant?.setCameraEnabled(true);
-                    r?.localParticipant?.setMicrophoneEnabled(true);
-                  } catch {
-                    // best-effort
+                    if (r) {
+                      const tracks = await createLocalTracks({ video: true, audio: true });
+                      for (const t of tracks) {
+                        await r.localParticipant.publishTrack(t);
+                      }
+                    }
+                  } catch (e) {
+                    console.error("publishTrack failed", e);
+                    toast.error("Failed to publish camera/mic")
                   }
                 } catch (e: any) {
                   const name = e?.name ? String(e.name) : "PermissionError";
