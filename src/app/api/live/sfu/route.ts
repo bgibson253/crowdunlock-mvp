@@ -1,20 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { envServer } from "@/lib/env";
-import { supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
   const body = await req.json().catch(() => ({}));
   const roomId = typeof body?.roomId === "string" ? body.roomId : null;
   if (!roomId) {
@@ -23,8 +13,9 @@ export async function POST(req: Request) {
 
   const env = envServer();
 
-  // Simple v1 routing: use east by default. Later: choose based on host region / latency.
-  const region = (body?.region === "usw2" ? "usw2" : "use1") as "use1" | "usw2";
+  const region = (body?.region === "usw2" ? "usw2" : "use1") as
+    | "use1"
+    | "usw2";
 
   const sfu =
     region === "usw2"
@@ -42,16 +33,19 @@ export async function POST(req: Request) {
   return NextResponse.json({
     roomId,
     sfu,
+    // TURN creds are wired next (static-auth-secret -> time-limited creds).
     turn: [
       {
-        urls: ["turn:44.202.221.235:3478?transport=udp", "turn:44.202.221.235:3478?transport=tcp"],
-        username: "stub",
-        credential: "stub",
+        urls: [
+          "turn:44.202.221.235:3478?transport=udp",
+          "turn:44.202.221.235:3478?transport=tcp",
+        ],
       },
       {
-        urls: ["turn:35.165.252.25:3478?transport=udp", "turn:35.165.252.25:3478?transport=tcp"],
-        username: "stub",
-        credential: "stub",
+        urls: [
+          "turn:35.165.252.25:3478?transport=udp",
+          "turn:35.165.252.25:3478?transport=tcp",
+        ],
       },
     ],
   });
