@@ -89,6 +89,7 @@ function DebugPublishBadge() {
     cam: boolean;
     mic: boolean;
     conn: string;
+    err?: string;
   }>({ cam: false, mic: false, conn: "" });
 
   useEffect(() => {
@@ -99,7 +100,8 @@ function DebugPublishBadge() {
       const cam = !!lp?.isCameraEnabled;
       const mic = !!lp?.isMicrophoneEnabled;
       const conn = String(room?.state ?? "");
-      setStatus({ cam, mic, conn });
+      const err = room?.engine?.lastError ? String(room.engine.lastError) : undefined;
+      setStatus({ cam, mic, conn, err });
     };
 
     update();
@@ -107,6 +109,9 @@ function DebugPublishBadge() {
     room.on?.("localTrackUnpublished", update);
     room.on?.("trackSubscribed", update);
     room.on?.("connectionStateChanged", update);
+    room.on?.("disconnected", update);
+    room.on?.("reconnecting", update);
+    room.on?.("reconnected", update);
 
     return () => {
       room.off?.("localTrackPublished", update);
@@ -120,6 +125,7 @@ function DebugPublishBadge() {
     <div className="pointer-events-none absolute top-14 left-3 z-50 text-[11px] text-white/90">
       <div className="rounded-full bg-black/40 backdrop-blur border border-white/10 px-2 py-1">
         conn: {status.conn} · cam: {status.cam ? "on" : "off"} · mic: {status.mic ? "on" : "off"}
+        {status.err ? ` · err: ${status.err}` : ""}
       </div>
     </div>
   );
