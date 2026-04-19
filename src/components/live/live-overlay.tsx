@@ -51,6 +51,10 @@ export function LiveOverlay({
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const listRef = useRef<HTMLDivElement | null>(null);
 
+  // TikTok-style hearts (local-only for now)
+  const [hearts, setHearts] = useState<Array<{ id: string; left: number; createdAt: number }>>([]);
+  const startYRef = useRef<number | null>(null);
+
   const canChat = !!currentUserId;
 
   const hostIdentity = useMemo(() => {
@@ -102,6 +106,16 @@ export function LiveOverlay({
     listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [msgs.length]);
 
+  // cleanup hearts
+  useEffect(() => {
+    if (hearts.length === 0) return;
+    const t = setInterval(() => {
+      const cutoff = Date.now() - 1400;
+      setHearts((prev) => prev.filter((h) => h.createdAt > cutoff));
+    }, 250);
+    return () => clearInterval(t);
+  }, [hearts.length]);
+
   async function sendChat() {
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -135,14 +149,68 @@ export function LiveOverlay({
 
   return (
     <div className="pointer-events-none absolute inset-0">
-      {/* Tap anywhere to toggle chrome (TikTok-style). */}
+      {/* Hearts (local-only animation) */}
+      <div className="pointer-events-none absolute inset-0">
+        {hearts.map((h) => (
+          <div
+            key={h.id}
+            className="absolute bottom-20 text-pink-500 text-2xl"
+            style={{
+              left: h.left,
+              animation: "cuFloatHeart 1.2s ease-out forwards",
+              filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.4))",
+            }}
+          >
+            ♥
+          </div>
+        ))}
+      </div>
+
+      {/* Tap anywhere to toggle chrome; swipe down to exit; tap right side for hearts. */}
       <button
         type="button"
         aria-label="Toggle overlay"
         className="pointer-events-auto absolute inset-0"
-        onClick={() => setChromeHidden((v) => !v)}
+        onPointerDown={(e) => {
+          startYRef.current = e.clientY;
+        }}
+        onPointerUp={(e) => {
+          const startY = startYRef.current;
+          startYRef.current = null;
+          const dy = startY == null ? 0 : e.clientY - startY;
+
+          // Swipe down to exit
+          if (dy > 80) {
+            window.history.back();
+            return;
+          }
+
+          // Right-side tap => hearts
+          const x = e.clientX;
+          const w = window.innerWidth || 1;
+          const isRightSide = x > w * 0.62;
+          if (isRightSide) {
+            const left = Math.max(w * 0.55, Math.min(w - 40, x));
+            setHearts((prev) => [
+              ...prev.slice(-29),
+              { id: crypto.randomUUID(), left, createdAt: Date.now() },
+            ]);
+            return;
+          }
+
+          // Otherwise just toggle chrome
+          setChromeHidden((v) => !v);
+        }}
       />
       {/* Top-left host header (TikTok-ish) */}
+      <style>{`
+        @keyframes cuFloatHeart {
+          0% { transform: translateY(0) scale(0.9); opacity: 0.0; }
+          10% { opacity: 1; }
+          100% { transform: translateY(-140px) scale(1.25); opacity: 0; }
+        }
+      `}</style>
+
       <div
         className={`pointer-events-auto absolute top-3 left-3 right-3 flex items-center justify-between transition-opacity duration-200 ${
           chromeHidden ? "opacity-0" : "opacity-100"
