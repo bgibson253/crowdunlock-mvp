@@ -139,7 +139,7 @@ export function LiveRoomManual({
     };
   }, [join]);
 
-  const startPublishing = async () => {
+  const connectAndPublish = async () => {
     const room = roomRef.current;
     if (!room) {
       toast.error("Room not ready");
@@ -205,6 +205,11 @@ export function LiveRoomManual({
     }
   };
 
+  const startPublishing = async () => {
+    // Legacy alias (kept because button handler references it)
+    return connectAndPublish();
+  };
+
   if (!join) {
     return (
       <div className="rounded-xl border border-border/50 bg-card/50 p-4 text-sm text-muted-foreground">
@@ -214,7 +219,13 @@ export function LiveRoomManual({
   }
 
   return (
-    <div className="relative overflow-hidden bg-black sm:rounded-xl sm:border sm:border-border/50">
+    <div
+      className="relative overflow-hidden bg-black sm:rounded-xl sm:border sm:border-border/50"
+      onClickCapture={() => {
+        // If the Go Live button becomes unclickable on iOS Safari, any tap will start.
+        if (startNeeded) void connectAndPublish();
+      }}
+    >
       {/* Video surface */}
       <div ref={videoWrapRef} className="fixed inset-0 sm:static sm:inset-auto">
         {/* Remote video fills screen for viewers */}
@@ -254,14 +265,26 @@ export function LiveRoomManual({
           <div className="w-full max-w-sm space-y-3">
             <button
               type="button"
-              className="w-full rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow"
+              className="w-full rounded-full bg-white text-black px-5 py-3 text-sm font-semibold shadow active:scale-[0.99]"
               onClick={startPublishing}
             >
               {join.isHost ? "Go Live" : "Start audio"}
             </button>
+
+            {/* Emergency escape hatch if iOS pointer events get weird. */}
+            <button
+              type="button"
+              className="w-full rounded-full bg-white/10 text-white px-5 py-3 text-sm font-semibold border border-white/15"
+              onClick={() => {
+                setStartNeeded(false);
+              }}
+            >
+              Dismiss
+            </button>
+
             <div className="text-xs text-white/80">
               {join.isHost
-                ? "This starts your camera/mic and publishes to LiveKit."
+                ? "Tap Go Live to connect + publish your camera/mic."
                 : "iOS Safari requires a tap to start audio playback."}
             </div>
           </div>
