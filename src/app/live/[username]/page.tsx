@@ -63,6 +63,9 @@ export default async function LiveByUsernamePage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 space-y-4">
+      {process.env.TEST_MODE === "true" ? (
+        <div className="text-[10px] text-muted-foreground">build: 3f48fe7</div>
+      ) : null}
       <div>
         <h1 className="text-xl font-bold tracking-tight">
           {room.title || `${host.display_name || host.username} is live`}

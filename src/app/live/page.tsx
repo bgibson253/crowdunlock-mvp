@@ -31,6 +31,10 @@ export default async function LiveHomePage() {
         </p>
       </div>
 
+      {process.env.TEST_MODE === "true" ? (
+        <div className="text-[10px] text-muted-foreground">build: 3f48fe7</div>
+      ) : null}
+
       {!profile?.username ? (
         <Card>
           <CardHeader>
