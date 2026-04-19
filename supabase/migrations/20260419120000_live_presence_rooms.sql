@@ -142,7 +142,7 @@ order by
   -- live at top within tier
   case when lr.id is not null then 0 else 1 end,
   -- then most recently active
-  coalesce(up.last_heartbeat_at, p.updated_at) desc;
+  coalesce(up.last_heartbeat_at, p.created_at) desc;
 $$;
 
 revoke all on function public.get_following_and_mutuals_presence() from public;

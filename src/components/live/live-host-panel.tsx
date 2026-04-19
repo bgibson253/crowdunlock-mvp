@@ -17,6 +17,19 @@ export function LiveHostPanel({ username }: { username: string }) {
   }, []);
 
   async function goLive() {
+    // Force browser permission prompt up-front
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+      // Stop immediately; LiveKitRoom will request again when it connects.
+      stream.getTracks().forEach((t) => t.stop());
+    } catch {
+      toast.error("Camera/microphone permission is required to go live");
+      return;
+    }
+
     const res = await fetch("/api/live/start", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -29,6 +42,9 @@ export function LiveHostPanel({ username }: { username: string }) {
     }
     setActive({ id: json.room?.id });
     toast.success("You are live");
+
+    // Auto-open the live page (viewer UI) immediately
+    window.location.href = `/live/${encodeURIComponent(username)}`;
   }
 
   async function endLive() {
@@ -49,7 +65,8 @@ export function LiveHostPanel({ username }: { username: string }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm text-muted-foreground">
-          Your live URL: <Link className="underline" href={`/live/${username}`}>{`/live/${username}`}</Link>
+          You’ll go live immediately. Your watch URL will be: {" "}
+          <Link className="underline" href={`/live/${username}`}>{`/live/${username}`}</Link>
         </div>
 
         <div className="flex gap-2">
