@@ -49,7 +49,7 @@ export async function Nav() {
         <div className="flex items-center gap-2">
           {user && (
             <Link
-              href="/forum"
+              href="/following"
               className="hidden sm:inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-300 hover:bg-indigo-500/10 transition-colors"
               aria-label="Points balance"
               title="Points (non-cash)"

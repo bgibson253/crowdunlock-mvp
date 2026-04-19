@@ -7,6 +7,7 @@ import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
 import { ClientShell } from "@/components/site/client-shell";
+import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -70,6 +71,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <ClientShell />
+        <PresenceHeartbeat />
         <script
           dangerouslySetInnerHTML={{
             __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}`
