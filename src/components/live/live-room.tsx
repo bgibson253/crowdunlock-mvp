@@ -9,6 +9,7 @@ import {
   FocusLayout,
   ParticipantTile,
   ControlBar,
+  StartAudio,
   useTracks,
   useRoomContext,
 } from "@livekit/components-react";
@@ -240,6 +241,17 @@ export function LiveRoom({
 
         <EnableDevicesOnConnect />
         <DebugPublishBadge />
+
+        {/* iOS/Safari requires a user gesture to start audio playback.
+            TikTok-style: hide it for hosts; show a styled prompt for viewers. */}
+        {!isHost ? (
+          <div className="pointer-events-auto fixed inset-0 sm:absolute sm:inset-0 flex items-center justify-center z-40">
+            <StartAudio
+              label="Tap to start audio"
+              className="rounded-full bg-black/55 text-white border border-white/10 px-4 py-2"
+            />
+          </div>
+        ) : null}
 
         <LiveOverlay
           hostUserId={hostUserId}
