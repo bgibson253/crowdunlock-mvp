@@ -17,13 +17,17 @@ export default async function LiveByUsernamePage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  const uname = username.toLowerCase();
+
   const { data: host } = await supabase
     .from("profiles")
     .select("id,username,display_name,avatar_url")
-    .eq("username", username)
+    .ilike("username", uname)
     .maybeSingle();
 
   if (!host) return notFound();
+
+  const isHost = !!user && user.id === host.id;
 
   const { data: room } = await supabase
     .from("live_rooms")
@@ -31,8 +35,6 @@ export default async function LiveByUsernamePage({
     .eq("host_user_id", host.id)
     .eq("status", "live")
     .maybeSingle();
-
-  const isHost = !!user && user.id === host.id;
 
   if (!user && room) {
     return (
@@ -79,7 +81,7 @@ export default async function LiveByUsernamePage({
         hostName={host.display_name || host.username || "Host"}
         hostAvatarUrl={host.avatar_url}
         hostUsername={host.username}
-        currentUserId={user!.id}
+        currentUserId={user?.id ?? host.id}
       />
     </div>
   );
