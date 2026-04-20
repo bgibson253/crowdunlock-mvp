@@ -287,10 +287,12 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
               const device = deviceRef.current;
               const recvTransport = recvTransportRef.current;
               if (!device || !recvTransport) return;
+              note(`rpc consume(${msg.producerId}) → send`);
               const data = await call("consume", {
                 transportId: recvTransport.id,
                 producerId: msg.producerId,
               });
+              note(`rpc consume(${msg.producerId}) ✓`);
               const consumer = await recvTransport.consume({
                 id: data.id,
                 producerId: data.producerId,
@@ -298,7 +300,9 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
                 rtpParameters: data.rtpParameters,
               });
               attachRemoteTrack(consumer.track);
+              note(`rpc resumeConsumer(${consumer.id}) → send`);
               await call("resumeConsumer", { consumerId: consumer.id });
+              note(`rpc resumeConsumer(${consumer.id}) ✓`);
               setUi("live");
             } catch {
               // ignore
@@ -328,7 +332,12 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
     // Create transports
     if (asRole === "host") {
-      const sendT = await call("createTransport", { direction: "send" });
+      note("rpc createTransport(send) → send");
+      const sendT = await call("createTransport", { direction: "send" }).catch((e: any) => {
+        note(`rpc createTransport(send) ✗ ${e?.message || String(e)}`);
+        throw e;
+      });
+      note("rpc createTransport(send) ✓");
       const sendTransport = device.createSendTransport({
         id: sendT.id,
         iceParameters: sendT.iceParameters,
@@ -338,32 +347,49 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       sendTransportRef.current = sendTransport;
 
       sendTransport.on("connect", ({ dtlsParameters }, cb, errCb) => {
+        note("rpc connectTransport(send) → send");
         call("connectTransport", { transportId: sendTransport.id, dtlsParameters })
-          .then(() => cb())
-          .catch((e) => errCb(e));
+          .then(() => {
+            note("rpc connectTransport(send) ✓");
+            cb();
+          })
+          .catch((e) => {
+            note(`rpc connectTransport(send) ✗ ${e?.message || String(e)}`);
+            errCb(e);
+          });
       });
 
       sendTransport.on(
         "produce",
         ({ kind, rtpParameters }, cb, errCb) => {
+          note(`rpc produce(${kind}) → send`);
           call("produce", {
             transportId: sendTransport.id,
             kind,
             rtpParameters,
           })
-            .then((res) => cb({ id: res.id }))
-            .catch((e) => errCb(e));
+            .then((res) => {
+              note(`rpc produce(${kind}) ✓`);
+              cb({ id: res.id });
+            })
+            .catch((e) => {
+              note(`rpc produce(${kind}) ✗ ${e?.message || String(e)}`);
+              errCb(e);
+            });
         }
       );
 
       // get camera/mic + produce
+      note("getUserMedia → request");
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: true,
         });
+        note("getUserMedia ✓");
       } catch (e: any) {
+        note(`getUserMedia ✗ ${e?.name || e?.message || String(e)}`);
         setLastErr(
           e?.name === "NotAllowedError"
             ? "Camera/mic permission blocked."
@@ -400,7 +426,12 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     }
 
     // viewer
-    const recvT = await call("createTransport", { direction: "recv" });
+    note("rpc createTransport(recv) → send");
+    const recvT = await call("createTransport", { direction: "recv" }).catch((e: any) => {
+      note(`rpc createTransport(recv) ✗ ${e?.message || String(e)}`);
+      throw e;
+    });
+    note("rpc createTransport(recv) ✓");
     const recvTransport = device.createRecvTransport({
       id: recvT.id,
       iceParameters: recvT.iceParameters,
@@ -410,9 +441,16 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     recvTransportRef.current = recvTransport;
 
     recvTransport.on("connect", ({ dtlsParameters }, cb, errCb) => {
+      note("rpc connectTransport(recv) → send");
       call("connectTransport", { transportId: recvTransport.id, dtlsParameters })
-        .then(() => cb())
-        .catch((e) => errCb(e));
+        .then(() => {
+          note("rpc connectTransport(recv) ✓");
+          cb();
+        })
+        .catch((e) => {
+          note(`rpc connectTransport(recv) ✗ ${e?.message || String(e)}`);
+          errCb(e);
+        });
     });
 
     // viewer waits for newProducer notifications
