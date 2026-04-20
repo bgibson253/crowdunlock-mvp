@@ -145,6 +145,19 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         return;
       }
 
+      // Server currently does not echo reqId on routerRtpCapabilities.
+      // Accept it as a reply to the oldest pending request.
+      if (msg?.t === "routerRtpCapabilities" && typeof msg?.reqId !== "number") {
+        const first = pending.entries().next().value as
+          | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+          | undefined;
+        if (first) {
+          const [id, p] = first;
+          pending.delete(id);
+          return p.resolve(msg.data);
+        }
+      }
+
       if (typeof msg?.reqId === "number") {
         const p = pending.get(msg.reqId);
         if (!p) return;
