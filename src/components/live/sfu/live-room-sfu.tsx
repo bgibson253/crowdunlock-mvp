@@ -798,7 +798,7 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
     <div className="relative overflow-hidden bg-black sm:rounded-xl sm:border sm:border-border/50">
       <video
         ref={remoteVideoRef}
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover opacity-0"
         playsInline
         autoPlay
       />
@@ -816,8 +816,7 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
       {overlay}
 
       {/* Full overlay UI from live-overlay project */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="pointer-events-auto absolute inset-0">
+      <div className="pointer-events-auto absolute inset-0">
           <LiveStreamOverlayWebRtc
             stream={overlayStream as any}
             me={null}
@@ -826,7 +825,6 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
             onViewerQualityChange={setPref}
             className="h-full"
           />
-        </div>
       </div>
 
       <div className="pointer-events-none pb-[56.25%]" />
