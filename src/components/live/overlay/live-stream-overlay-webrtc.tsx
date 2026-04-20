@@ -192,15 +192,15 @@ export function LiveStreamOverlayWebRtc(props: {
         className={cn(
           "relative overflow-hidden rounded-3xl border border-white/10 bg-black/30",
           layout === "mobile" && "rounded-2xl",
-          mobileFullscreen && "fixed inset-0 z-[60] rounded-none border-none"
+          mobileFullscreen && "fixed inset-0 z-[60] rounded-none border-none bg-black"
         )}
       >
         <WebRtcVideo
           videoEl={props.videoEl}
           className={cn(
             "absolute inset-0 h-full w-full",
-            // Default to portrait-friendly (contain) on mobile; allow crop (cover) on desktop.
-            layout === "mobile" ? "object-contain" : "object-cover",
+            // Portrait-first on mobile. Use contain by default, switch to cover in fullscreen.
+            layout === "mobile" ? (mobileFullscreen ? "object-cover" : "object-contain") : "object-cover",
             layout === "mobile" && !mobileFullscreen && "rounded-2xl"
           )}
           muted={muted}

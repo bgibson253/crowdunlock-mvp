@@ -72,5 +72,5 @@ export function WebRtcVideo(props: {
     }
   }, [props.videoEl, props.className, props.muted]);
 
-  return <div ref={containerRef} className={props.className} />;
+  return <div ref={containerRef} className={props.className} style={{ contain: "layout paint size" }} />;
 }
