@@ -101,15 +101,15 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
     const call = (t: string, data?: any) => {
       const id = ++seq;
-      wsSend(ws, { t, roomId, reqId: id, data });
       return new Promise<any>((resolve, reject) => {
         pending.set(id, { resolve, reject });
+        wsSend(ws, { t, roomId, reqId: id, data });
         setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
             reject(new Error(`${t} timeout`));
           }
-        }, 12_000);
+        }, 20_000);
       });
     };
 
