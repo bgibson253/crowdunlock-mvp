@@ -145,6 +145,19 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         return;
       }
 
+      if (msg?.t === "error" && typeof msg?.reqId !== "number") {
+        const first = pending.entries().next().value as
+          | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+          | undefined;
+        note(`rpc compat error(no reqId) ${String(msg?.error || "sfu_error")}`);
+        if (first) {
+          const [id, p] = first;
+          pending.delete(id);
+          p.reject(new Error(String(msg?.error || "sfu_error")));
+        }
+        return;
+      }
+
       // Server currently does not echo reqId on some responses.
       // Try to match by message type (safe here because these are strictly request→response).
       if (typeof msg?.reqId !== "number") {
