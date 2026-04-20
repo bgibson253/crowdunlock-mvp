@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LiveStreamOverlayWebRtc } from "@/components/live/overlay/live-stream-overlay-webrtc";
 import * as mediasoupClient from "mediasoup-client";
 
 function useIsIOS() {
@@ -32,6 +33,8 @@ type SfuCfg = {
 };
 
 export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
+  // expose remote video element to overlay layer
+  const [remoteVideoEl, setRemoteVideoEl] = useState<HTMLVideoElement | null>(null);
   const isIOS = useIsIOS();
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -43,6 +46,10 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    setRemoteVideoEl(remoteVideoRef.current);
+  }, []);
 
   const timeoutsRef = useRef<number[]>([]);
   const pendingProducersRef = useRef<string[]>([]);
@@ -57,6 +64,25 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
 
   // Viewer quality preference
   const [pref, setPref] = useState<"auto" | "low" | "med" | "high">("auto");
+
+  // Overlay expects a StreamConfig-like object (we'll wire real host fields next)
+  const [overlayNow] = useState(() => Date.now());
+  const overlayStream = useMemo(
+    () => ({
+      title: "Live",
+      host: {
+        id: "host",
+        username: "host",
+        displayName: "Host",
+        avatarUrl: null,
+      },
+      chatWsUrl: (process.env.NEXT_PUBLIC_CHAT_WS_URL as string) || "",
+      roomId,
+      startedAt: overlayNow,
+      isLive: true,
+    }),
+    [roomId, overlayNow]
+  );
   const prefRef = useRef(pref);
   useEffect(() => {
     prefRef.current = pref;
@@ -789,24 +815,19 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
 
       {overlay}
 
-      {/* Viewer quality selector (simulcast) */}
-      {mode === "viewer" ? (
-        <div className="pointer-events-auto absolute bottom-3 left-3">
-          <div className="flex items-center gap-2 rounded-full bg-black/40 backdrop-blur px-2 py-1 border border-white/10">
-            <span className="text-[11px] text-white/85">Quality</span>
-            <select
-              className="h-7 rounded-full bg-black/30 text-white text-[11px] px-2 border border-white/10"
-              value={pref}
-              onChange={(e) => setPref(e.target.value as "auto" | "low" | "med" | "high")}
-            >
-              <option value="auto">Auto</option>
-              <option value="low">Low</option>
-              <option value="med">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
+      {/* Full overlay UI from live-overlay project */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="pointer-events-auto absolute inset-0">
+          <LiveStreamOverlayWebRtc
+            stream={overlayStream as any}
+            me={null}
+            videoEl={remoteVideoEl}
+            viewerQuality={pref}
+            onViewerQualityChange={setPref}
+            className="h-full"
+          />
         </div>
-      ) : null}
+      </div>
 
       <div className="pointer-events-none pb-[56.25%]" />
     </div>
