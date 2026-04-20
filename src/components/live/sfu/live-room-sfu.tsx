@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import * as mediasoupClient from "mediasoup-client";
 
 function useIsIOS() {
   return useMemo(() => {
@@ -24,12 +25,20 @@ type UiState =
   | "ended"
   | "error";
 
+type SfuCfg = {
+  sfu?: { wsUrl?: string };
+  turn?: Array<{ urls: string[]; username?: string; credential?: string }>;
+};
+
 export function LiveRoomSfu({ roomId, mode }: Props) {
   const isIOS = useIsIOS();
 
-  const pcRef = useRef<RTCPeerConnection | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const retryTimerRef = useRef<number | null>(null);
+  const deviceRef = useRef<mediasoupClient.types.Device | null>(null);
+  const sendTransportRef = useRef<mediasoupClient.types.Transport | null>(null);
+  const recvTransportRef = useRef<mediasoupClient.types.Transport | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -45,6 +54,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       window.clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
     }
+
     try {
       wsRef.current?.close();
     } catch {
@@ -53,11 +63,21 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     wsRef.current = null;
 
     try {
-      pcRef.current?.close();
-    } catch {
-      // ignore
-    }
-    pcRef.current = null;
+      sendTransportRef.current?.close();
+    } catch {}
+    try {
+      recvTransportRef.current?.close();
+    } catch {}
+
+    sendTransportRef.current = null;
+    recvTransportRef.current = null;
+
+    deviceRef.current = null;
+
+    try {
+      localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    } catch {}
+    localStreamRef.current = null;
   };
 
   useEffect(() => {
@@ -73,10 +93,79 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     }, ms);
   };
 
-  const connect = async (asRole: "host" | "viewer") => {
-    setLastErr(null);
-    setUi((prev) => (prev === "live" ? "reconnecting" : "connecting"));
+  const wsSend = (ws: WebSocket, m: any) => ws.send(JSON.stringify(m));
 
+  const rpc = (ws: WebSocket) => {
+    let seq = 0;
+    const pending = new Map<number, { resolve: (v: any) => void; reject: (e: any) => void }>();
+
+    const call = (t: string, data?: any) => {
+      const id = ++seq;
+      wsSend(ws, { t, roomId, reqId: id, data });
+      return new Promise<any>((resolve, reject) => {
+        pending.set(id, { resolve, reject });
+        setTimeout(() => {
+          if (pending.has(id)) {
+            pending.delete(id);
+            reject(new Error(`${t} timeout`));
+          }
+        }, 12_000);
+      });
+    };
+
+    const onMessage = (ev: MessageEvent) => {
+      const msg = JSON.parse(String(ev.data));
+      if (msg?.t === "error" && msg?.reqId) {
+        const p = pending.get(msg.reqId);
+        if (p) {
+          pending.delete(msg.reqId);
+          p.reject(new Error(String(msg.error || "sfu_error")));
+        }
+        return;
+      }
+
+      if (typeof msg?.reqId === "number") {
+        const p = pending.get(msg.reqId);
+        if (!p) return;
+
+        // map known responses
+        if (msg.t === "routerRtpCapabilities") {
+          pending.delete(msg.reqId);
+          return p.resolve(msg.data);
+        }
+        if (msg.t === "createTransport.ok") {
+          pending.delete(msg.reqId);
+          return p.resolve(msg.data);
+        }
+        if (msg.t === "connectTransport.ok") {
+          pending.delete(msg.reqId);
+          return p.resolve(msg);
+        }
+        if (msg.t === "produce.ok") {
+          pending.delete(msg.reqId);
+          return p.resolve(msg);
+        }
+        if (msg.t === "consume.ok") {
+          pending.delete(msg.reqId);
+          return p.resolve(msg.data);
+        }
+        if (msg.t === "resumeConsumer.ok") {
+          pending.delete(msg.reqId);
+          return p.resolve(msg);
+        }
+      }
+
+      // push notifications
+      if (msg?.t === "newProducer") {
+        // handled by outer listener
+        return;
+      }
+    };
+
+    return { call, onMessage };
+  };
+
+  const getCfg = async (): Promise<SfuCfg> => {
     const regionRes = await fetch("/api/live/region", { cache: "no-store" });
     const regionJson = await regionRes.json().catch(() => ({}));
     const region =
@@ -92,146 +181,205 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     });
     const cfg = await cfgRes.json().catch(() => ({}));
     if (!cfgRes.ok) throw new Error(cfg?.error ?? "Unable to start stream");
+    return cfg;
+  };
+
+  const attachRemoteTrack = (track: MediaStreamTrack) => {
+    const current = (remoteVideoRef.current?.srcObject as MediaStream | null) ?? null;
+    const ms = current ?? new MediaStream();
+    ms.addTrack(track);
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = ms;
+      remoteVideoRef.current.playsInline = true;
+      remoteVideoRef.current.autoplay = true;
+    }
+    if (isIOS) {
+      remoteVideoRef.current
+        ?.play?.()
+        .catch(() => {
+          /* ignore */
+        });
+    }
+  };
+
+  const connect = async (asRole: "host" | "viewer") => {
+    setLastErr(null);
+    setUi((prev) => (prev === "live" ? "reconnecting" : "connecting"));
+
+    const cfg = await getCfg();
 
     cleanup();
 
-    const pc = new RTCPeerConnection({
-      iceServers: cfg.turn?.length
-        ? cfg.turn
-        : [{ urls: ["stun:stun.l.google.com:19302"] }],
-    });
-    pcRef.current = pc;
-
-    pc.addTransceiver("video", { direction: "recvonly" });
-    pc.addTransceiver("audio", { direction: "recvonly" });
-
-    pc.oniceconnectionstatechange = () => {
-      const st = pc.iceConnectionState;
-      if (st === "failed" || st === "disconnected") scheduleRetry(1200);
-    };
-
-    pc.ontrack = (ev) => {
-      const stream = ev.streams[0];
-      if (remoteVideoRef.current && stream) {
-        remoteVideoRef.current.srcObject = stream;
-        remoteVideoRef.current.playsInline = true;
-        remoteVideoRef.current.autoplay = true;
-      }
-      setUi("live");
-    };
-
     const wsUrl = String(cfg?.sfu?.wsUrl ?? "");
+    if (!wsUrl) throw new Error("Missing SFU wsUrl");
+
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
-    const send = (m: any) => ws.send(JSON.stringify(m));
+    await new Promise<void>((resolve, reject) => {
+      const t = window.setTimeout(() => reject(new Error("WS connect timeout")), 8000);
+      ws.onopen = () => {
+        window.clearTimeout(t);
+        resolve();
+      };
+      ws.onerror = () => {
+        window.clearTimeout(t);
+        reject(new Error("WS error"));
+      };
+    });
 
-    ws.onopen = async () => {
-      if (asRole === "host") {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: true,
-          });
+    const { call, onMessage } = rpc(ws);
 
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-            localVideoRef.current.muted = true;
-            localVideoRef.current.playsInline = true;
-            localVideoRef.current.autoplay = true;
+    // Listen for RPC responses.
+    ws.onmessage = (ev) => {
+      // first, let rpc resolve pending calls
+      onMessage(ev);
+
+      // then handle push notifications
+      const msg = JSON.parse(String(ev.data));
+      if (msg?.t === "newProducer" && msg.producerId) {
+        // viewer auto-consume new producer
+        if (asRole === "viewer") {
+          void (async () => {
             try {
-              await localVideoRef.current.play();
-            } catch {
+              const device = deviceRef.current;
+              const recvTransport = recvTransportRef.current;
+              if (!device || !recvTransport) return;
+              const data = await call("consume", {
+                transportId: recvTransport.id,
+                producerId: msg.producerId,
+              });
+              const consumer = await recvTransport.consume({
+                id: data.id,
+                producerId: data.producerId,
+                kind: data.kind,
+                rtpParameters: data.rtpParameters,
+              });
+              attachRemoteTrack(consumer.track);
+              await call("resumeConsumer", { consumerId: consumer.id });
+              setUi("live");
+            } catch (e) {
               // ignore
             }
-          }
-
-          for (const track of stream.getTracks()) pc.addTrack(track, stream);
-
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          send({ t: "webrtc.offer", roomId, sdp: offer.sdp, type: offer.type });
-
-          setUi("live");
-        } catch (e: any) {
-          setLastErr(
-            e?.name === "NotAllowedError"
-              ? "Camera/mic permission blocked. Enable it and retry."
-              : e?.message
-                ? String(e.message)
-                : "Unable to access camera/mic"
-          );
-          setUi("error");
-        }
-      } else {
-        send({ t: "viewer.ready", roomId });
-      }
-    };
-
-    ws.onmessage = async (ev) => {
-      const msg = JSON.parse(String(ev.data));
-
-      if (msg.t === "webrtc.answer" && msg.sdp) {
-        await pc.setRemoteDescription({ type: "answer", sdp: msg.sdp });
-        return;
-      }
-
-      if (msg.t === "webrtc.offer" && msg.sdp) {
-        await pc.setRemoteDescription({ type: "offer", sdp: msg.sdp });
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        send({ t: "webrtc.answer", roomId, sdp: msg.sdp ? answer.sdp : answer.sdp, type: answer.type });
-
-        setUi("live");
-
-        if (isIOS) {
-          try {
-            await remoteVideoRef.current?.play?.();
-          } catch {
-            // ignore
-          }
-        }
-        return;
-      }
-
-      if (msg.t === "webrtc.ice" && msg.candidate) {
-        try {
-          await pc.addIceCandidate(msg.candidate);
-        } catch {
-          // ignore
+          })();
         }
       }
-
-      if (msg.t === "webrtc.offer.missing") {
-        setUi("waiting");
-      }
-    };
-
-    pc.onicecandidate = (ev) => {
-      if (ev.candidate && ws.readyState === WebSocket.OPEN) {
-        send({ t: "webrtc.ice", roomId, candidate: ev.candidate });
-      }
-    };
-
-    ws.onerror = () => {
-      setLastErr(`Connection problem. Retrying…`);
-      scheduleRetry(1200);
     };
 
     ws.onclose = () => {
-      if (asRole === "viewer") {
-        setUi((prev) => (prev === "live" ? "reconnecting" : prev));
-        scheduleRetry(1500);
-      }
+      scheduleRetry(1500);
     };
+
+    // Device
+    const device = new mediasoupClient.Device();
+    deviceRef.current = device;
+
+    const routerRtpCapabilities = await call("getRouterRtpCapabilities");
+    await device.load({ routerRtpCapabilities });
+
+    await call("setRtpCapabilities", { rtpCapabilities: device.rtpCapabilities });
+
+    // Create transports
+    if (asRole === "host") {
+      const sendT = await call("createTransport", { direction: "send" });
+      const sendTransport = device.createSendTransport({
+        id: sendT.id,
+        iceParameters: sendT.iceParameters,
+        iceCandidates: sendT.iceCandidates,
+        dtlsParameters: sendT.dtlsParameters,
+      });
+      sendTransportRef.current = sendTransport;
+
+      sendTransport.on("connect", ({ dtlsParameters }, cb, errCb) => {
+        call("connectTransport", { transportId: sendTransport.id, dtlsParameters })
+          .then(() => cb())
+          .catch((e) => errCb(e));
+      });
+
+      sendTransport.on(
+        "produce",
+        ({ kind, rtpParameters }, cb, errCb) => {
+          call("produce", {
+            transportId: sendTransport.id,
+            kind,
+            rtpParameters,
+          })
+            .then((res) => cb({ id: res.id }))
+            .catch((e) => errCb(e));
+        }
+      );
+
+      // get camera/mic + produce
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true,
+        });
+      } catch (e: any) {
+        setLastErr(
+          e?.name === "NotAllowedError"
+            ? "Camera/mic permission blocked."
+            : e?.message
+              ? String(e.message)
+              : "Unable to access camera/mic"
+        );
+        setUi("error");
+        return;
+      }
+
+      localStreamRef.current = stream;
+
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+        localVideoRef.current.muted = true;
+        localVideoRef.current.playsInline = true;
+        localVideoRef.current.autoplay = true;
+        localVideoRef.current.play().catch(() => {});
+      }
+
+      const videoTrack = stream.getVideoTracks()[0] ?? null;
+      const audioTrack = stream.getAudioTracks()[0] ?? null;
+
+      if (videoTrack) {
+        await sendTransport.produce({ track: videoTrack });
+      }
+      if (audioTrack) {
+        await sendTransport.produce({ track: audioTrack });
+      }
+
+      setUi("live");
+      return;
+    }
+
+    // viewer
+    const recvT = await call("createTransport", { direction: "recv" });
+    const recvTransport = device.createRecvTransport({
+      id: recvT.id,
+      iceParameters: recvT.iceParameters,
+      iceCandidates: recvT.iceCandidates,
+      dtlsParameters: recvT.dtlsParameters,
+    });
+    recvTransportRef.current = recvTransport;
+
+    recvTransport.on("connect", ({ dtlsParameters }, cb, errCb) => {
+      call("connectTransport", { transportId: recvTransport.id, dtlsParameters })
+        .then(() => cb())
+        .catch((e) => errCb(e));
+    });
+
+    // viewer waits for newProducer notifications
+    setUi("waiting");
   };
 
   useEffect(() => {
     if (mode !== "viewer") return;
+
     void connect("viewer").catch((e: any) => {
       setLastErr(e?.message ? String(e.message) : "Connection error");
       setUi("error");
     });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, attempt]);
 
@@ -272,7 +420,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       return (
         <div className="absolute inset-0 flex items-center justify-center bg-black/35 text-white">
           <div className="rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
-            Host is starting…
+            Waiting for host…
           </div>
         </div>
       );
@@ -293,7 +441,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         <div className="absolute inset-0 flex items-center justify-center bg-black/55 text-white">
           <div className="max-w-sm rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
             <div className="font-semibold">Stream unavailable</div>
-            <div className="mt-1 text-white/80">Please try again.</div>
+            <div className="mt-1 text-white/80">{lastErr || "Please try again."}</div>
           </div>
         </div>
       );
@@ -322,12 +470,6 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       ) : null}
 
       {overlay}
-
-      {lastErr ? (
-        <div className="absolute left-2 top-2 rounded bg-black/55 px-2 py-1 text-[11px] text-white/80">
-          {lastErr}
-        </div>
-      ) : null}
 
       <div className="pointer-events-none pb-[56.25%]" />
     </div>
