@@ -217,28 +217,27 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     wsRef.current = ws;
 
     await new Promise<void>((resolve, reject) => {
-      const t = window.setTimeout(() => reject(new Error("WS connect timeout")), 8000);
-      ws.onopen = () => {
+      const t = window.setTimeout(() => reject(new Error("WS connect timeout")), 12000);
+      ws.addEventListener("open", () => {
         window.clearTimeout(t);
         resolve();
-      };
-      ws.onerror = () => {
+      });
+      ws.addEventListener("error", () => {
         window.clearTimeout(t);
         reject(new Error("WS error"));
-      };
+      });
     });
 
     const { call, onMessage } = rpc(ws);
 
     // Listen for RPC responses.
-    ws.onmessage = (ev) => {
+    ws.addEventListener("message", (ev) => {
       // first, let rpc resolve pending calls
-      onMessage(ev);
+      onMessage(ev as any);
 
       // then handle push notifications
-      const msg = JSON.parse(String(ev.data));
+      const msg = JSON.parse(String((ev as any).data));
       if (msg?.t === "newProducer" && msg.producerId) {
-        // viewer auto-consume new producer
         if (asRole === "viewer") {
           void (async () => {
             try {
@@ -258,13 +257,13 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
               attachRemoteTrack(consumer.track);
               await call("resumeConsumer", { consumerId: consumer.id });
               setUi("live");
-            } catch (e) {
+            } catch {
               // ignore
             }
           })();
         }
       }
-    };
+    });
 
     ws.onclose = () => {
       scheduleRetry(1500);
@@ -274,7 +273,9 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     const device = new mediasoupClient.Device();
     deviceRef.current = device;
 
-    const routerRtpCapabilities = await call("getRouterRtpCapabilities");
+    const routerRtpCapabilities = await call("getRouterRtpCapabilities").catch((e: any) => {
+      throw new Error(`getRouterRtpCapabilities failed: ${e?.message || String(e)}`);
+    });
     await device.load({ routerRtpCapabilities });
 
     await call("setRtpCapabilities", { rtpCapabilities: device.rtpCapabilities });
