@@ -55,6 +55,13 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
   const [lastErr, setLastErr] = useState<string | null>(null);
   const [diag, setDiag] = useState<string[]>([]);
 
+  // Viewer quality preference
+  const [pref, setPref] = useState<"auto" | "low" | "med" | "high">("auto");
+  const prefRef = useRef(pref);
+  useEffect(() => {
+    prefRef.current = pref;
+  }, [pref]);
+
   useEffect(() => {
     uiRef.current = ui;
   }, [ui]);
@@ -418,6 +425,8 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
               const data = await call("consume", {
                 transportId: recvTransport.id,
                 producerId: msg.producerId,
+                // Request preferred simulcast layer (server will ignore if not simulcast)
+                preferred: prefRef.current,
               });
               note(`rpc consume(${msg.producerId}) ✓`);
               const consumer = await recvTransport.consume({
@@ -552,10 +561,32 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
       const audioTrack = stream.getAudioTracks()[0] ?? null;
 
       if (videoTrack) {
-        await sendTransport.produce({ track: videoTrack });
+        // Simulcast (3 layers) so viewers can pick quality (Auto/Low/Med/High)
+        await sendTransport.produce({
+          track: videoTrack,
+          encodings: [
+            { scaleResolutionDownBy: 4, maxBitrate: 150_000 },
+            { scaleResolutionDownBy: 2, maxBitrate: 600_000 },
+            { scaleResolutionDownBy: 1, maxBitrate: 2_500_000 },
+          ],
+          codecOptions: {
+            videoGoogleStartBitrate: 1200,
+            videoGoogleMaxBitrate: 2500,
+            videoGoogleMinBitrate: 300,
+          },
+          appData: { mediaTag: "cam-video" },
+        });
       }
       if (audioTrack) {
-        await sendTransport.produce({ track: audioTrack });
+        await sendTransport.produce({
+          track: audioTrack,
+          codecOptions: {
+            opusStereo: 1,
+            opusDtx: 1,
+            opusFec: 1,
+          },
+          appData: { mediaTag: "cam-audio" },
+        });
       }
 
       setUi("live");
@@ -588,6 +619,7 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
             const data = await call("consume", {
               transportId: recvTransport.id,
               producerId,
+              preferred: prefRef.current,
             });
             note(`rpc consume(${producerId}) ✓`);
             const consumer = await recvTransport.consume({
@@ -756,6 +788,25 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
       ) : null}
 
       {overlay}
+
+      {/* Viewer quality selector (simulcast) */}
+      {mode === "viewer" ? (
+        <div className="pointer-events-auto absolute bottom-3 left-3">
+          <div className="flex items-center gap-2 rounded-full bg-black/40 backdrop-blur px-2 py-1 border border-white/10">
+            <span className="text-[11px] text-white/85">Quality</span>
+            <select
+              className="h-7 rounded-full bg-black/30 text-white text-[11px] px-2 border border-white/10"
+              value={pref}
+              onChange={(e) => setPref(e.target.value as "auto" | "low" | "med" | "high")}
+            >
+              <option value="auto">Auto</option>
+              <option value="low">Low</option>
+              <option value="med">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+      ) : null}
 
       <div className="pointer-events-none pb-[56.25%]" />
     </div>
