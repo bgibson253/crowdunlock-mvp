@@ -21,22 +21,22 @@ export async function POST(req: Request) {
 
   const env = envServer();
 
-  const region = (body?.region === "usw2" ? "usw2" : "use1") as
-    | "use1"
-    | "usw2";
+  const preferred = (body?.region === "usw2" ? "usw2" : "use1") as "use1" | "usw2";
 
-  const sfu =
-    region === "usw2"
-      ? {
-          region,
-          httpBase: env.LIVE_SFU_USW2_HTTP ?? "http://35.89.193.133:8080",
-          wsUrl: env.LIVE_SFU_USW2_WS ?? "wss://sfu-usw2.unmaskr.org/ws",
-        }
-      : {
-          region,
-          httpBase: env.LIVE_SFU_USE1_HTTP ?? "http://44.201.31.59:8080",
-          wsUrl: env.LIVE_SFU_USE1_WS ?? "wss://sfu-use1.unmaskr.org/ws",
-        };
+  const use1 = {
+    region: "use1" as const,
+    httpBase: env.LIVE_SFU_USE1_HTTP ?? "http://44.201.31.59:8080",
+    wsUrl: env.LIVE_SFU_USE1_WS ?? "wss://sfu-use1.unmaskr.org/ws",
+  };
+
+  const usw2 = {
+    region: "usw2" as const,
+    httpBase: env.LIVE_SFU_USW2_HTTP ?? "http://35.89.193.133:8080",
+    wsUrl: env.LIVE_SFU_USW2_WS ?? "wss://sfu-usw2.unmaskr.org/ws",
+  };
+
+  const sfu = preferred === "usw2" ? usw2 : use1;
+  const sfuFallbacks = preferred === "usw2" ? [use1] : [usw2];
 
   const turnSecret = process.env.LIVE_TURN_STATIC_AUTH_SECRET;
   const creds = turnSecret ? buildTurnCreds(turnSecret, 3600) : null;
@@ -44,6 +44,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     roomId,
     sfu,
+    sfuFallbacks,
     turn: [
       {
         urls: [

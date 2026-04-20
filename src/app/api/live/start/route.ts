@@ -21,6 +21,18 @@ export async function POST(req: Request) {
   const now = new Date().toISOString();
   const roomName = randomRoomName(user.id);
 
+  // Choose a region once per live session; viewers will follow host region.
+  let sfu_region: "use1" | "usw2" = "use1";
+  try {
+    const host = req.headers.get("host") || "";
+    const proto = req.headers.get("x-forwarded-proto") || "https";
+    const res = await fetch(`${proto}://${host}/api/live/region`, { cache: "no-store" });
+    const j = (await res.json().catch(() => null)) as any;
+    if (j?.region === "usw2") sfu_region = "usw2";
+  } catch {
+    // default use1
+  }
+
   // First, end any stuck live rooms for this host (best-effort)
   await supabase
     .from("live_rooms")
@@ -35,11 +47,12 @@ export async function POST(req: Request) {
       room_name: roomName,
       title,
       status: "live",
+      sfu_region,
       started_at: now,
       last_heartbeat_at: now,
       updated_at: now,
     })
-    .select("id,host_user_id,room_name,title,status,started_at")
+    .select("id,host_user_id,room_name,title,status,started_at,sfu_region")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

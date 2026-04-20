@@ -27,7 +27,7 @@ export default async function LiveByUserIdPage({
 
   const { data: room } = await supabase
     .from("live_rooms")
-    .select("id,title,status,started_at")
+    .select("id,title,status,started_at,sfu_region")
     .eq("host_user_id", host.id)
     .eq("status", "live")
     .maybeSingle();
@@ -77,6 +77,7 @@ export default async function LiveByUserIdPage({
         <LiveRoom
           roomId={roomId}
           hostUserId={host.id}
+          sfuRegion={(room as any)?.sfu_region ?? null}
           hostName={host.display_name || host.username || "Host"}
           hostAvatarUrl={host.avatar_url}
           hostUsername={host.username}

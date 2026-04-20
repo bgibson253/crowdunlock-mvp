@@ -14,6 +14,7 @@ function useIsIOS() {
 type Props = {
   roomId: string;
   mode: "host" | "viewer";
+  preferredRegion?: "use1" | "usw2";
 };
 
 type UiState =
@@ -30,7 +31,7 @@ type SfuCfg = {
   turn?: Array<{ urls: string[]; username?: string; credential?: string }>;
 };
 
-export function LiveRoomSfu({ roomId, mode }: Props) {
+export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
   const isIOS = useIsIOS();
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -300,9 +301,9 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
   const getCfg = async (): Promise<SfuCfg> => {
     const regionRes = await fetch("/api/live/region", { cache: "no-store" });
     const regionJson = await regionRes.json().catch(() => ({}));
-    const region =
-      regionRes.ok &&
-      (regionJson?.region === "usw2" || regionJson?.region === "use1")
+    const region = preferredRegion
+      ? preferredRegion
+      : regionRes.ok && (regionJson?.region === "usw2" || regionJson?.region === "use1")
         ? regionJson.region
         : "use1";
 
