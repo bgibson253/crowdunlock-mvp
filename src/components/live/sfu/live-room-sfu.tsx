@@ -148,14 +148,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       // Server currently does not echo reqId on some responses.
       // Try to match by message type (safe here because these are strictly request→response).
       if (typeof msg?.reqId !== "number") {
-        const findPending = (needle: string) => {
-          for (const [id, v] of pending.entries()) {
-            // pending ids are sequential; we don't store method name, so we match by FIFO.
-            // This is OK because the client only issues one outstanding call of a given type at a time.
-            return [id, v] as const;
-          }
-          return null;
-        };
+        note(`rpc compat missing reqId t=${String(msg?.t || "(none)")}`);
 
         if (msg?.t === "routerRtpCapabilities") {
           const first = pending.entries().next().value as
