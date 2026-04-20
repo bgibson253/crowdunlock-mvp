@@ -101,6 +101,21 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
   const wsSend = (ws: WebSocket, m: any) => ws.send(JSON.stringify(m));
 
   const rpc = (ws: WebSocket) => {
+    const vp8 = typeof RTCRtpReceiver !== "undefined" ? RTCRtpReceiver.getCapabilities?.("video") : null;
+    const hasVp8 = !!vp8?.codecs?.some((c: any) => String(c?.mimeType || "").toLowerCase() === "video/vp8");
+
+    const dump = (msg: any) => {
+      try {
+        if (msg?.t === "routerRtpCapabilities") {
+          const codecs = Array.isArray(msg?.data?.codecs) ? msg.data.codecs : [];
+          const vid = codecs.filter((c: any) => c?.kind === "video").map((c: any) => c?.mimeType);
+          const aud = codecs.filter((c: any) => c?.kind === "audio").map((c: any) => c?.mimeType);
+          note(`router codecs audio=${aud.join(",")} video=${vid.join(",")} localHasVp8=${hasVp8}`);
+        }
+      } catch {
+        // ignore
+      }
+    };
     let seq = 0;
     const pending = new Map<number, { resolve: (v: any) => void; reject: (e: any) => void }>();
 
@@ -120,6 +135,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
     const onMessage = (ev: MessageEvent) => {
       const msg = JSON.parse(String(ev.data));
+      dump(msg);
       if (msg?.t === "error" && msg?.reqId) {
         const p = pending.get(msg.reqId);
         if (p) {
