@@ -434,7 +434,7 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
     note("rpc getRouterRtpCapabilities ✓");
     await device.load({ routerRtpCapabilities });
 
-    await call("setRtpCapabilities", { rtpCapabilities: device.rtpCapabilities });
+    await call("setRtpCapabilities", { data: device.rtpCapabilities });
 
     // Create transports
     if (asRole === "host") {
