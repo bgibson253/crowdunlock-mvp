@@ -43,12 +43,19 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
+  const timeoutsRef = useRef<number[]>([]);
+
   const [ui, setUi] = useState<UiState>(() =>
     mode === "viewer" ? "connecting" : "idle"
   );
+  const uiRef = useRef<UiState>(mode === "viewer" ? "connecting" : "idle");
   const [attempt, setAttempt] = useState(0);
   const [lastErr, setLastErr] = useState<string | null>(null);
   const [diag, setDiag] = useState<string[]>([]);
+
+  useEffect(() => {
+    uiRef.current = ui;
+  }, [ui]);
 
   const note = (s: string) =>
     setDiag((d) => [...d.slice(-40), `${new Date().toISOString()} ${s}`]);
@@ -59,6 +66,11 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       window.clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
     }
+
+    for (const t of timeoutsRef.current) {
+      window.clearTimeout(t);
+    }
+    timeoutsRef.current = [];
 
     try {
       wsRef.current?.close();
@@ -541,6 +553,17 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
     // viewer waits for newProducer notifications
     setUi("waiting");
+
+    // If the host never shows up (or token/room wiring is wrong), don't hang forever.
+    const t = setTimeout(() => {
+      if (uiRef.current === "waiting") {
+        setLastErr(
+          "Waiting for host timed out. The host may not be marked live yet, or the viewer may be in a different roomId.\n\nTry: refresh host tab (Go Live), then refresh this page."
+        );
+        setUi("error");
+      }
+    }, 12_000);
+    timeoutsRef.current.push(t);
   };
 
   useEffect(() => {
