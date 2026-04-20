@@ -51,7 +51,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
   const [diag, setDiag] = useState<string[]>([]);
 
   const note = (s: string) =>
-    setDiag((d) => [...d.slice(-14), `${new Date().toISOString()} ${s}`]);
+    setDiag((d) => [...d.slice(-40), `${new Date().toISOString()} ${s}`]);
 
   const cleanup = () => {
     note("cleanup()");
@@ -491,9 +491,14 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
             <div className="mt-1 whitespace-pre-wrap text-white/80">
               {lastErr || "Please try again."}
               {"\n\n"}
-              <span className="text-white/60">diag:</span>
+              <span className="text-white/60">diag (tap to copy):</span>
               {"\n"}
-              {diag.join("\n")}
+              <textarea
+                readOnly
+                value={diag.join("\n")}
+                className="pointer-events-auto mt-2 h-56 w-full resize-none rounded-lg bg-black/40 p-2 font-mono text-[11px] text-white/80"
+                onFocus={(e) => e.currentTarget.select()}
+              />
             </div>
           </div>
         </div>
