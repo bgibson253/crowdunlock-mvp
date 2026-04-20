@@ -320,18 +320,25 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
   const attachRemoteTrack = (track: MediaStreamTrack) => {
     const current = (remoteVideoRef.current?.srcObject as MediaStream | null) ?? null;
     const ms = current ?? new MediaStream();
+
+    // Replace any existing track of the same kind (avoids duplicates across reconnects)
+    try {
+      for (const t of ms.getTracks()) {
+        if (t.kind === track.kind) ms.removeTrack(t);
+      }
+    } catch {}
+
     ms.addTrack(track);
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = ms;
       remoteVideoRef.current.playsInline = true;
       remoteVideoRef.current.autoplay = true;
-    }
-    if (isIOS) {
-      remoteVideoRef.current
-        ?.play?.()
-        .catch(() => {
-          /* ignore */
-        });
+      remoteVideoRef.current.muted = false;
+
+      // Always attempt playback (Chrome often won't start video without an explicit play() call)
+      remoteVideoRef.current.play?.().catch(() => {
+        // ignore autoplay failures; user gesture can start playback
+      });
     }
   };
 
@@ -593,6 +600,17 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
 
     // viewer waits for newProducer notifications
     setUi("waiting");
+
+    // If we never see any producers, fail fast with a real error.
+    const noProducers = window.setTimeout(() => {
+      if (uiRef.current === "waiting") {
+        setLastErr(
+          "Connected to SFU, but no media producers were advertised for this room.\n\nMost common causes: host not producing yet, or host/viewer landed on different SFU region/room. Try restarting the host stream."
+        );
+        setUi("error");
+      }
+    }, 10_000);
+    timeoutsRef.current.push(noProducers);
 
     // If the host never shows up (or token/room wiring is wrong), don't hang forever.
     const t = setTimeout(() => {
