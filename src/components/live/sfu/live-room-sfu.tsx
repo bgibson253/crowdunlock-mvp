@@ -725,17 +725,32 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
     }
   };
 
+  // Host should not require a second "Go Live" click.
+  // As soon as the host lands on /live/u/[id], we connect/publish immediately.
+  useEffect(() => {
+    if (mode !== "host") return;
+    if (ui !== "idle") return;
+
+    void (async () => {
+      try {
+        await connect("host");
+      } catch (e: any) {
+        setLastErr(e?.message ? String(e.message) : "Unable to start stream");
+        setUi("error");
+      }
+    })();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, ui]);
+
   const overlay = (() => {
     if (mode === "host" && ui === "idle") {
       return (
-        <button
-          onClick={onHostStart}
-          className="absolute inset-0 flex items-center justify-center bg-black/40 text-white"
-        >
-          <span className="rounded-full bg-white/10 px-5 py-3 text-sm font-semibold backdrop-blur">
-            Go Live
-          </span>
-        </button>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/35 text-white">
+          <div className="rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
+            Starting…
+          </div>
+        </div>
       );
     }
 
