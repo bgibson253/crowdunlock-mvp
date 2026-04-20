@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Maximize } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { QualityMenu } from "@/components/live/overlay/quality-menu";
@@ -55,6 +56,7 @@ export function LiveStreamOverlayWebRtc(props: {
 
   const [theater, setTheater] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [mobileFullscreen, setMobileFullscreen] = useState(false);
   const [playerState, setPlayerState] = useState<WebRtcVideoState>({ s: "idle" });
 
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
@@ -186,10 +188,21 @@ export function LiveStreamOverlayWebRtc(props: {
 
   return (
     <div className={cn("relative", props.className)}>
-      <div className={cn("relative overflow-hidden rounded-3xl border border-white/10 bg-black/30", layout === "mobile" && "rounded-2xl")}>
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-3xl border border-white/10 bg-black/30",
+          layout === "mobile" && "rounded-2xl",
+          mobileFullscreen && "fixed inset-0 z-[60] rounded-none border-none"
+        )}
+      >
         <WebRtcVideo
           videoEl={props.videoEl}
-          className={cn("absolute inset-0 h-full w-full object-cover", layout === "mobile" && "rounded-2xl")}
+          className={cn(
+            "absolute inset-0 h-full w-full",
+            // Default to portrait-friendly (contain) on mobile; allow crop (cover) on desktop.
+            layout === "mobile" ? "object-contain" : "object-cover",
+            layout === "mobile" && !mobileFullscreen && "rounded-2xl"
+          )}
           muted={muted}
           onState={setPlayerState}
         />
@@ -203,6 +216,19 @@ export function LiveStreamOverlayWebRtc(props: {
           onToggleMuted={() => setMuted((v) => !v)}
           conn={conn}
         />
+
+        {/* Mobile fullscreen */}
+        <div className="pointer-events-auto absolute right-3 top-3 lg:hidden">
+          <Button
+            type="button"
+            variant="secondary"
+            className="bg-black/55 text-white border border-white/10 hover:bg-black/40"
+            onClick={() => setMobileFullscreen((v) => !v)}
+            aria-label={mobileFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          >
+            <Maximize className="h-4 w-4" />
+          </Button>
+        </div>
 
         <AlertStack alerts={alerts} />
         <BurstReactions bursts={bursts} />

@@ -42,6 +42,9 @@ export function WebRtcVideo(props: {
       v.autoplay = true;
       v.className = props.className ?? "";
 
+      // keep the local ref wired even after DOM moves
+      v.setAttribute("playsinline", "true");
+
       container.appendChild(v);
       setState({ s: "loading" });
 
