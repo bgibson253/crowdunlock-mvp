@@ -44,6 +44,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const timeoutsRef = useRef<number[]>([]);
+  const pendingProducersRef = useRef<string[]>([]);
 
   const [ui, setUi] = useState<UiState>(() =>
     mode === "viewer" ? "connecting" : "idle"
@@ -378,12 +379,19 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       const msg = JSON.parse(String((ev as any).data));
       if (msg?.t === "newProducer" && msg.producerId) {
         note(`push newProducer ${msg.producerId}`);
+
         if (asRole === "viewer") {
+          const device = deviceRef.current;
+          const recvTransport = recvTransportRef.current;
+
+          // If the viewer hasn't created its recv transport yet, queue producers.
+          if (!device || !recvTransport) {
+            pendingProducersRef.current = [...pendingProducersRef.current, msg.producerId].slice(-20);
+            return;
+          }
+
           void (async () => {
             try {
-              const device = deviceRef.current;
-              const recvTransport = recvTransportRef.current;
-              if (!device || !recvTransport) return;
               note(`rpc consume(${msg.producerId}) → send`);
               const data = await call("consume", {
                 transportId: recvTransport.id,
@@ -401,8 +409,8 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
               await call("resumeConsumer", { consumerId: consumer.id });
               note(`rpc resumeConsumer(${consumer.id}) ✓`);
               setUi("live");
-            } catch {
-              // ignore
+            } catch (e: any) {
+              note(`rpc consume(${msg.producerId}) ✗ ${e?.message || String(e)}`);
             }
           })();
         }
@@ -537,6 +545,37 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       dtlsParameters: recvT.dtlsParameters,
     });
     recvTransportRef.current = recvTransport;
+
+    // Drain any queued producers that arrived before recv transport existed.
+    if (pendingProducersRef.current.length) {
+      const ids = [...new Set(pendingProducersRef.current)];
+      pendingProducersRef.current = [];
+      for (const producerId of ids) {
+        void (async () => {
+          try {
+            note(`rpc consume(${producerId}) → send`);
+            const data = await call("consume", {
+              transportId: recvTransport.id,
+              producerId,
+            });
+            note(`rpc consume(${producerId}) ✓`);
+            const consumer = await recvTransport.consume({
+              id: data.id,
+              producerId: data.producerId,
+              kind: data.kind,
+              rtpParameters: data.rtpParameters,
+            });
+            attachRemoteTrack(consumer.track);
+            note(`rpc resumeConsumer(${consumer.id}) → send`);
+            await call("resumeConsumer", { consumerId: consumer.id });
+            note(`rpc resumeConsumer(${consumer.id}) ✓`);
+            setUi("live");
+          } catch (e: any) {
+            note(`rpc consume(${producerId}) ✗ ${e?.message || String(e)}`);
+          }
+        })();
+      }
+    }
 
     recvTransport.on("connect", ({ dtlsParameters }, cb, errCb) => {
       note("rpc connectTransport(recv) → send");
