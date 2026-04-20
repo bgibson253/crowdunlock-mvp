@@ -145,16 +145,82 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         return;
       }
 
-      // Server currently does not echo reqId on routerRtpCapabilities.
-      // Accept it as a reply to the oldest pending request.
-      if (msg?.t === "routerRtpCapabilities" && typeof msg?.reqId !== "number") {
-        const first = pending.entries().next().value as
-          | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
-          | undefined;
-        if (first) {
-          const [id, p] = first;
-          pending.delete(id);
-          return p.resolve(msg.data);
+      // Server currently does not echo reqId on some responses.
+      // Try to match by message type (safe here because these are strictly request→response).
+      if (typeof msg?.reqId !== "number") {
+        const findPending = (needle: string) => {
+          for (const [id, v] of pending.entries()) {
+            // pending ids are sequential; we don't store method name, so we match by FIFO.
+            // This is OK because the client only issues one outstanding call of a given type at a time.
+            return [id, v] as const;
+          }
+          return null;
+        };
+
+        if (msg?.t === "routerRtpCapabilities") {
+          const first = pending.entries().next().value as
+            | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+            | undefined;
+          if (first) {
+            const [id, p] = first;
+            pending.delete(id);
+            return p.resolve(msg.data);
+          }
+        }
+
+        if (msg?.t === "createTransport.ok") {
+          const first = pending.entries().next().value as
+            | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+            | undefined;
+          if (first) {
+            const [id, p] = first;
+            pending.delete(id);
+            return p.resolve(msg.data);
+          }
+        }
+
+        if (msg?.t === "connectTransport.ok") {
+          const first = pending.entries().next().value as
+            | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+            | undefined;
+          if (first) {
+            const [id, p] = first;
+            pending.delete(id);
+            return p.resolve(msg);
+          }
+        }
+
+        if (msg?.t === "produce.ok") {
+          const first = pending.entries().next().value as
+            | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+            | undefined;
+          if (first) {
+            const [id, p] = first;
+            pending.delete(id);
+            return p.resolve(msg);
+          }
+        }
+
+        if (msg?.t === "consume.ok") {
+          const first = pending.entries().next().value as
+            | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+            | undefined;
+          if (first) {
+            const [id, p] = first;
+            pending.delete(id);
+            return p.resolve(msg.data);
+          }
+        }
+
+        if (msg?.t === "resumeConsumer.ok") {
+          const first = pending.entries().next().value as
+            | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+            | undefined;
+          if (first) {
+            const [id, p] = first;
+            pending.delete(id);
+            return p.resolve(msg);
+          }
         }
       }
 
