@@ -123,7 +123,9 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
       const id = ++seq;
       return new Promise<any>((resolve, reject) => {
         pending.set(id, { resolve, reject });
-        wsSend(ws, { t, roomId, reqId: id, data });
+        // The SFU expects most params at the top-level (not nested under `data`).
+      const payload = data && typeof data === "object" ? { ...data } : undefined;
+      wsSend(ws, { t, roomId, reqId: id, ...(payload ? payload : {}) });
         setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
@@ -416,6 +418,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     // Create transports
     if (asRole === "host") {
       note("rpc createTransport(send) → send");
+      // SFU expects msg.direction at top-level (not in msg.data)
       const sendT = await call("createTransport", { direction: "send" }).catch((e: any) => {
         note(`rpc createTransport(send) ✗ ${e?.message || String(e)}`);
         throw e;
