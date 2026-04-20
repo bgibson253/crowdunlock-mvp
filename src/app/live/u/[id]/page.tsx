@@ -47,20 +47,23 @@ export default async function LiveByUserIdPage({
 
   const isHost = !!user && user.id === host.id;
 
-  if (!room && !isHost) {
+  // When the stream is ended, do not mount the LiveRoom component (prevents frozen last frame).
+  if (!room) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 space-y-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight">
             {host.display_name || host.username || "Creator"}
           </h1>
-          <p className="text-sm text-muted-foreground">Not live right now.</p>
+          <p className="text-sm text-muted-foreground">
+            {isHost ? "You are offline." : "Not live right now."}
+          </p>
         </div>
       </div>
     );
   }
 
-  const roomId = room?.id ?? `host-${host.id}`;
+  const roomId = room.id;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 space-y-4">

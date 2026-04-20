@@ -317,6 +317,20 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
     return cfg;
   };
 
+  const clearRemote = () => {
+    try {
+      const el = remoteVideoRef.current;
+      if (!el) return;
+      const ms = el.srcObject as MediaStream | null;
+      if (ms) {
+        for (const t of ms.getTracks()) {
+          try { t.stop(); } catch {}
+        }
+      }
+      el.srcObject = null;
+    } catch {}
+  };
+
   const attachRemoteTrack = (track: MediaStreamTrack) => {
     const current = (remoteVideoRef.current?.srcObject as MediaStream | null) ?? null;
     const ms = current ?? new MediaStream();
@@ -426,6 +440,7 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
     });
 
     ws.onclose = () => {
+      clearRemote();
       scheduleRetry(1500);
     };
 
@@ -498,8 +513,16 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: true,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30, max: 60 },
+          },
         });
         note("getUserMedia ✓");
       } catch (e: any) {
