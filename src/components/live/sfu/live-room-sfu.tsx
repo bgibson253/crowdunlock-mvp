@@ -205,6 +205,17 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
           }
         }
 
+        if (msg?.t === "setRtpCapabilities.ok") {
+          const first = pending.entries().next().value as
+            | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
+            | undefined;
+          if (first) {
+            const [id, p] = first;
+            pending.delete(id);
+            return p.resolve(msg);
+          }
+        }
+
         if (msg?.t === "resumeConsumer.ok") {
           const first = pending.entries().next().value as
             | [number, { resolve: (v: any) => void; reject: (e: any) => void }]
