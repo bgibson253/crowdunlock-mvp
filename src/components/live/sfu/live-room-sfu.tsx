@@ -48,8 +48,13 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
   );
   const [attempt, setAttempt] = useState(0);
   const [lastErr, setLastErr] = useState<string | null>(null);
+  const [diag, setDiag] = useState<string[]>([]);
+
+  const note = (s: string) =>
+    setDiag((d) => [...d.slice(-14), `${new Date().toISOString()} ${s}`]);
 
   const cleanup = () => {
+    note("cleanup()");
     if (retryTimerRef.current) {
       window.clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
@@ -211,6 +216,7 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     cleanup();
 
     const wsUrl = String(cfg?.sfu?.wsUrl ?? "");
+    note(`cfg.wsUrl=${wsUrl || "(missing)"}`);
     if (!wsUrl) throw new Error("Missing SFU wsUrl");
 
     const ws = new WebSocket(wsUrl);
@@ -219,12 +225,17 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     await new Promise<void>((resolve, reject) => {
       const t = window.setTimeout(() => reject(new Error("WS connect timeout")), 12000);
       ws.addEventListener("open", () => {
+        note("ws open");
         window.clearTimeout(t);
         resolve();
       });
       ws.addEventListener("error", () => {
+        note("ws error (event)");
         window.clearTimeout(t);
         reject(new Error("WS error"));
+      });
+      ws.addEventListener("close", (ev) => {
+        note(`ws close code=${(ev as CloseEvent).code} reason=${(ev as CloseEvent).reason || ""}`);
       });
     });
 
@@ -232,12 +243,15 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
 
     // Listen for RPC responses.
     ws.addEventListener("message", (ev) => {
+      note(`ws message bytes=${String((ev as any).data).length}`);
+
       // first, let rpc resolve pending calls
       onMessage(ev as any);
 
       // then handle push notifications
       const msg = JSON.parse(String((ev as any).data));
       if (msg?.t === "newProducer" && msg.producerId) {
+        note(`push newProducer ${msg.producerId}`);
         if (asRole === "viewer") {
           void (async () => {
             try {
@@ -273,9 +287,12 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
     const device = new mediasoupClient.Device();
     deviceRef.current = device;
 
+    note("rpc getRouterRtpCapabilities → send");
     const routerRtpCapabilities = await call("getRouterRtpCapabilities").catch((e: any) => {
+      note(`rpc getRouterRtpCapabilities ✗ ${e?.message || String(e)}`);
       throw new Error(`getRouterRtpCapabilities failed: ${e?.message || String(e)}`);
     });
+    note("rpc getRouterRtpCapabilities ✓");
     await device.load({ routerRtpCapabilities });
 
     await call("setRtpCapabilities", { rtpCapabilities: device.rtpCapabilities });
@@ -442,7 +459,13 @@ export function LiveRoomSfu({ roomId, mode }: Props) {
         <div className="absolute inset-0 flex items-center justify-center bg-black/55 text-white">
           <div className="max-w-sm rounded-xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
             <div className="font-semibold">Stream unavailable</div>
-            <div className="mt-1 text-white/80">{lastErr || "Please try again."}</div>
+            <div className="mt-1 whitespace-pre-wrap text-white/80">
+              {lastErr || "Please try again."}
+              {"\n\n"}
+              <span className="text-white/60">diag:</span>
+              {"\n"}
+              {diag.join("\n")}
+            </div>
           </div>
         </div>
       );
