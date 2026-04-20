@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { io, Socket } from "socket.io-client";
 import { motion } from "framer-motion";
 
@@ -15,6 +16,7 @@ import { MobileChatDrawer } from "@/components/live/overlay/mobile-chat-drawer";
 import { PollCard } from "@/components/live/overlay/polls";
 import { ReactionBar, BurstReactions } from "@/components/live/overlay/reactions";
 import { AlertStack, StreamOverlays } from "@/components/live/overlay/overlays";
+import { HostPill } from "@/components/live/overlay/host-pill";
 import { useIsDesktop } from "@/components/live/overlay/use-media-query";
 import { sanitizeChatText } from "@/components/live/overlay/sanitize";
 import { useLiveStore } from "@/components/live/overlay/store";
@@ -101,6 +103,8 @@ export function LiveStreamOverlayWebRtc(props: {
 
     setConn("connecting");
 
+    let didCancel = false;
+
     const socket: Socket<ServerToClient, ClientToServer> = io(url, {
       transports: ["websocket", "polling"],
       withCredentials: true,
@@ -112,6 +116,18 @@ export function LiveStreamOverlayWebRtc(props: {
     });
 
     socketRef.current = socket;
+
+    // Add Supabase access token for server-side verification (enables chat send)
+    void (async () => {
+      try {
+        const supabase = supabaseBrowser();
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!didCancel && token) socket.auth = { token };
+      } catch {
+        // ignore
+      }
+    })();
 
     const join = () => {
       setConn("connected");
@@ -145,6 +161,7 @@ export function LiveStreamOverlayWebRtc(props: {
     }, 4200);
 
     return () => {
+      didCancel = true;
       socket.disconnect();
       socketRef.current = null;
       if (reconnectTimerRef.current) window.clearInterval(reconnectTimerRef.current);
@@ -189,6 +206,13 @@ export function LiveStreamOverlayWebRtc(props: {
 
         <AlertStack alerts={alerts} />
         <BurstReactions bursts={bursts} />
+
+        {/* Clickable host identity (top-left, under badges) */}
+        {props.stream.host ? (
+          <div className="absolute left-3 top-12">
+            <HostPill host={props.stream.host} />
+          </div>
+        ) : null}
 
         {/* Mobile: floating chat + reactions */}
         <div className="absolute right-3 top-14 flex flex-col gap-2 lg:hidden">

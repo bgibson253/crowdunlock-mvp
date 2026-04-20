@@ -79,7 +79,8 @@ export function StreamOverlays(props: {
           <div className="mt-1 flex items-center gap-2 text-xs text-white/70">
             <Crown className="h-3.5 w-3.5" />
             <span>
-              {props.stream.host.displayName} (@{props.stream.host.username})
+              {props.stream.host.displayName}
+              {props.stream.host.username ? ` (@${props.stream.host.username})` : ""}
             </span>
           </div>
         </Card>

@@ -17,6 +17,14 @@ export default async function LiveByUserIdPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  const { data: meProfile } = user
+    ? await supabase
+        .from("profiles")
+        .select("id,username,avatar_url")
+        .eq("id", user.id)
+        .maybeSingle()
+    : { data: null };
+
   const { data: host } = await supabase
     .from("profiles")
     .select("id,username,display_name,avatar_url")
@@ -85,6 +93,8 @@ export default async function LiveByUserIdPage({
           hostAvatarUrl={host.avatar_url}
           hostUsername={host.username}
           currentUserId={user.id}
+          currentUsername={meProfile?.username ?? null}
+          currentAvatarUrl={meProfile?.avatar_url ?? null}
         />
       ) : (
         <div className="rounded-xl border bg-card p-5 text-sm text-muted-foreground">

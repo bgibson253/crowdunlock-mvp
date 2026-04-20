@@ -16,6 +16,13 @@ type Props = {
   roomId: string;
   mode: "host" | "viewer";
   preferredRegion?: "use1" | "usw2";
+  me?: { id: string; username: string; avatarUrl?: string | null } | null;
+  host?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string | null;
+  };
 };
 
 type UiState =
@@ -32,7 +39,7 @@ type SfuCfg = {
   turn?: Array<{ urls: string[]; username?: string; credential?: string }>;
 };
 
-export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
+export function LiveRoomSfu({ roomId, mode, preferredRegion, me = null, host }: Props) {
   // expose remote video element to overlay layer
   const [remoteVideoEl, setRemoteVideoEl] = useState<HTMLVideoElement | null>(null);
   const isIOS = useIsIOS();
@@ -65,23 +72,23 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
   // Viewer quality preference
   const [pref, setPref] = useState<"auto" | "low" | "med" | "high">("auto");
 
-  // Overlay expects a StreamConfig-like object (we'll wire real host fields next)
+  // Overlay expects a StreamConfig-like object
   const [overlayNow] = useState(() => Date.now());
   const overlayStream = useMemo(
     () => ({
       title: "Live",
       host: {
-        id: "host",
-        username: "host",
-        displayName: "Host",
-        avatarUrl: null,
+        id: host?.id || "host",
+        username: host?.username || "host",
+        displayName: host?.displayName || "Host",
+        avatarUrl: host?.avatarUrl ?? null,
       },
       chatWsUrl: (process.env.NEXT_PUBLIC_CHAT_WS_URL as string) || "",
       roomId,
       startedAt: overlayNow,
       isLive: true,
     }),
-    [roomId, overlayNow]
+    [roomId, overlayNow, host?.id, host?.username, host?.displayName, host?.avatarUrl]
   );
   const prefRef = useRef(pref);
   useEffect(() => {
@@ -834,7 +841,7 @@ export function LiveRoomSfu({ roomId, mode, preferredRegion }: Props) {
       <div className="pointer-events-auto absolute inset-0">
           <LiveStreamOverlayWebRtc
             stream={overlayStream as any}
-            me={null}
+            me={me}
             videoEl={remoteVideoEl}
             viewerQuality={pref}
             onViewerQualityChange={setPref}
