@@ -112,10 +112,23 @@ export function OnboardingWizard({ userId, initialProfile, categories, topCreato
   const completeOnboarding = useCallback(async () => {
     setLoading(true);
     const supabase = supabaseBrowser();
-    await supabase.from("profiles").update({ has_onboarded: true }).eq("id", userId);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ has_onboarded: true })
+      .eq("id", userId);
+
     setLoading(false);
+
+    if (error) {
+      toast.error(`Failed to finish onboarding: ${error.message}`);
+      return;
+    }
+
     toast.success("Welcome to Unmaskr! 🎉");
-    router.push("/browse");
+    // Replace so the user can't get stuck on onboarding via back button/cached state
+    router.replace("/browse");
+    router.refresh();
   }, [userId, router]);
 
   async function handleNext() {
