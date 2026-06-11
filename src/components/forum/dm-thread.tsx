@@ -61,13 +61,13 @@ export function DmThread({
         myPubKeyRef.current = publicKeyBase64;
 
         // Upsert our public key to DB
-        const { error: upsertErr } = await supabase
+        await supabase
           .from("user_public_keys")
           .upsert(
             { user_id: currentUserId, public_key: publicKeyBase64, updated_at: new Date().toISOString() },
             { onConflict: "user_id" }
           );
-        if (upsertErr) console.warn("Failed to store public key:", upsertErr.message);
+        // Public key write is non-blocking; missing keys degrade E2E gracefully below.
 
         // Fetch recipient's public key
         const { data: recipientKey } = await supabase
@@ -83,7 +83,7 @@ export function DmThread({
 
         setE2eReady(true);
       } catch (err: any) {
-        console.error("E2E init failed:", err);
+
         setE2eError("Encryption setup failed. Messages will be sent unencrypted.");
         setE2eReady(true); // still allow unencrypted fallback
       }
@@ -242,7 +242,7 @@ export function DmThread({
       }
       setBody("");
     } catch (err: any) {
-      console.error("Send failed:", err?.message);
+
     } finally {
       setSending(false);
     }

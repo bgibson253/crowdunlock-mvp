@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) {
-      console.error("[dmca] Insert error:", error);
+
       return NextResponse.json({ error: "Failed to submit notice" }, { status: 500 });
     }
 
