@@ -50,15 +50,6 @@ export async function Nav() {
           {user && (
             <div className="hidden sm:flex items-center gap-2">
               <Link
-                href="/live"
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-red-300 hover:bg-red-500/10 transition-colors border border-red-500/20"
-                aria-label="Go Live"
-                title="Go live"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                Live
-              </Link>
-              <Link
                 href="/following"
                 className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-300 hover:bg-indigo-500/10 transition-colors"
                 aria-label="Points balance"

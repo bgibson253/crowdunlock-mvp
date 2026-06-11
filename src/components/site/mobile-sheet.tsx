@@ -146,7 +146,6 @@ export function MobileSheet({
               <Separator className="my-3 mx-2" />
               <SectionLabel>Your Stuff</SectionLabel>
               <div className="space-y-0.5">
-                <NavLink href="/live" icon={Radio} label="Go Live" onClick={close} />
                 <NavLink href="/feed" icon={Rss} label="Feed" onClick={close} />
                 <NavLink href="/forum/notifications" icon={Bell} label="Notifications" onClick={close} />
                 <NavLink href="/messages" icon={Mail} label="Messages" badge={unreadDmCount} onClick={close} />
