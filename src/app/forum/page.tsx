@@ -186,14 +186,7 @@ export default async function ForumIndexPage() {
           </div>
           <div className="flex items-center gap-2">
             <SearchBar />
-            {user && (
-              <Button asChild variant="outline" className="text-sm font-medium">
-                <Link href="/live" className="flex items-center gap-1.5">
-                  <Radio className="h-4 w-4 text-red-400" />
-                  Go live
-                </Link>
-              </Button>
-            )}
+            {user && <NotificationBell />}
             <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-sm font-medium">
               <Link href="/forum/new">New thread</Link>
             </Button>
