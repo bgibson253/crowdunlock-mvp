@@ -16,6 +16,8 @@ import { getBlockedUserIdsServer } from "@/lib/user-safety";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/forum/breadcrumbs";
 import { ThreadActions } from "@/components/forum/thread-actions";
+import { InterestMeter } from "@/components/forum/interest-meter";
+import { LiveThread } from "@/components/forum/live-thread";
 import { relativeTime } from "@/lib/relative-time";
 import { Eye, Lock } from "lucide-react";
 
@@ -171,16 +173,22 @@ export default async function ForumThreadPage({
     isAdmin = profile?.is_admin ?? false;
   }
 
-  // Get author names for threaded replies
+  // Get author names for threaded replies (reuse the reply profile fetch;
+  // only the thread author may be missing from it).
   const authorIds = [
     thread.author_id,
-    ...new Set((replies ?? []).map((r: any) => r.author_id)),
+    ...replyAuthorIds,
   ].filter(Boolean);
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, display_name, username, trust_level, avatar_url, post_count, total_points, current_streak")
-    .in("id", authorIds);
+  const missingIds = authorIds.filter((uid) => !replyProfileById.has(uid));
+  const { data: extraProfiles } = missingIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, display_name, username, trust_level, avatar_url, post_count, total_points, current_streak")
+        .in("id", missingIds)
+    : { data: [] as any[] };
+
+  const profiles = [...(replyProfiles ?? []), ...(extraProfiles ?? [])];
 
   const authorNames: Record<string, string> = {};
   const authorTrustLevels: Record<string, number> = {};
@@ -212,6 +220,27 @@ export default async function ForumThreadPage({
   const isDeleted = !!thread.deleted_at;
   const isLocked = thread.locked ?? false;
 
+  // Interest meter: only on request-section threads (proto-campaigns)
+  const isRequestThread = (thread.section_id ?? "").startsWith("request_");
+  let interestBackers = 0;
+  let interestPledgedCents = 0;
+  let userInterested = false;
+  if (isRequestThread && !isDeleted) {
+    const { data: stats } = await supabase.rpc("thread_interest_stats", { p_thread_id: id });
+    const row = Array.isArray(stats) ? stats[0] : stats;
+    interestBackers = Number(row?.backers ?? 0);
+    interestPledgedCents = Number(row?.pledged_cents ?? 0);
+    if (userId) {
+      const { data: mine } = await supabase
+        .from("thread_interest")
+        .select("thread_id")
+        .eq("thread_id", id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      userInterested = !!mine;
+    }
+  }
+
   return (
     <div className="relative isolate min-h-screen">
       {/* Background */}
@@ -229,6 +258,21 @@ export default async function ForumThreadPage({
             { label: isDeleted ? "[deleted]" : thread.title },
           ]}
         />
+
+        {/* Live updates: new replies appear without manual refresh */}
+        <LiveThread threadId={thread.id} userId={userId} />
+
+        {/* Proto-campaign interest meter on request threads */}
+        {isRequestThread && !isDeleted && (
+          <InterestMeter
+            threadId={thread.id}
+            userId={userId}
+            initialBackers={interestBackers}
+            initialPledgedCents={interestPledgedCents}
+            initiallyInterested={userInterested}
+            isUploaderView={userId === thread.author_id}
+          />
+        )}
 
         <Card>
           <CardHeader>

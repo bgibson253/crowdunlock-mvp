@@ -112,31 +112,15 @@ export default async function ForumIndexPage() {
     Omit<SectionRow, "threads_count" | "replies_count">
   >;
 
-  const { data: threadsMini } = await supabase
-    .from("forum_threads")
-    .select("id,section_id");
-
-  const { data: repliesMini } = await supabase
-    .from("forum_replies")
-    .select("thread_id");
-
-  const threadIdToSection = new Map<string, string>();
-  for (const t of (threadsMini ?? []) as any[]) {
-    if (t.id && t.section_id) threadIdToSection.set(t.id, t.section_id);
-  }
+  // One aggregate RPC instead of full-table scans of threads + replies.
+  const { data: statsRows } = await supabase.rpc("forum_section_stats");
 
   const threadsPerSection = new Map<string, number>();
-  for (const t of (threadsMini ?? []) as any[]) {
-    const sid = t.section_id;
-    if (!sid) continue;
-    threadsPerSection.set(sid, (threadsPerSection.get(sid) ?? 0) + 1);
-  }
-
   const repliesPerSection = new Map<string, number>();
-  for (const r of (repliesMini ?? []) as any[]) {
-    const sid = threadIdToSection.get(r.thread_id);
-    if (!sid) continue;
-    repliesPerSection.set(sid, (repliesPerSection.get(sid) ?? 0) + 1);
+  for (const row of (statsRows ?? []) as any[]) {
+    if (!row?.section_id) continue;
+    threadsPerSection.set(row.section_id, Number(row.threads_count ?? 0));
+    repliesPerSection.set(row.section_id, Number(row.replies_count ?? 0));
   }
 
   const sectionsWithCounts: SectionRow[] = sections.map((s) => ({
