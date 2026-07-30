@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchBar } from "@/components/forum/search-bar";
+import { NotificationBell } from "@/components/forum/notification-bell";
 import { TrendingSidebar } from "@/components/engagement/trending-sidebar";
 import { MessageSquare, Users, Zap, Radio } from "lucide-react";
 
@@ -186,7 +187,7 @@ export default async function ForumIndexPage() {
           </div>
           <div className="flex items-center gap-2">
             <SearchBar />
-            {user && <NotificationBell />}
+            {user && <NotificationBell userId={user.id} />}
             <Button asChild className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-sm font-medium">
               <Link href="/forum/new">New thread</Link>
             </Button>

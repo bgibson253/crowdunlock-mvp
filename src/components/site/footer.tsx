@@ -7,6 +7,7 @@ const footerLinks = {
     { label: "Forum", href: "/forum" },
     { label: "Leaderboards", href: "/leaderboards" },
     { label: "Blog", href: "/blog" },
+    { label: "Launch Waitlist", href: "/waitlist" },
   ],
   Legal: [
     { label: "Terms", href: "/terms" },

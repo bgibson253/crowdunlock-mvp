@@ -24,6 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://unmaskr.org"),
   title: {
     default: "Unmaskr | You Decide What Gets Uncovered",
     template: "%s | Unmaskr",

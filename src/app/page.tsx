@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Clock,
   Globe,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -144,6 +145,17 @@ export default async function HomePage() {
                 className="border-border/50 backdrop-blur-sm text-base px-8"
               >
                 <Link href="/forum">Explore the Forum</Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="ghost"
+                className="text-base px-6 text-muted-foreground hover:text-primary"
+              >
+                <Link href="/waitlist">
+                  <Bell className="mr-2 h-4 w-4" />
+                  Notify me at launch
+                </Link>
               </Button>
             </>
           )}
