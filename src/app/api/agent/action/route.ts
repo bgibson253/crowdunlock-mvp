@@ -12,6 +12,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
+  // Admin check — agent actions moderate content via service role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile?.is_admin) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
+
   // Rate limit — 10 agent actions per minute per user
   const rl = rateLimit(`agent-action:${user.id}`, { maxRequests: 10, windowMs: 60_000 });
   if (!rl.allowed) {

@@ -28,8 +28,8 @@ function baseTemplate(content: string): string {
     <div class="logo">Unmaskr</div>
     ${content}
     <div class="footer">
-      <p>You received this because you have notifications enabled on <a href="https://crowdunlock-mvp.vercel.app">Unmaskr</a>.</p>
-      <p><a href="https://crowdunlock-mvp.vercel.app/profile/settings">Manage notification preferences</a></p>
+      <p>You received this because you have notifications enabled on <a href="https://unmaskr.org">Unmaskr</a>.</p>
+      <p><a href="https://unmaskr.org/profile/settings">Manage notification preferences</a></p>
     </div>
   </div>
 </body>

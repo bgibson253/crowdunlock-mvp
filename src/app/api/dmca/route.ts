@@ -31,7 +31,7 @@ function dmcaConfirmationHtml(claimantName: string): string {
       <p>If you need to provide additional information or have questions about your notice, please reply to this email or contact us at <a href="mailto:legal@unmaskr.org" style="color: #818cf8;">legal@unmaskr.org</a>.</p>
     </div>
     <div class="footer">
-      <p><a href="https://crowdunlock-mvp.vercel.app">Unmaskr</a></p>
+      <p><a href="https://unmaskr.org">Unmaskr</a></p>
     </div>
   </div>
 </body>

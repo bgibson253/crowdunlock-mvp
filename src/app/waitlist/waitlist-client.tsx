@@ -59,6 +59,10 @@ export default function WaitlistClient() {
     [email]
   );
 
+  const isError =
+    status.kind === "error" ||
+    (status.kind === "idle" && paramStatus === "already_joined");
+
   return (
     <form onSubmit={onSubmit} className="mt-10 rounded-2xl border border-primary/15 bg-primary/5 p-5 backdrop-blur">
       <label htmlFor="waitlist-email" className="block text-sm font-medium text-primary">
@@ -81,7 +85,15 @@ export default function WaitlistClient() {
           {status.kind === "sending" ? "Joining…" : "Notify me"}
         </Button>
       </div>
-      {statusText && <p className="mt-3 text-sm text-emerald-400">{statusText}</p>}
+      {statusText && (
+        <p
+          className={`mt-3 text-sm ${isError ? "text-amber-400" : "text-emerald-400"}`}
+          role="status"
+          aria-live="polite"
+        >
+          {statusText}
+        </p>
+      )}
     </form>
   );
 }

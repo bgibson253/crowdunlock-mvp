@@ -601,6 +601,15 @@ export default async function HomePage() {
             <p className="mt-6 text-xs text-muted-foreground/50">
               Free to join · No credit card required · Your data is yours
             </p>
+
+            {!user && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Not ready yet?{" "}
+                <Link href="/waitlist" className="text-primary hover:underline">
+                  Get one email when we launch
+                </Link>
+              </p>
+            )}
           </div>
         </div>
       </section>
