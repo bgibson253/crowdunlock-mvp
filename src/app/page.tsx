@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { OracleDiagram } from "@/components/site/oracle-diagram";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -245,6 +246,23 @@ export default async function HomePage() {
             </Card>
           ))}
         </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          THE ORACLE — THE PITCH IN ONE PICTURE
+          ═══════════════════════════════════════════ */}
+      <section className="relative mx-auto max-w-5xl px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Every Deal Needs a <span className="text-purple-400">Middleman</span>. Ours Can&rsquo;t Be Bought.
+          </h2>
+          <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
+            For 5,000 years, strangers doing business needed a trusted third party — escrow
+            agents, notaries, appraisers. All human. All corruptible. We replaced him with an
+            AI that inspects the goods before your money moves.
+          </p>
+        </div>
+        <OracleDiagram />
       </section>
 
       {/* ═══════════════════════════════════════════
