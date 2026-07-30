@@ -1,0 +1,136 @@
+# Sealed Uploads — Design (v1)
+
+> Goal: locked content is observable by the Verifier AI and **no one else** —
+> not other users, not database admins, not the platform operator.
+> This doc is honest about which guarantees each stage actually delivers.
+
+---
+
+## The honest threat model
+
+"Even I wouldn't have access" has three escalating versions:
+
+| Level | Guarantee | What it takes |
+|---|---|---|
+| **L1 — Sealed at rest** | Nobody with DB/storage/backup access can read content. Operator *could* read keys on the verifier machine if they chose to. | Client-side encryption, key sealed to the verifier's keypair. Buildable **now** with Web Crypto (same stack as our E2E DMs). |
+| **L2 — Tamper-evident** | Same as L1, plus every decryption is publicly logged; operator access would be visible after the fact. | Append-only attestation log; verifier signs a receipt for every file it opens. |
+| **L3 — Operator-proof** | Operator *cannot* read content even with root on every machine. | Trusted Execution Environment (attested enclave — AWS Nitro / confidential compute) holding the verifier key, or threshold key-split across independent parties. |
+
+**L3 is the end state; L1+L2 is the launch state.** Claiming L3 before running
+in an enclave would be a lie, and this platform's whole pitch is honesty about
+verification. Marketing language for L1+L2: *"Content is encrypted before it
+leaves your browser. Only the verification AI holds the key to examine it —
+and every examination is publicly logged."* That's true, strong, and doesn't
+overclaim.
+
+---
+
+## L1 architecture — sealed-to-verifier encryption
+
+Reuses the primitives already in `src/lib/e2e-crypto.ts` (ECDH P-256 +
+AES-256-GCM, Web Crypto in the browser).
+
+```
+UPLOAD (browser):
+1. Generate random content key CK (AES-256).
+2. Encrypt file with CK → ciphertext. Upload ciphertext to storage.
+3. Fetch the VERIFIER PUBLIC KEY (published, pinned, versioned).
+4. ECDH-wrap CK to the verifier pubkey → wrapped_key_verifier.
+5. Store: ciphertext (storage) + wrapped_key_verifier (DB).
+   The plaintext and CK never leave the browser.
+
+VERIFY (verifier machine, local model):
+6. Verifier unwraps CK with its PRIVATE key (exists ONLY on the
+   verifier machine — never in Supabase, never in Vercel env).
+7. Decrypts to tmpfs (RAM), runs the attestation prompt, writes the
+   public card + private record, wipes plaintext.
+8. Signs an attestation receipt (upload id, content hash, timestamp,
+   verdict hash) → append-only log. (This is L2.)
+
+UNLOCK (funding goal met):
+9. Verifier re-wraps CK to a public "unlock key" or simply publishes
+   CK for that upload. Everyone can now decrypt; content is public,
+   which is the product promise anyway.
+   → Unlock does NOT require the uploader to be online.
+
+DOWNLOAD before unlock: impossible for anyone — the server only ever
+had ciphertext. Admin "download" buttons and signed URLs yield bytes
+that are useless without CK.
+```
+
+### What this kills immediately
+- Supabase/storage breach → attacker gets ciphertext only.
+- Rogue admin with service-role key → ciphertext only.
+- Subpoena of the hosting provider → ciphertext only.
+- You (Ben) browsing the bucket → ciphertext only.
+
+### The residual gap (why it's L1, not L3)
+The verifier private key lives on a machine the operator controls. A
+malicious operator could read the key and decrypt ciphertexts. Mitigations
+now: key stored in Secure Enclave/keychain where possible, decrypt only to
+RAM, attestation log makes use visible. Full fix later: move key generation
+*inside* an attested TEE so no human ever sees it (L3).
+
+---
+
+## Schema sketch
+
+```sql
+-- verifier keypairs are versioned (rotation without breaking old uploads)
+create table verifier_keys (
+  version int primary key,
+  public_key_jwk jsonb not null,
+  created_at timestamptz not null default now(),
+  retired_at timestamptz
+);
+
+alter table uploads add column
+  sealed boolean not null default false,
+  content_hash text,            -- sha256 of plaintext, computed in browser
+  wrapped_key jsonb,            -- CK wrapped to verifier pubkey {v, iv, ct, ephemeral_pub}
+  verifier_key_version int references verifier_keys(version),
+  unlock_key jsonb;             -- published CK after unlock (null while locked)
+
+create table verification_receipts (   -- L2: append-only, publicly readable
+  id uuid primary key default gen_random_uuid(),
+  upload_id uuid not null references uploads(id),
+  content_hash text not null,
+  action text not null check (action in ('verified','re-verified','unlocked')),
+  verdict_hash text,            -- hash of the attestation JSON
+  signature text not null,      -- signed by verifier key
+  created_at timestamptz not null default now()
+);
+```
+
+`content_hash` doubles as integrity proof: after unlock, anyone can hash the
+decrypted file and confirm it's the exact bytes the verifier examined.
+
+---
+
+## Consequences to accept (product decisions)
+
+1. **No server-side thumbnails/teasers from content.** The AI teaser must be
+   generated by the verifier (it's the only party who can see the goods) and
+   returned alongside the attestation. Uploader-provided thumbnails stay,
+   marked "uploader-provided, unverified".
+2. **DMCA/illegal-content handling changes.** You can't "check the file"
+   on a report — only the verifier can. Process: reports trigger a verifier
+   re-examination against the specific complaint; hard-line content is
+   rejected at verification time (already in the prompt spec).
+3. **Lost verifier key = locked uploads are dead.** Key backup must be a
+   deliberate ceremony (e.g., printed shard in a safe), because any casual
+   backup reintroduces the access you're trying to eliminate.
+4. **Test mode** should bypass sealing (or use a test keypair) so QA stays easy.
+
+---
+
+## Build order
+
+1. `verifier_keys` + upload-path encryption in the browser (Web Crypto,
+   ~mirrors e2e-crypto.ts) + sealed download refusal. **[core, ~a day]**
+2. Verifier machine keygen + unwrap/decrypt/wipe harness (pairs with the
+   Ollama runner for VERIFIER_PROMPT.md).
+3. Receipts table + signing (L2).
+4. Unlock key publication + client-side decrypt on the upload page.
+5. Later: TEE migration for L3; update marketing only then.
+```
