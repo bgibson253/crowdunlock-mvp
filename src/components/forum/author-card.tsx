@@ -3,38 +3,31 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserFavoriteButton } from "@/components/forum/user-favorite-button";
 import { UserSubscribeButton } from "@/components/forum/user-subscribe-button";
+import { UnlockBadgeForLabel } from "@/components/badges/unlock-badge";
 import { getTrustLevelName } from "@/lib/trust-levels";
 
-/* ── Tier‑badge gradient colors (higher = more dramatic) ──────── */
-const TIER_GRADIENT: Record<string, string> = {
-  "First Bill":       "from-zinc-400 to-zinc-600",
-  "Half Stack":       "from-zinc-400 to-zinc-600",
-  "It's all about the Benjamin": "from-emerald-400 to-emerald-600",
-  "It's all about the Benjamins": "from-emerald-400 to-emerald-600",
-  "Three-Plate Stack": "from-emerald-400 to-emerald-600",
-  "Money Talks":       "from-amber-400 to-yellow-500",
-  "Paper Trail":       "from-amber-400 to-yellow-500",
-  "Four-Figure Financier": "from-amber-300 to-orange-500",
-  "Double-K Patron":   "from-cyan-400 to-blue-500",
-  "Quiet Backer":      "from-violet-400 to-purple-600",
-  "Kingmaker":         "from-yellow-300 to-amber-500",
-  "Shadow Sponsor":    "from-slate-400 to-slate-700",
-  "Dealmaker":         "from-rose-400 to-pink-600",
-  "The Vault Opens":   "from-yellow-300 to-red-500",
-  "The Mask Breaker":  "from-fuchsia-400 to-purple-600",
-  "The Unmasker":      "from-indigo-300 to-blue-600",
-  "The Final Reveal":  "from-yellow-200 via-amber-400 to-red-600",
+/* ── Tier badge: custom vector medallion + label ──────── */
+const TIER_TEXT: Record<string, string> = {
+  "First Bill": "text-zinc-300",
+  "It's All About the Benjamin": "text-emerald-400",
+  "It's All About the Benjamins": "text-emerald-400",
+  "Stacking Hundreds": "text-teal-300",
+  "Money Printer": "text-sky-300",
+  "Cash Vault": "text-violet-300",
+  "Midas Touch": "text-amber-300",
+  "The Whale": "text-cyan-300",
+  "Unmaskr Legend": "text-yellow-300",
 };
 
-function TierBadge({ label, icon }: { label: string; icon: string }) {
-  const grad = TIER_GRADIENT[label] ?? "from-amber-400 to-yellow-500";
+function TierBadge({ label, icon: _icon }: { label: string; icon: string }) {
+  const text = TIER_TEXT[label] ?? "text-amber-300";
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-gradient-to-r ${grad} bg-clip-text text-transparent px-1.5 py-0.5 text-[10px] font-bold leading-none whitespace-nowrap`}
+      className="inline-flex items-center gap-1 rounded-md border border-border/50 bg-black/20 px-1.5 py-0.5 text-[10px] font-bold leading-none whitespace-nowrap"
       title={label}
     >
-      <span className="bg-clip-border text-[10px] not-italic" aria-hidden>{icon}</span>
-      <span>{label}</span>
+      <UnlockBadgeForLabel label={label} size={13} />
+      <span className={text}>{label}</span>
     </span>
   );
 }

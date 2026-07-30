@@ -23,6 +23,7 @@ import { MarkdownBody } from "@/components/forum/markdown-body";
 import { MarkdownEditor } from "@/components/forum/markdown-editor";
 import { Reactions } from "@/components/forum/reactions";
 import { ReportModal } from "@/components/forum/report-modal";
+import { UnlockBadgeForLabel } from "@/components/badges/unlock-badge";
 import { relativeTime } from "@/lib/relative-time";
 import { getTrustLevelName } from "@/lib/trust-levels";
 import { toast } from "sonner";
@@ -271,7 +272,7 @@ function ReplyCard({
                   </span>
                   {reply.author_unlock_tier_label && (
                     <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-400 whitespace-nowrap">
-                      <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
+                      <UnlockBadgeForLabel label={reply.author_unlock_tier_label} size={11} />
                       {reply.author_unlock_tier_label}
                     </span>
                   )}
@@ -313,8 +314,8 @@ function ReplyCard({
 
                   {/* Spending tier badge */}
                   {reply.author_unlock_tier_label && (
-                    <span className="inline-flex items-center gap-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-bold text-amber-400 text-[10px] leading-none whitespace-nowrap" title={reply.author_unlock_tier_label}>
-                      <span aria-hidden>{reply.author_unlock_tier_icon ?? "💸"}</span>
+                    <span className="inline-flex items-center gap-1 rounded-md border border-border/50 bg-black/20 px-1.5 py-0.5 font-bold text-amber-300 text-[10px] leading-none whitespace-nowrap" title={reply.author_unlock_tier_label}>
+                      <UnlockBadgeForLabel label={reply.author_unlock_tier_label} size={12} />
                       <span>{reply.author_unlock_tier_label}</span>
                     </span>
                   )}

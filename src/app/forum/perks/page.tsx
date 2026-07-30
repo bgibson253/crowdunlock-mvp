@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, TrendingUp } from "lucide-react";
 
 import { UNLOCK_TIERS as TIERS } from "@/lib/unlock-tiers";
+import { UnlockBadgeForLabel } from "@/components/badges/unlock-badge";
 
 export const metadata = {
   title: "Unlock Perks",
@@ -53,8 +54,8 @@ export default function ForumPerksPage() {
                 key={t.dollars}
                 className={`flex items-center gap-4 rounded-xl border ${s.border} ${s.bg} ${s.glow} px-5 py-4 backdrop-blur-sm transition-transform hover:scale-[1.01]`}
               >
-                <div className="text-2xl w-12 text-center shrink-0" aria-hidden>
-                  {t.icon}
+                <div className="w-12 flex items-center justify-center shrink-0" aria-hidden>
+                  <UnlockBadgeForLabel label={t.label} size={i >= TIERS.length - 3 ? 44 : 38} glow={i >= TIERS.length - 4} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold">{t.label}</div>
