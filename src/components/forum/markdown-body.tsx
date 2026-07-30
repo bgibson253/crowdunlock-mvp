@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { VideoEmbed, isVideoUrl } from "@/components/forum/video-embed";
+import { LinkPreviewCard } from "@/components/forum/link-preview-card";
 
 export function MarkdownBody({
   content,
@@ -99,6 +100,19 @@ export function MarkdownBody({
                   {children}
                 </a>
               );
+            }
+            // Bare pasted URL (autolinked: text === href) → Reddit-style preview card
+            const childText = Array.isArray(children)
+              ? children.map((c) => (typeof c === "string" ? c : "")).join("")
+              : typeof children === "string"
+                ? children
+                : "";
+            if (
+              href &&
+              /^https?:\/\//i.test(href) &&
+              (childText === href || childText === href.replace(/^https?:\/\//i, ""))
+            ) {
+              return <LinkPreviewCard href={href} />;
             }
             return (
               <a
