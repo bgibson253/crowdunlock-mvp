@@ -18,7 +18,7 @@ export async function GET(
   await supabase.rpc("increment_referral_clicks", { p_code: code });
 
   // Redirect to auth page with ref param
-  const url = new URL("/auth", process.env.NEXT_PUBLIC_APP_URL || "https://crowdunlock-mvp.vercel.app");
+  const url = new URL("/auth", process.env.NEXT_PUBLIC_APP_URL || "https://unmaskr.org");
   url.searchParams.set("ref", code);
   
   return NextResponse.redirect(url.toString());

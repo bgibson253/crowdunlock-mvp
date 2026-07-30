@@ -13,7 +13,10 @@ Last updated: 2026-06-11
 - 2026-06-11 X developer app "unmaskr" registered locally
 
 ## In Progress / Blocked
-- X posting: auth still returns 401 despite browser grant. User has callback + scopes set. Needs debug.
+- (none)
+
+## Resolved
+- 2026-07-30 X auth 401 fixed: default_app in ~/.xurl was "default" (empty client_id). Switched with `xurl auth default unmaskr` → /2/users/me returns Unmaskr_org OK.
 
 ## User Preferences
 - Do not mention waitlist repeatedly after it's been acknowledged as resolved/done

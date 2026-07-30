@@ -43,7 +43,7 @@ export async function generateMetadata({
       description,
       type: "article",
       siteName: "Unmaskr",
-      url: `https://crowdunlock-mvp.vercel.app/forum/${id}`,
+      url: `https://unmaskr.org/forum/${id}`,
     },
     twitter: {
       card: "summary_large_image",

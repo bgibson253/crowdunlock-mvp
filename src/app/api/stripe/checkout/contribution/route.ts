@@ -84,12 +84,13 @@ export async function POST(req: Request) {
     });
   }
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://unmaskr.org";
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
     line_items: lineItems,
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/browse?contributed=1`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/browse?canceled=1`,
+    success_url: `${appUrl}/uploads/${uploadId}?contributed=1`,
+    cancel_url: `${appUrl}/uploads/${uploadId}?canceled=1`,
     metadata: {
       kind: "contribution",
       upload_id: uploadId,

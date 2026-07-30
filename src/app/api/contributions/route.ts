@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { envClient } from "@/lib/env";
+import { envClient, isTestMode } from "@/lib/env";
 import { supabaseServer } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -8,11 +8,16 @@ import { rateLimit } from "@/lib/rate-limit";
  * POST /api/contributions
  * Body: { upload_id: string, amount: number }
  *
- * Test-mode: inserts a contribution directly (no Stripe).
- * Production: would redirect to Stripe Checkout first.
+ * TEST MODE ONLY: inserts a contribution directly (no Stripe).
+ * In production this endpoint is disabled — real contributions go
+ * through /api/stripe/checkout/contribution + webhook.
  */
 export async function POST(req: NextRequest) {
   try {
+    // Hard gate: free direct contributions are for QA only.
+    if (!isTestMode()) {
+      return NextResponse.json({ error: "Not available" }, { status: 404 });
+    }
     // Auth via cookie-based session (not spoofable Authorization header)
     const supabase = await supabaseServer();
     const { data: { user }, error: authErr } = await supabase.auth.getUser();

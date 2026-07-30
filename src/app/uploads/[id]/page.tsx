@@ -57,7 +57,7 @@ export async function generateMetadata({
       description,
       type: "article",
       siteName: "Unmaskr",
-      url: `https://crowdunlock-mvp.vercel.app/uploads/${id}`,
+      url: `https://unmaskr.org/uploads/${id}`,
     },
     twitter: {
       card: "summary_large_image",
@@ -69,10 +69,13 @@ export async function generateMetadata({
 
 export default async function UploadDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ contributed?: string; canceled?: string }>;
 }) {
   const { id } = await params;
+  const sp = await searchParams;
 
   const supabase = await supabaseServer();
 
@@ -152,6 +155,18 @@ export default async function UploadDetailPage({
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      {/* Post-checkout feedback */}
+      {sp.contributed === "1" && (
+        <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400" role="status">
+          🎉 Thank you for contributing! Your payment is processing — the funding bar will update shortly.
+        </div>
+      )}
+      {sp.canceled === "1" && (
+        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400" role="status">
+          Checkout canceled. No charge was made — you can contribute anytime.
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{u.title}</h1>
@@ -250,6 +265,7 @@ export default async function UploadDetailPage({
           currentFunded={u.current_funded ?? 0}
           fundingGoal={u.funding_goal ?? 500}
           unlocked={u.status === "unlocked"}
+          testMode={testMode}
         />
 
         <div className="flex items-center gap-2">

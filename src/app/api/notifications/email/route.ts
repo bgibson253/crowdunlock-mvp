@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabase = createClient(supabaseUrl, serviceKey!);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://crowdunlock-mvp.vercel.app";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://unmaskr.org";
 
   const results: { userId: string; sent: boolean; reason?: string }[] = [];
 

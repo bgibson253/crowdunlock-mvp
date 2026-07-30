@@ -15,11 +15,13 @@ export function ContributeCard({
   currentFunded,
   fundingGoal,
   unlocked = false,
+  testMode = false,
 }: {
   uploadId: string;
   currentFunded: number;
   fundingGoal: number;
   unlocked?: boolean;
+  testMode?: boolean;
 }) {
   const router = useRouter();
   const [amount, setAmount] = useState<number | "">(10);
@@ -43,26 +45,42 @@ export function ContributeCard({
         return;
       }
 
-      const res = await fetch("/api/contributions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ upload_id: uploadId, amount }),
-      });
+      if (testMode) {
+        // QA path: record contribution directly, no payment
+        const res = await fetch("/api/contributions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ upload_id: uploadId, amount }),
+        });
 
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error ?? "Failed to contribute");
-        return;
+        const json = await res.json();
+        if (!res.ok) {
+          setError(json.error ?? "Failed to contribute");
+          return;
+        }
+
+        setSuccess(true);
+        setTimeout(() => {
+          router.refresh();
+          setSuccess(false);
+        }, 1500);
+      } else {
+        // Production path: Stripe Checkout
+        const res = await fetch("/api/stripe/checkout/contribution", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ upload_id: uploadId, amount }),
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.url) {
+          setError(json.error ?? "Failed to start checkout");
+          return;
+        }
+
+        window.location.href = json.url;
+        return; // keep spinner until redirect
       }
-
-      setSuccess(true);
-      setTimeout(() => {
-        router.refresh();
-        setSuccess(false);
-      }, 1500);
     } catch (err: any) {
       setError(err?.message ?? "Network error");
     } finally {

@@ -50,11 +50,11 @@ function digestEmailHtml(
         Hey ${displayName}, you have ${totalCount} unread notification${totalCount > 1 ? "s" : ""}.
       </p>
       ${itemsHtml}
-      <a href="https://crowdunlock-mvp.vercel.app/forum/notifications" class="btn">View All Notifications</a>
+      <a href="https://unmaskr.org/forum/notifications" class="btn">View All Notifications</a>
     </div>
     <div class="footer">
-      <p>You received this because you have digest notifications enabled on <a href="https://crowdunlock-mvp.vercel.app">Unmaskr</a>.</p>
-      <p><a href="https://crowdunlock-mvp.vercel.app/profile/settings">Change notification preferences</a></p>
+      <p>You received this because you have digest notifications enabled on <a href="https://unmaskr.org">Unmaskr</a>.</p>
+      <p><a href="https://unmaskr.org/profile/settings">Change notification preferences</a></p>
     </div>
   </div>
 </body>

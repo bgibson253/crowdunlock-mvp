@@ -16,7 +16,7 @@ export async function GET() {
     .order("published_at", { ascending: false })
     .limit(50);
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://crowdunlock-mvp.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://unmaskr.org";
 
   const items = (posts ?? [])
     .map((p) => {

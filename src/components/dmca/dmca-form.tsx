@@ -118,7 +118,7 @@ export function DmcaForm() {
               id="infringing_url"
               name="infringing_url"
               type="url"
-              placeholder="https://crowdunlock-mvp.vercel.app/uploads/..."
+              placeholder="https://unmaskr.org/uploads/..."
               required
             />
           </div>

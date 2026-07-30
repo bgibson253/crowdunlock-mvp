@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     for (const uid of enabledUserIds) {
       const { data: authUser } = await admin.auth.admin.getUserById(uid);
       if (authUser?.user?.email) {
-        const uploadUrl = `https://crowdunlock-mvp.vercel.app/uploads/${upload_id}`;
+        const uploadUrl = `https://unmaskr.org/uploads/${upload_id}`;
         const html = updateEmailHtml(upload.title, title, uploadUrl);
         await sendEmail({
           to: authUser.user.email,
@@ -125,8 +125,8 @@ function updateEmailHtml(uploadTitle: string, updateTitle: string, uploadUrl: st
       <a href="${uploadUrl}" class="btn">View Update</a>
     </div>
     <div class="footer">
-      <p>You received this because you contributed to this upload on <a href="https://crowdunlock-mvp.vercel.app">Unmaskr</a>.</p>
-      <p><a href="https://crowdunlock-mvp.vercel.app/profile/settings">Manage notification preferences</a></p>
+      <p>You received this because you contributed to this upload on <a href="https://unmaskr.org">Unmaskr</a>.</p>
+      <p><a href="https://unmaskr.org/profile/settings">Manage notification preferences</a></p>
     </div>
   </div>
 </body>

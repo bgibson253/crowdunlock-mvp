@@ -32,7 +32,7 @@ export function ShareButtons({
 
   const fullUrl = typeof window !== "undefined"
     ? `${window.location.origin}${url}`
-    : `https://crowdunlock-mvp.vercel.app${url}`;
+    : `https://unmaskr.org${url}`;
 
   const encodedUrl = encodeURIComponent(fullUrl);
   const encodedTitle = encodeURIComponent(title);
