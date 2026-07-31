@@ -52,6 +52,7 @@ function TrustBadge({ level }: { level: number }) {
 export function AuthorCard({
   author,
   compact = false,
+  anonymous = false,
 }: {
   author: null | {
     id: string;
@@ -66,7 +67,32 @@ export function AuthorCard({
     unlock_tier_icon?: string | null;
   };
   compact?: boolean;
+  anonymous?: boolean;
 }) {
+  if (anonymous) {
+    if (compact) {
+      return (
+        <div className="flex flex-col items-center gap-0.5 text-center">
+          <Avatar className="h-6 w-6 ring-1 ring-border/50">
+            <AvatarFallback className="text-[9px] bg-muted">?</AvatarFallback>
+          </Avatar>
+          <span className="text-[10px] font-medium text-muted-foreground">Anonymous</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10 ring-2 ring-border/50">
+          <AvatarFallback className="bg-muted">?</AvatarFallback>
+        </Avatar>
+        <div className="text-sm">
+          <div className="font-semibold">Anonymous</div>
+          <div className="text-xs text-muted-foreground">Identity hidden by choice</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!author) {
     if (compact) {
       return (

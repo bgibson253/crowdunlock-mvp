@@ -109,6 +109,18 @@ export async function POST(req: NextRequest) {
 
     await supabaseAdmin.from("uploads").update(updates).eq("id", upload_id);
 
+    // Public contribution ticker event (test-mode path)
+    try {
+      const goalCents = upload.funding_goal ?? 0;
+      const { data: titleRow } = await supabaseAdmin.from("uploads").select("title").eq("id", upload_id).maybeSingle();
+      await supabaseAdmin.from("contribution_events").insert({
+        upload_id,
+        upload_title: titleRow?.title ?? "an upload",
+        amount_cents: amountCents,
+        pct_funded: goalCents > 0 ? Math.min(100, Math.round((newFunded / goalCents) * 100)) : 0,
+      });
+    } catch { /* cosmetic */ }
+
     // Check achievements for the contributor
     supabaseAdmin.rpc("check_achievements", { p_user_id: user.id }).then(() => {});
 

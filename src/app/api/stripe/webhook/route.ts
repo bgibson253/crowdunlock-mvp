@@ -226,6 +226,19 @@ export async function POST(req: Request) {
         const { error: updErr } = await supabase.from("uploads").update(updates).eq("id", uploadId);
         if (updErr) throw new Error(updErr.message);
 
+        // Public contribution ticker event (no contributor identity)
+        try {
+          const goalCents = upload.funding_goal ?? 0;
+          await supabase.from("contribution_events").insert({
+            upload_id: uploadId,
+            upload_title: (await supabase.from("uploads").select("title").eq("id", uploadId).maybeSingle()).data?.title ?? "an upload",
+            amount_cents: amount,
+            pct_funded: goalCents > 0 ? Math.min(100, Math.round((newFunded / goalCents) * 100)) : 0,
+          });
+        } catch {
+          // ticker is cosmetic — never fail the webhook
+        }
+
         // Notify watchlisters that this upload got backed (best-effort,
         // throttled: at most one email per watcher per upload per 6h).
         try {

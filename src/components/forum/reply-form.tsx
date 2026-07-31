@@ -22,6 +22,7 @@ export function ReplyForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [trustLevel, setTrustLevel] = useState(0);
+  const [postAnonymously, setPostAnonymously] = useState(false);
 
   // Update body when initialBody changes (for quote)
   useEffect(() => {
@@ -73,7 +74,7 @@ export function ReplyForm({
 
       const { data: replyData, error: insertErr } = await supabase
         .from("forum_replies")
-        .insert({ thread_id: threadId, body })
+        .insert({ thread_id: threadId, body, is_anonymous: postAnonymously })
         .select("id")
         .single();
 
@@ -114,9 +115,20 @@ export function ReplyForm({
             authorTrustLevel={trustLevel}
           />
           {error && <div className="text-sm text-destructive">{error}</div>}
-          <Button type="submit" disabled={!body || submitting}>
-            {submitting ? "Posting…" : "Post reply"}
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={!body || submitting}>
+              {submitting ? "Posting…" : "Post reply"}
+            </Button>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={postAnonymously}
+                onChange={(e) => setPostAnonymously(e.target.checked)}
+                className="h-4 w-4 accent-[var(--primary)]"
+              />
+              Post as <span className="font-medium text-foreground">Anonymous</span>
+            </label>
+          </div>
         </form>
       </CardContent>
     </Card>

@@ -30,6 +30,7 @@ export function NewThreadForm({
   const [sectionId, setSectionId] = useState<string | null>(defaultSectionId ?? null);
   const [sections, setSections] = useState<Section[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [postAnonymously, setPostAnonymously] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [trustLevel, setTrustLevel] = useState(0);
 
@@ -100,6 +101,7 @@ export function NewThreadForm({
           body,
           section_id: sectionId,
           author_id: auth.user.id,
+          is_anonymous: postAnonymously,
         })
         .select("id")
         .single();
@@ -165,6 +167,20 @@ export function NewThreadForm({
             />
           </div>
           {error && <div className="text-sm text-destructive">{error}</div>}
+          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5">
+            <input
+              type="checkbox"
+              checked={postAnonymously}
+              onChange={(e) => setPostAnonymously(e.target.checked)}
+              className="h-4 w-4 accent-[var(--primary)]"
+            />
+            <span className="text-sm">
+              Post as <span className="font-semibold">Anonymous</span>
+              <span className="block text-xs text-muted-foreground">
+                Your name and badges stay hidden on this thread. You still earn points, achievements, and perks.
+              </span>
+            </span>
+          </label>
           <Button type="submit" disabled={submitting || !title || !body || !sectionId}>
             {submitting ? "Creating…" : "Create"}
           </Button>

@@ -246,7 +246,7 @@ function ReplyCard({
               <div className="grid gap-1.5 md:grid-cols-[120px_1fr]">
                 {/* Mobile: compact horizontal author row */}
                 <div className="md:hidden flex items-center gap-2 pb-1 border-b mb-1 flex-wrap">
-                  {reply.author_id ? (
+                  {reply.author_id && !(reply as any).is_anonymous ? (
                     <a href={`/profile/${reply.author_id}`} className="flex items-center gap-1.5 hover:underline">
                       <Avatar className="h-5 w-5">
                         {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
@@ -257,9 +257,9 @@ function ReplyCard({
                   ) : (
                     <div className="flex items-center gap-1.5">
                       <Avatar className="h-5 w-5">
-                        <AvatarFallback className="text-[8px]">A</AvatarFallback>
+                        <AvatarFallback className="text-[8px]">{(reply as any).is_anonymous ? "?" : "A"}</AvatarFallback>
                       </Avatar>
-                      <span className="text-[10px] font-medium">Administrator</span>
+                      <span className="text-[10px] font-medium">{(reply as any).is_anonymous ? "Anonymous" : "Administrator"}</span>
                     </div>
                   )}
                   <span className={`inline-flex items-center rounded-md border px-1 py-0 text-[9px] font-semibold leading-tight whitespace-nowrap ${
@@ -285,7 +285,7 @@ function ReplyCard({
 
                 {/* Desktop: vertical sidebar */}
                 <div className="hidden md:flex md:flex-col md:items-center md:gap-1 md:border-r md:pr-1.5 w-[110px]">
-                  {reply.author_id ? (
+                  {reply.author_id && !(reply as any).is_anonymous ? (
                     <a href={`/profile/${reply.author_id}`} className="flex flex-col items-center gap-0.5 text-center hover:underline">
                       <Avatar className="h-7 w-7">
                         {reply.author_avatar_url ? <AvatarImage src={reply.author_avatar_url} alt={reply.author_name} /> : null}
@@ -296,9 +296,9 @@ function ReplyCard({
                   ) : (
                     <div className="flex flex-col items-center gap-0.5 text-center">
                       <Avatar className="h-7 w-7">
-                        <AvatarFallback className="text-[9px]">A</AvatarFallback>
+                        <AvatarFallback className="text-[9px]">{(reply as any).is_anonymous ? "?" : "A"}</AvatarFallback>
                       </Avatar>
-                      <span className="text-[10px] font-medium">Administrator</span>
+                      <span className="text-[10px] font-medium">{(reply as any).is_anonymous ? "Anonymous" : "Administrator"}</span>
                     </div>
                   )}
 
@@ -642,7 +642,7 @@ export function ThreadedReplies({
     const supabase = supabaseBrowser();
     const { data } = await supabase
       .from("forum_replies")
-      .select("id, body, author_id, created_at, edited_at, parent_reply_id, deleted_at")
+      .select("id, body, author_id, created_at, edited_at, parent_reply_id, deleted_at, is_anonymous")
       .eq("thread_id", threadId)
       .order("created_at", { ascending: true });
 
@@ -655,19 +655,25 @@ export function ThreadedReplies({
     router.refresh();
   }
 
-  const repliesWithNames = replyData.map((r) => ({
-    ...r,
-    deleted_at: (r as any).deleted_at ?? null,
-    edited_at: (r as any).edited_at ?? null,
-    author_name: authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
-    author_trust_level: authorTrustLevels[r.author_id] ?? 0,
-    author_avatar_url: authorProfiles[r.author_id]?.avatar_url ?? null,
-    author_post_count: authorProfiles[r.author_id]?.post_count ?? 0,
-    author_total_points: authorProfiles[r.author_id]?.total_points ?? 0,
-    author_current_streak: authorProfiles[r.author_id]?.current_streak ?? 0,
-    author_unlock_tier_label: authorProfiles[r.author_id]?.unlock_tier_label ?? null,
-    author_unlock_tier_icon: authorProfiles[r.author_id]?.unlock_tier_icon ?? null,
-  }));
+  const repliesWithNames = replyData.map((r) => {
+    const anon = !!(r as any).is_anonymous;
+    return {
+      ...r,
+      deleted_at: (r as any).deleted_at ?? null,
+      edited_at: (r as any).edited_at ?? null,
+      is_anonymous: anon,
+      // Anonymous: hide identity + earned flair at render; author keeps
+      // their perks account-side (author_id is untouched in the DB).
+      author_name: anon ? "Anonymous" : authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
+      author_trust_level: anon ? 0 : authorTrustLevels[r.author_id] ?? 0,
+      author_avatar_url: anon ? null : authorProfiles[r.author_id]?.avatar_url ?? null,
+      author_post_count: anon ? 0 : authorProfiles[r.author_id]?.post_count ?? 0,
+      author_total_points: anon ? 0 : authorProfiles[r.author_id]?.total_points ?? 0,
+      author_current_streak: anon ? 0 : authorProfiles[r.author_id]?.current_streak ?? 0,
+      author_unlock_tier_label: anon ? null : authorProfiles[r.author_id]?.unlock_tier_label ?? null,
+      author_unlock_tier_icon: anon ? null : authorProfiles[r.author_id]?.unlock_tier_icon ?? null,
+    };
+  });
 
   const tree = buildTree(repliesWithNames);
 

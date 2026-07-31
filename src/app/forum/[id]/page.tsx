@@ -90,7 +90,7 @@ export default async function ForumThreadPage({
 
   const { data: thread, error: threadErr } = await supabase
     .from("forum_threads")
-    .select("id,title,body,created_at,edited_at,author_id,section_id,view_count,locked,pinned,deleted_at,solution_reply_id")
+    .select("id,title,body,created_at,edited_at,author_id,section_id,view_count,locked,pinned,deleted_at,solution_reply_id,is_anonymous")
     .eq("id", id)
     .maybeSingle();
 
@@ -110,13 +110,14 @@ export default async function ForumThreadPage({
 
   const { data: replies, error: repliesErr } = await supabase
     .from("forum_replies")
-    .select("id,body,created_at,edited_at,author_id,parent_reply_id,deleted_at")
+    .select("id,body,created_at,edited_at,author_id,parent_reply_id,deleted_at,is_anonymous")
     .eq("thread_id", id)
     .order("created_at", { ascending: true });
 
   if (repliesErr) throw new Error(repliesErr.message);
 
-  const threadAuthor = await getAuthorProfile(supabase, thread.author_id);
+  const threadAuthor = thread.is_anonymous ? null : await getAuthorProfile(supabase, thread.author_id);
+  const threadIsAnon = !!thread.is_anonymous;
 
   // Build profile map for replies
   const replyAuthorIds = Array.from(
@@ -298,7 +299,7 @@ export default async function ForumThreadPage({
           <CardContent className="grid gap-2 md:grid-cols-[120px_1fr]">
             {/* Mobile: horizontal author row */}
             <div className="md:hidden flex items-center gap-2 pb-2 border-b mb-2">
-              <AuthorCard author={threadAuthor} compact />
+              <AuthorCard author={threadAuthor} compact anonymous={threadIsAnon} />
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                 <span>{relativeTime(thread.created_at)}</span>
                 {thread.edited_at && (
@@ -312,7 +313,7 @@ export default async function ForumThreadPage({
             </div>
             {/* Desktop: sidebar */}
             <div className="hidden md:block md:border-r md:pr-1.5">
-              <AuthorCard author={threadAuthor} compact />
+              <AuthorCard author={threadAuthor} compact anonymous={threadIsAnon} />
               <div className="text-center text-[9px] text-muted-foreground leading-none mt-0.5">
                 {relativeTime(thread.created_at)}
               </div>

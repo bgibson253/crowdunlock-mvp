@@ -7,6 +7,7 @@ import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import { TestModeBanner } from "@/components/site/test-mode-banner";
 import { ClientShell } from "@/components/site/client-shell";
+import { ContributionTicker } from "@/components/site/contribution-ticker";
 import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 
 const inter = Inter({
@@ -72,6 +73,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <ClientShell />
+        <ContributionTicker />
         <PresenceHeartbeat />
         <script
           dangerouslySetInnerHTML={{
