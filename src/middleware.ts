@@ -23,6 +23,26 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Referral attribution: any landing URL with ?ref=<code> sets a 30-day
+  // cookie so signup can credit the sharer even days later. Click counting
+  // happens once per cookie-set (not per pageview).
+  const refParam = request.nextUrl.searchParams.get("ref");
+  if (refParam && /^[a-z0-9]{4,16}$/i.test(refParam)) {
+    const existing = request.cookies.get("unmaskr_ref")?.value;
+    if (existing !== refParam) {
+      response.cookies.set("unmaskr_ref", refParam, {
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+        sameSite: "lax",
+      });
+      // Fire-and-forget click count
+      supabase.rpc("increment_referral_clicks", { p_code: refParam }).then(
+        () => {},
+        () => {},
+      );
+    }
+  }
+
   // Update last_seen_at (throttled to every 5 minutes via cookie)
   if (user) {
     // Check if user needs onboarding (throttled by cookie)

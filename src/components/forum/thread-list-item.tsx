@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, MessageSquare, Lock, Pin, CheckCircle2 } from "lucide-react";
+import { Eye, MessageSquare, Lock, Pin, CheckCircle2, Share2 } from "lucide-react";
 import { relativeTime } from "@/lib/relative-time";
 import { QuickShare } from "@/components/forum/quick-share";
 
@@ -9,6 +9,7 @@ export function ThreadListItem({
   createdAt,
   viewCount = 0,
   replyCount = 0,
+  shareCount = 0,
   locked = false,
   pinned = false,
   deleted = false,
@@ -19,6 +20,7 @@ export function ThreadListItem({
   createdAt: string;
   viewCount?: number;
   replyCount?: number;
+  shareCount?: number;
   locked?: boolean;
   pinned?: boolean;
   deleted?: boolean;
@@ -64,11 +66,18 @@ export function ThreadListItem({
                 <MessageSquare className="h-3 w-3 opacity-60" />
                 {replyCount}
               </span>
+              {shareCount > 0 && (
+                <span className="inline-flex items-center gap-1" title={`Shared ${shareCount} time${shareCount === 1 ? "" : "s"}`}>
+                  <Share2 className="h-3 w-3 opacity-60" />
+                  {shareCount}
+                </span>
+              )}
             </div>
           </div>
           <QuickShare
             url={`/forum/${id}`}
             title={title}
+            threadId={id}
             compact
             className="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
           />

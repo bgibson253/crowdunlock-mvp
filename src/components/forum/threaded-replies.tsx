@@ -398,7 +398,17 @@ function ReplyCard({
                         )}
                         <button
                           onClick={async () => {
-                            const url = `${window.location.origin}/forum/${threadId}#reply-${reply.id}`;
+                            let url = `${window.location.origin}/forum/${threadId}#reply-${reply.id}`;
+                            // Count share + attach referral attribution (best-effort)
+                            try {
+                              const res = await fetch(`/api/forum/threads/${threadId}/share`, { method: "POST" });
+                              const json = await res.json().catch(() => null);
+                              if (json?.ref) {
+                                const u = new URL(url);
+                                u.searchParams.set("ref", json.ref);
+                                url = u.toString();
+                              }
+                            } catch { /* plain link */ }
                             if (typeof navigator.share === "function") {
                               try { await navigator.share({ title: "Unmaskr discussion", url }); return; } catch { /* fall through */ }
                             }

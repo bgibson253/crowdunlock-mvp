@@ -8,15 +8,21 @@ import { toast } from "sonner";
  * One-click share. Mobile: opens the native share sheet (X/WhatsApp/SMS/etc.
  * in a single tap). Desktop: copies the link instantly with a toast.
  * Safe inside <Link> cards — stops propagation so it never navigates.
+ *
+ * When threadId is provided, the share is counted (share_count) and — if the
+ * sharer is logged in — the link carries their ?ref=<code> so signups they
+ * bring get attributed to them (referral cookie set by middleware).
  */
 export function QuickShare({
   url,
   title,
+  threadId,
   compact = false,
   className = "",
 }: {
   url: string; // path like /forum/abc or absolute
   title: string;
+  threadId?: string;
   compact?: boolean;
   className?: string;
 }) {
@@ -26,9 +32,24 @@ export function QuickShare({
     e.preventDefault();
     e.stopPropagation();
 
-    const fullUrl = url.startsWith("http")
+    let fullUrl = url.startsWith("http")
       ? url
       : `${window.location.origin}${url}`;
+
+    // Count share + get attribution code (best-effort, must not block UX)
+    if (threadId) {
+      try {
+        const res = await fetch(`/api/forum/threads/${threadId}/share`, { method: "POST" });
+        const json = await res.json().catch(() => null);
+        if (json?.ref) {
+          const u = new URL(fullUrl);
+          u.searchParams.set("ref", json.ref);
+          fullUrl = u.toString();
+        }
+      } catch {
+        // network hiccup — share the plain link
+      }
+    }
 
     if (typeof navigator.share === "function") {
       try {

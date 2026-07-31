@@ -6,7 +6,20 @@ import { Button } from "@/components/ui/button";
 
 export function ShareButton({ threadId, title }: { threadId: string; title: string }) {
   async function handleShare() {
-    const url = `${window.location.origin}/forum/${threadId}`;
+    let url = `${window.location.origin}/forum/${threadId}`;
+
+    // Count the share + get referral attribution (best-effort)
+    try {
+      const res = await fetch(`/api/forum/threads/${threadId}/share`, { method: "POST" });
+      const json = await res.json().catch(() => null);
+      if (json?.ref) {
+        const u = new URL(url);
+        u.searchParams.set("ref", json.ref);
+        url = u.toString();
+      }
+    } catch {
+      // plain link
+    }
 
     // Try native share API first (mobile)
     if (typeof navigator.share === "function") {

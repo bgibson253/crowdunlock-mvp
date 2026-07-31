@@ -1,10 +1,14 @@
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { AuthForm } from "@/components/auth/auth-form";
 
-function AuthPageInner({ searchParams }: { searchParams: { redirect?: string; ref?: string } }) {
-  const redirectTo = searchParams.redirect || "/browse";
-  const refCode = searchParams.ref || undefined;
-
+function AuthPageInner({
+  redirectTo,
+  refCode,
+}: {
+  redirectTo: string;
+  refCode?: string;
+}) {
   return (
     <main className="relative isolate min-h-[80vh] flex items-center justify-center px-4">
       {/* Background glow */}
@@ -36,9 +40,15 @@ export default async function AuthPage({
   searchParams: Promise<{ redirect?: string; ref?: string }>;
 }) {
   const sp = await searchParams;
+  // Referral attribution: explicit ?ref= wins; otherwise fall back to the
+  // 30-day cookie set by middleware when they first landed on a shared link.
+  const cookieStore = await cookies();
+  const cookieRef = cookieStore.get("unmaskr_ref")?.value;
+  const refCode = sp.ref || cookieRef || undefined;
+
   return (
     <Suspense>
-      <AuthPageInner searchParams={sp} />
+      <AuthPageInner redirectTo={sp.redirect || "/browse"} refCode={refCode} />
     </Suspense>
   );
 }

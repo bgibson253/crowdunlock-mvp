@@ -43,7 +43,7 @@ export default async function ForumSectionPage({
 
   let query = supabase
     .from("forum_threads")
-    .select("id,title,created_at,view_count,locked,pinned,deleted_at,last_activity_at,author_id", { count: "exact" })
+    .select("id,title,created_at,view_count,share_count,locked,pinned,deleted_at,last_activity_at,author_id", { count: "exact" })
     .eq("section_id", sectionId)
     .order("pinned", { ascending: false });
 
@@ -194,6 +194,7 @@ export default async function ForumSectionPage({
               createdAt={t.last_activity_at || t.created_at}
               viewCount={t.view_count ?? 0}
               replyCount={replyCounts[t.id] ?? 0}
+              shareCount={t.share_count ?? 0}
               locked={t.locked ?? false}
               pinned={t.pinned ?? false}
               deleted={!!t.deleted_at}
