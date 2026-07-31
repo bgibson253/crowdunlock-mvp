@@ -339,7 +339,7 @@ export default async function HomePage() {
                   },
                   {
                     action: "approved",
-                    content: "Upload: Leaked internal memo (verified format)",
+                    content: "Upload: Public-records request results (verified format)",
                     confidence: "95%",
                     color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
                   },

@@ -8,7 +8,20 @@ import { NotificationBell } from "@/components/forum/notification-bell";
 import { EngagedRail } from "@/components/forum/engaged-rail";
 import { PopularRail } from "@/components/forum/popular-rail";
 import { TrendingSidebar } from "@/components/engagement/trending-sidebar";
-import { MessageSquare, Users, Zap, Radio } from "lucide-react";
+import {
+  MessageSquare,
+  Users,
+  Zap,
+  Newspaper,
+  Database,
+  Video,
+  FileText,
+  Image as ImageIcon,
+  Package,
+  Hand,
+  Sparkles,
+  ChevronRight,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +39,25 @@ type SectionRow = {
   replies_count: number;
 };
 
+/* Per-section identity: icon + accent so sections read at a glance. */
+const SECTION_META: Record<string, { icon: any; accent: string; iconBg: string }> = {
+  general: { icon: MessageSquare, accent: "group-hover:border-slate-400/40", iconBg: "bg-slate-500/10 text-slate-300" },
+  introduce_yourself: { icon: Hand, accent: "group-hover:border-sky-400/40", iconBg: "bg-sky-500/10 text-sky-300" },
+  recommendations: { icon: Sparkles, accent: "group-hover:border-fuchsia-400/40", iconBg: "bg-fuchsia-500/10 text-fuchsia-300" },
+  request_story: { icon: Newspaper, accent: "group-hover:border-primary/50", iconBg: "bg-primary/10 text-primary" },
+  request_data: { icon: Database, accent: "group-hover:border-cyan-400/40", iconBg: "bg-cyan-500/10 text-cyan-300" },
+  request_video: { icon: Video, accent: "group-hover:border-rose-400/40", iconBg: "bg-rose-500/10 text-rose-300" },
+  request_document: { icon: FileText, accent: "group-hover:border-amber-400/40", iconBg: "bg-amber-500/10 text-amber-300" },
+  request_image: { icon: ImageIcon, accent: "group-hover:border-violet-400/40", iconBg: "bg-violet-500/10 text-violet-300" },
+  request_other: { icon: Package, accent: "group-hover:border-zinc-400/40", iconBg: "bg-zinc-500/10 text-zinc-300" },
+  listed_stories: { icon: Newspaper, accent: "group-hover:border-emerald-400/40", iconBg: "bg-emerald-500/10 text-emerald-300" },
+  listed_data: { icon: Database, accent: "group-hover:border-emerald-400/40", iconBg: "bg-emerald-500/10 text-emerald-300" },
+  listed_videos: { icon: Video, accent: "group-hover:border-emerald-400/40", iconBg: "bg-emerald-500/10 text-emerald-300" },
+  listed_documents: { icon: FileText, accent: "group-hover:border-emerald-400/40", iconBg: "bg-emerald-500/10 text-emerald-300" },
+  listed_images: { icon: ImageIcon, accent: "group-hover:border-emerald-400/40", iconBg: "bg-emerald-500/10 text-emerald-300" },
+  listed_other: { icon: Package, accent: "group-hover:border-emerald-400/40", iconBg: "bg-emerald-500/10 text-emerald-300" },
+};
+
 function SectionCard({
   id,
   name,
@@ -33,30 +65,44 @@ function SectionCard({
   threads_count,
   replies_count,
 }: SectionRow) {
+  const meta = SECTION_META[id] ?? SECTION_META.general;
+  const Icon = meta.icon;
+  const isEmpty = threads_count === 0;
+
   return (
     <Link href={`/forum/s/${encodeURIComponent(id)}`} className="block">
-      <div className="card-hover group relative rounded-xl border border-border/50 bg-card/50 p-4 backdrop-blur-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-              {name}
-            </h3>
-            {description && (
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
-                {description}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground shrink-0">
-            <div className="flex items-center gap-1.5">
-              <MessageSquare className="h-3.5 w-3.5 text-primary/50" />
-              <span className="tabular-nums font-medium">{threads_count}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-primary/50" />
-              <span className="tabular-nums font-medium">{replies_count}</span>
-            </div>
-          </div>
+      <div className={`card-hover group relative flex items-center gap-3.5 rounded-xl border border-border/50 bg-card/50 p-3.5 backdrop-blur-sm transition-colors ${meta.accent}`}>
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${meta.iconBg}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+            {name}
+          </h3>
+          {description && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {description}
+            </p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+          {isEmpty ? (
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">
+              Be first
+            </span>
+          ) : (
+            <>
+              <div className="flex items-center gap-1" title={`${threads_count} threads`}>
+                <MessageSquare className="h-3.5 w-3.5 opacity-50" />
+                <span className="tabular-nums font-medium">{threads_count}</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1" title={`${replies_count} replies`}>
+                <Users className="h-3.5 w-3.5 opacity-50" />
+                <span className="tabular-nums font-medium">{replies_count}</span>
+              </div>
+            </>
+          )}
+          <ChevronRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-60" />
         </div>
       </div>
     </Link>
@@ -65,23 +111,30 @@ function SectionCard({
 
 function CategoryHeader({
   title,
+  subtitle,
   icon: Icon,
   variant,
 }: {
   title: string;
+  subtitle?: string;
   icon: any;
   variant: "slate" | "indigo" | "emerald";
 }) {
-  const gradients: Record<string, string> = {
-    slate: "from-slate-600/80 to-slate-500/80",
-    indigo: "from-primary/80 to-primary/60",
-    emerald: "from-emerald-600/80 to-emerald-500/80",
+  const styles: Record<string, { text: string; line: string }> = {
+    slate: { text: "text-slate-300", line: "from-slate-500/50" },
+    indigo: { text: "text-primary", line: "from-primary/50" },
+    emerald: { text: "text-emerald-400", line: "from-emerald-500/50" },
   };
+  const s = styles[variant];
 
   return (
-    <div className={`flex items-center gap-2 rounded-lg bg-gradient-to-r ${gradients[variant]} px-4 py-2.5 backdrop-blur-sm`}>
-      <Icon className="h-4 w-4 text-white/80" />
-      <span className="text-xs font-bold uppercase tracking-wider text-white">{title}</span>
+    <div className="flex items-baseline gap-3 pt-1">
+      <div className={`flex items-center gap-2 ${s.text}`}>
+        <Icon className="h-4 w-4" />
+        <span className="text-xs font-bold uppercase tracking-wider">{title}</span>
+      </div>
+      {subtitle && <span className="text-[11px] text-muted-foreground">{subtitle}</span>}
+      <div className={`h-px flex-1 self-center bg-gradient-to-r ${s.line} to-transparent`} />
     </div>
   );
 }
@@ -202,7 +255,7 @@ export default async function ForumIndexPage() {
           <div className="space-y-6">
           {(general || introduce || recommendations) && (
             <div className="space-y-2">
-              <CategoryHeader title="General Discussion" icon={MessageSquare} variant="slate" />
+              <CategoryHeader title="Community" subtitle="Talk, meet, recommend" icon={MessageSquare} variant="slate" />
               <div className="space-y-1.5">
                 {general && <SectionCard {...general} />}
                 {introduce && <SectionCard {...introduce} />}
@@ -212,7 +265,7 @@ export default async function ForumIndexPage() {
           )}
 
           <div className="space-y-2">
-            <CategoryHeader title="Requested Items" icon={Zap} variant="indigo" />
+            <CategoryHeader title="Requests" subtitle="Ask for it — the crowd funds it" icon={Zap} variant="indigo" />
             <div className="space-y-1.5">
               {requested.map((s) => (
                 <SectionCard key={s.id} {...s} />
@@ -221,7 +274,7 @@ export default async function ForumIndexPage() {
           </div>
 
           <div className="space-y-2">
-            <CategoryHeader title="Listed Items" icon={Users} variant="emerald" />
+            <CategoryHeader title="Live Listings" subtitle="Uploads open for funding" icon={Users} variant="emerald" />
             <div className="space-y-1.5">
               {listed.map((s) => (
                 <SectionCard key={s.id} {...s} />

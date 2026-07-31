@@ -148,7 +148,7 @@ export function UploadDraftForm({ categories = [] }: { categories?: Category[] }
               <FormItem>
                 <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="A leaked memo, a deck, an analysis…" {...field} />
+                  <Input placeholder="A public-records set, a dataset, an analysis…" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
