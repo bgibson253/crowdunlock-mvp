@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Eye, MessageSquare, Lock, Pin, CheckCircle2 } from "lucide-react";
 import { relativeTime } from "@/lib/relative-time";
+import { QuickShare } from "@/components/forum/quick-share";
 
 export function ThreadListItem({
   id,
@@ -65,6 +66,12 @@ export function ThreadListItem({
               </span>
             </div>
           </div>
+          <QuickShare
+            url={`/forum/${id}`}
+            title={title}
+            compact
+            className="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+          />
         </div>
       </div>
     </Link>

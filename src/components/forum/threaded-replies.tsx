@@ -13,6 +13,7 @@ import {
   ArrowUpDown,
   CheckCircle2,
   Highlighter,
+  Share2,
 } from "lucide-react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -226,7 +227,7 @@ function ReplyCard({
 
   return (
     <div style={{ marginLeft: `${indent * 24}px` }}>
-      <div className="card-hover mt-1 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
+      <div id={`reply-${reply.id}`} className="card-hover mt-1 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm scroll-mt-24 target:border-primary/50 target:bg-primary/5">
         <div className="py-2 px-3">
           <div className="flex items-start gap-2">
             {reply.children.length > 0 && (
@@ -395,6 +396,24 @@ function ReplyCard({
                             </button>
                           </>
                         )}
+                        <button
+                          onClick={async () => {
+                            const url = `${window.location.origin}/forum/${threadId}#reply-${reply.id}`;
+                            if (typeof navigator.share === "function") {
+                              try { await navigator.share({ title: "Unmaskr discussion", url }); return; } catch { /* fall through */ }
+                            }
+                            try {
+                              await navigator.clipboard.writeText(url);
+                              toast.success("Reply link copied");
+                            } catch {
+                              toast.error("Couldn't copy link");
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+                        >
+                          <Share2 className="h-3 w-3" />
+                          Share
+                        </button>
                         {isAuthor && !isLocked && (
                           <>
                             <button
