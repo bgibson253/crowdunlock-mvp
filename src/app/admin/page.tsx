@@ -14,7 +14,6 @@ import {
   UserPlus,
   Flag,
   ShieldAlert,
-  BookOpen,
   ListChecks,
   ArrowRight,
 } from "lucide-react";
@@ -160,11 +159,6 @@ export default async function AdminDashboardPage() {
       label: "User Management",
       href: "/admin/users",
       icon: Users,
-    },
-    {
-      label: "Blog Management",
-      href: "/blog/new",
-      icon: BookOpen,
     },
     {
       label: "Moderation Queue",

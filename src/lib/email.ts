@@ -78,6 +78,24 @@ export function fullyFundedEmailHtml(uploadTitle: string, uploadUrl: string): st
   `);
 }
 
+export function watchlistContributionEmailHtml(
+  uploadTitle: string,
+  uploadUrl: string,
+  progressPct: number,
+  currentDollars: number,
+  goalDollars: number,
+): string {
+  return baseTemplate(`
+    <div class="card">
+      <h2>📈 "${uploadTitle}" just got backed</h2>
+      <p>An upload on your watchlist received a new contribution. It's now at
+      <strong>$${currentDollars} of $${goalDollars}</strong> (${progressPct}% funded).</p>
+      <p>Every contribution brings it closer to unlocking for everyone — including you.</p>
+      <a href="${uploadUrl}" class="btn">View Progress</a>
+    </div>
+  `);
+}
+
 export async function sendEmail({
   to,
   subject,

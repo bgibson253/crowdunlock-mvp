@@ -226,6 +226,19 @@ export async function POST(req: Request) {
         const { error: updErr } = await supabase.from("uploads").update(updates).eq("id", uploadId);
         if (updErr) throw new Error(updErr.message);
 
+        // Notify watchlisters that this upload got backed (best-effort,
+        // throttled: at most one email per watcher per upload per 6h).
+        try {
+          const { notifyWatchersOfContribution } = await import("@/lib/notify-watchers");
+          await notifyWatchersOfContribution(supabase, {
+            uploadId,
+            contributorUserId: userId,
+            newFundedCents: newFunded,
+          });
+        } catch {
+          // never fail the webhook over notification issues
+        }
+
         // Mint non-cash points for the payer based on platform fee.
         // Idempotency: ledger ref uses checkout session id.
         if (pointsMinted > 0) {

@@ -86,7 +86,7 @@ export default function PrivacyPage() {
           <ul className="list-disc list-outside ml-5 space-y-1">
             <li><strong>Account registration:</strong> Email address, username, and password (hashed; we never store plaintext passwords).</li>
             <li><strong>Profile details:</strong> Display name, avatar image, bio, location, and social-media links you choose to add.</li>
-            <li><strong>User-generated content:</strong> Forum threads, replies, reactions, blog posts, uploads, and related metadata.</li>
+            <li><strong>User-generated content:</strong> Forum threads, replies, reactions, uploads, and related metadata.</li>
             <li><strong>Direct messages:</strong> Messages sent via our DM feature are <strong>end-to-end encrypted</strong> (ECDH P-256&nbsp;+&nbsp;AES-256-GCM). We store only the ciphertext; we cannot read your messages.</li>
             <li><strong>Financial information:</strong> When you make a contribution, payment details are collected and processed directly by our payment processor (Stripe). We receive only a transaction identifier, the amount, and confirmation of success. We <em>never</em> see your full card number.</li>
             <li><strong>Communications with us:</strong> Content of emails, DMCA notices, or contact-form submissions you send to our team.</li>

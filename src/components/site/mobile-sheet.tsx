@@ -21,7 +21,6 @@ import {
   Bookmark,
   UserPlus,
   BarChart3,
-  BookOpen,
   Radio,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -137,7 +136,6 @@ export function MobileSheet({
             <NavLink href="/forum" icon={MessageSquare} label="Forum" onClick={close} />
             <NavLink href="/browse" icon={Compass} label="Browse Uploads" onClick={close} />
             <NavLink href="/leaderboards" icon={Trophy} label="Leaderboards" onClick={close} />
-            <NavLink href="/blog" icon={BookOpen} label="Blog" onClick={close} />
             <NavLink href="/forum/perks" icon={Trophy} label="Unlock Perks" onClick={close} />
           </div>
 
