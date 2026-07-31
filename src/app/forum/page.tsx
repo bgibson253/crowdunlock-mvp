@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchBar } from "@/components/forum/search-bar";
 import { NotificationBell } from "@/components/forum/notification-bell";
+import { EngagedRail } from "@/components/forum/engaged-rail";
+import { PopularRail } from "@/components/forum/popular-rail";
 import { TrendingSidebar } from "@/components/engagement/trending-sidebar";
 import { MessageSquare, Users, Zap, Radio } from "lucide-react";
 
@@ -160,7 +162,7 @@ export default async function ForumIndexPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mx-auto max-w-7xl px-4 py-10">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -178,7 +180,24 @@ export default async function ForumIndexPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid md:grid-cols-[1fr_280px] gap-8">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[260px_1fr_280px] md:grid-cols-[1fr_280px]">
+          {/* Left rail: your activity (desktop only) */}
+          <div className="hidden lg:block space-y-4">
+            {user ? (
+              <EngagedRail userId={user.id} />
+            ) : (
+              <div className="rounded-xl border border-border/30 bg-card/50 p-4 backdrop-blur-sm">
+                <h3 className="text-xs font-bold">Join the discussion</h3>
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                  Sign in to track threads you post in, favorite, or pledge to fund.
+                </p>
+                <Link href="/auth?redirect=%2Fforum" className="mt-3 inline-block text-xs font-medium text-primary hover:underline">
+                  Sign in →
+                </Link>
+              </div>
+            )}
+          </div>
+
           {/* Main sections column */}
           <div className="space-y-6">
           {(general || introduce || recommendations) && (
@@ -211,9 +230,10 @@ export default async function ForumIndexPage() {
           </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Right rail: what's hot */}
           <div className="hidden md:block space-y-4">
             <TrendingSidebar />
+            <PopularRail />
           </div>
         </div>
       </div>
