@@ -116,7 +116,9 @@ export default async function ForumThreadPage({
 
   if (repliesErr) throw new Error(repliesErr.message);
 
-  const threadAuthor = thread.is_anonymous ? null : await getAuthorProfile(supabase, thread.author_id);
+  // Always fetch the author profile — when the thread is anonymous the
+  // AuthorCard masks name/avatar/link but still shows earned stats.
+  const threadAuthor = await getAuthorProfile(supabase, thread.author_id);
   const threadIsAnon = !!thread.is_anonymous;
 
   // Build profile map for replies

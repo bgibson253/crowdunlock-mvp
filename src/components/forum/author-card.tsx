@@ -70,12 +70,13 @@ export function AuthorCard({
   anonymous?: boolean;
 }) {
   if (anonymous) {
-    // Name/avatar/profile link hidden; EARNED FLAIR STAYS (trust level +
-    // unlock tier are coarse buckets — safe). Precise stats (exact points,
-    // streak, post count) are hidden: unique numbers cross-referenced with
-    // leaderboards would unmask the author.
-    const anonTrust = author?.trust_level ?? null;
-    const anonTier = author?.unlock_tier_label ?? null;
+    // Anonymous masks ONLY identity: name, avatar, profile link.
+    // Everything earned — trust, tier, posts, points, streak — stays visible.
+    const aTrust = author?.trust_level ?? 0;
+    const aTier = author?.unlock_tier_label ?? null;
+    const aPosts = author?.post_count ?? 0;
+    const aPoints = author?.total_points ?? 0;
+    const aStreak = author?.current_streak ?? 0;
     if (compact) {
       return (
         <div className="w-[110px]">
@@ -86,8 +87,17 @@ export function AuthorCard({
             <span className="text-[11px] font-semibold leading-tight">Anonymous</span>
           </div>
           <div className="mt-1 flex flex-col items-center gap-1">
-            {anonTrust !== null && <TrustBadge level={anonTrust} />}
-            {anonTier && <TierBadge label={anonTier} icon="" />}
+            <TrustBadge level={aTrust} />
+            {aTier && <TierBadge label={aTier} icon="" />}
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[9px] text-muted-foreground leading-tight">
+              <span>{aPosts} posts</span>
+              {aPoints > 0 && <span>⭐ {aPoints.toLocaleString()}</span>}
+            </div>
+            {aStreak >= 2 && (
+              <span className="inline-flex items-center gap-0.5 text-[9px] text-orange-400 font-medium">
+                🔥 {aStreak}d streak
+              </span>
+            )}
           </div>
         </div>
       );
@@ -99,9 +109,13 @@ export function AuthorCard({
         </Avatar>
         <div className="text-sm">
           <div className="font-semibold">Anonymous</div>
-          <div className="mt-0.5 flex items-center gap-1.5">
-            {anonTrust !== null && <TrustBadge level={anonTrust} />}
-            {anonTier && <TierBadge label={anonTier} icon="" />}
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+            <TrustBadge level={aTrust} />
+            {aTier && <TierBadge label={aTier} icon="" />}
+          </div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            {aPosts} posts{aPoints > 0 && <> · ⭐ {aPoints.toLocaleString()}</>}
+            {aStreak >= 2 && <> · 🔥 {aStreak}d</>}
           </div>
         </div>
       </div>

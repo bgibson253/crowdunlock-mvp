@@ -662,17 +662,14 @@ export function ThreadedReplies({
       deleted_at: (r as any).deleted_at ?? null,
       edited_at: (r as any).edited_at ?? null,
       is_anonymous: anon,
-      // Anonymous: hide name/avatar/profile link. Earned flair (trust level,
-      // unlock tier badge) STAYS visible — those are coarse buckets shared by
-      // many users. Only precise stats (exact points, streak, post count) are
-      // hidden, because unique numbers can be cross-referenced against
-      // leaderboards/profiles to unmask the author.
+      // Anonymous masks ONLY identity: name, avatar, profile link.
+      // Everything earned — trust, tier, posts, points, streak — stays visible.
       author_name: anon ? "Anonymous" : authorNames[r.author_id] || (r.author_id ? "Anonymous" : "Administrator"),
       author_trust_level: authorTrustLevels[r.author_id] ?? 0,
       author_avatar_url: anon ? null : authorProfiles[r.author_id]?.avatar_url ?? null,
-      author_post_count: anon ? 0 : authorProfiles[r.author_id]?.post_count ?? 0,
-      author_total_points: anon ? 0 : authorProfiles[r.author_id]?.total_points ?? 0,
-      author_current_streak: anon ? 0 : authorProfiles[r.author_id]?.current_streak ?? 0,
+      author_post_count: authorProfiles[r.author_id]?.post_count ?? 0,
+      author_total_points: authorProfiles[r.author_id]?.total_points ?? 0,
+      author_current_streak: authorProfiles[r.author_id]?.current_streak ?? 0,
       author_unlock_tier_label: authorProfiles[r.author_id]?.unlock_tier_label ?? null,
       author_unlock_tier_icon: authorProfiles[r.author_id]?.unlock_tier_icon ?? null,
     };

@@ -177,7 +177,7 @@ export function NewThreadForm({
             <span className="text-sm">
               Post as <span className="font-semibold">Anonymous</span>
               <span className="block text-xs text-muted-foreground">
-                Your name and badges stay hidden on this thread. You still earn points, achievements, and perks.
+                Your name is hidden — your badges, points, and streak still show and still count.
               </span>
             </span>
           </label>
