@@ -32,6 +32,7 @@ interface ProfileInitial {
   avatar_url: string | null;
   banner_url: string | null;
   username_changed_at: string | null;
+  anonymous_on_leaderboards: boolean;
 }
 
 interface Verification {
@@ -72,6 +73,7 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
   /* ─── State ─── */
   const [bio, setBio] = React.useState(initial.bio);
   const [sigBio, setSigBio] = React.useState(initial.sig_bio);
+  const [anonLeaderboards, setAnonLeaderboards] = React.useState(initial.anonymous_on_leaderboards);
 
   const [socials, setSocials] = React.useState<Record<SocialKey, string>>({
     twitter: initial.twitter,
@@ -278,6 +280,7 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
         sig_reddit: verifications.reddit?.verified ? sigs.sig_reddit : false,
         avatar_url: nextAvatarUrl,
         banner_url: nextBannerUrl,
+        anonymous_on_leaderboards: anonLeaderboards,
       };
 
       if (showUsernameEdit && newUsername.trim() !== initial.username && usernameChange.allowed) {
@@ -412,6 +415,26 @@ export function ProfileSettingsForm({ initial }: { initial: ProfileInitial }) {
             placeholder="Tell people about yourself…"
             className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none" />
           <div className="text-[11px] text-muted-foreground text-right">{bio.length}/280</div>
+        </div>
+
+        {/* ─── Privacy ─── */}
+        <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 space-y-3">
+          <h2 className="text-sm font-bold">Privacy</h2>
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={anonLeaderboards}
+              onChange={(e) => setAnonLeaderboards(e.target.checked)}
+              className="accent-primary h-4 w-4 rounded mt-0.5"
+            />
+            <span className="text-sm">
+              Appear as <span className="font-semibold">Anonymous</span> on leaderboards
+              <span className="block text-xs text-muted-foreground mt-0.5">
+                You keep your rank and your stats still count — but your name, avatar, and profile
+                link are hidden from the public leaderboards.
+              </span>
+            </span>
+          </label>
         </div>
 
         {/* ─── Social Accounts ─── */}

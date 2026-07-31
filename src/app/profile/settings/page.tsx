@@ -21,7 +21,7 @@ export default async function ProfileSettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id,username,bio,twitter,instagram,tiktok,reddit,sig_bio,sig_twitter,sig_instagram,sig_tiktok,sig_reddit,avatar_url,banner_url,username_changed_at")
+    .select("id,username,bio,twitter,instagram,tiktok,reddit,sig_bio,sig_twitter,sig_instagram,sig_tiktok,sig_reddit,avatar_url,banner_url,username_changed_at,anonymous_on_leaderboards")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -57,6 +57,7 @@ export default async function ProfileSettingsPage() {
             avatar_url: p?.avatar_url ?? null,
             banner_url: p?.banner_url ?? null,
             username_changed_at: p?.username_changed_at ?? null,
+            anonymous_on_leaderboards: p?.anonymous_on_leaderboards ?? false,
           }}
         />
 

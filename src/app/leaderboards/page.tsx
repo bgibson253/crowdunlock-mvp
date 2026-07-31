@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 type LeaderEntry = {
-  user_id: string;
+  user_id: string | null;
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
@@ -60,27 +60,29 @@ function LeaderRow({
   statLabel: string;
   statValue: string;
 }) {
-  const name = entry.display_name ?? entry.username ?? "User";
-  return (
-    <Link
-      href={`/profile/${entry.user_id}`}
-      className="flex items-center gap-3 rounded-xl border border-border/30 bg-card/50 backdrop-blur-sm px-4 py-3 hover:border-primary/30 transition-colors"
-    >
+  const isAnon = !entry.user_id;
+  const name = isAnon ? "Anonymous" : entry.display_name ?? entry.username ?? "User";
+
+  const inner = (
+    <>
       <RankBadge rank={rank} />
 
       <Avatar className="h-10 w-10 shrink-0">
-        {entry.avatar_url ? (
+        {!isAnon && entry.avatar_url ? (
           <AvatarImage src={entry.avatar_url} alt={name} />
         ) : null}
-        <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
-          {name.slice(0, 1).toUpperCase()}
+        <AvatarFallback className={isAnon ? "bg-muted text-muted-foreground text-sm font-bold" : "bg-primary/10 text-primary text-sm font-bold"}>
+          {isAnon ? "?" : name.slice(0, 1).toUpperCase()}
         </AvatarFallback>
       </Avatar>
 
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-sm truncate">{name}</div>
-        {entry.username && entry.username !== name && (
+        {!isAnon && entry.username && entry.username !== name && (
           <div className="text-[11px] text-muted-foreground truncate">@{entry.username}</div>
+        )}
+        {isAnon && (
+          <div className="text-[11px] text-muted-foreground truncate">Prefers to stay masked</div>
         )}
       </div>
 
@@ -88,6 +90,19 @@ function LeaderRow({
         <div className="font-bold text-sm text-primary">{statValue}</div>
         <div className="text-[10px] text-muted-foreground">{statLabel}</div>
       </div>
+    </>
+  );
+
+  const rowClass =
+    "flex items-center gap-3 rounded-xl border border-border/30 bg-card/50 backdrop-blur-sm px-4 py-3";
+
+  if (isAnon) {
+    return <div className={rowClass}>{inner}</div>;
+  }
+
+  return (
+    <Link href={`/profile/${entry.user_id}`} className={`${rowClass} hover:border-primary/30 transition-colors`}>
+      {inner}
     </Link>
   );
 }
@@ -223,7 +238,7 @@ export default async function LeaderboardsPage({
             contributorData.length > 0 ? (
               contributorData.map((entry, i) => (
                 <LeaderRow
-                  key={entry.user_id}
+                  key={entry.user_id ?? `anon-${i}`}
                   entry={entry}
                   rank={i + 1}
                   statLabel="contributed"
@@ -239,7 +254,7 @@ export default async function LeaderboardsPage({
             creatorData.length > 0 ? (
               creatorData.map((entry, i) => (
                 <LeaderRow
-                  key={entry.user_id}
+                  key={entry.user_id ?? `anon-${i}`}
                   entry={entry}
                   rank={i + 1}
                   statLabel="funded"
@@ -255,7 +270,7 @@ export default async function LeaderboardsPage({
             activeData.length > 0 ? (
               activeData.map((entry, i) => (
                 <LeaderRow
-                  key={entry.user_id}
+                  key={entry.user_id ?? `anon-${i}`}
                   entry={entry}
                   rank={i + 1}
                   statLabel="posts"

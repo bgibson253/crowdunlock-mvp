@@ -70,13 +70,25 @@ export function AuthorCard({
   anonymous?: boolean;
 }) {
   if (anonymous) {
+    // Name/avatar/profile link hidden; EARNED FLAIR STAYS (trust level +
+    // unlock tier are coarse buckets — safe). Precise stats (exact points,
+    // streak, post count) are hidden: unique numbers cross-referenced with
+    // leaderboards would unmask the author.
+    const anonTrust = author?.trust_level ?? null;
+    const anonTier = author?.unlock_tier_label ?? null;
     if (compact) {
       return (
-        <div className="flex flex-col items-center gap-0.5 text-center">
-          <Avatar className="h-6 w-6 ring-1 ring-border/50">
-            <AvatarFallback className="text-[9px] bg-muted">?</AvatarFallback>
-          </Avatar>
-          <span className="text-[10px] font-medium text-muted-foreground">Anonymous</span>
+        <div className="w-[110px]">
+          <div className="flex flex-col items-center gap-0.5 text-center">
+            <Avatar className="h-8 w-8 ring-2 ring-border/50">
+              <AvatarFallback className="text-[9px] bg-muted font-bold">?</AvatarFallback>
+            </Avatar>
+            <span className="text-[11px] font-semibold leading-tight">Anonymous</span>
+          </div>
+          <div className="mt-1 flex flex-col items-center gap-1">
+            {anonTrust !== null && <TrustBadge level={anonTrust} />}
+            {anonTier && <TierBadge label={anonTier} icon="" />}
+          </div>
         </div>
       );
     }
@@ -87,7 +99,10 @@ export function AuthorCard({
         </Avatar>
         <div className="text-sm">
           <div className="font-semibold">Anonymous</div>
-          <div className="text-xs text-muted-foreground">Identity hidden by choice</div>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            {anonTrust !== null && <TrustBadge level={anonTrust} />}
+            {anonTier && <TierBadge label={anonTier} icon="" />}
+          </div>
         </div>
       </div>
     );
